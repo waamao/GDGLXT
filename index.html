@@ -9,6 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // 初始化 PDF.js worker（需在 DOMContentLoaded 之前設定）
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
         
@@ -143,6 +150,7 @@
         </div>
         <h1 id="appTitle" class="header-title"></h1>
         <div style="display: flex; gap: 4px; flex-shrink: 0;">
+            <button id="btnSiteInfo" onclick="navigateTo('siteInfo')" class="btn-slate">案場資訊</button>
             <button id="btnPunchTop" onclick="navigateTo('punch')" class="btn-slate">打卡</button>
             <button id="btnHomeManage" onclick="navigateTo('manage')" class="btn-slate">⚙️ 設定</button>
         </div>
@@ -251,18 +259,15 @@
                 </div>
                 <!-- 類型選擇 -->
                 <div class="card" style="padding: 10px 14px;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                        <div style="display:flex; gap:16px; align-items:center;">
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:bold;color:#374151;cursor:pointer;">
-                                <input type="radio" name="logTypeRadio" id="chkTypeLog" style="width:20px;height:20px;accent-color:#333333;flex-shrink:0;" checked onchange="syncLogTypeCheckboxes('log')">
-                                施工日誌
-                            </label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:bold;color:#374151;cursor:pointer;">
-                                <input type="radio" name="logTypeRadio" id="chkTypeNotes" style="width:20px;height:20px;accent-color:#333333;flex-shrink:0;" onchange="syncLogTypeCheckboxes('notes')">
-                                工地記事
-                            </label>
-                        </div>
-                        <button type="button" id="btnOpenCaseInfo" onclick="openCaseInfoPanel()" style="background-color:#374151; color:white; font-size:12px; font-weight:bold; padding:6px 14px; border-radius:8px; flex-shrink:0; white-space:nowrap;">案件資訊</button>
+                    <div style="display:flex; gap:16px; align-items:center;">
+                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:bold;color:#374151;cursor:pointer;">
+                            <input type="radio" name="logTypeRadio" id="chkTypeLog" style="width:20px;height:20px;accent-color:#333333;flex-shrink:0;" checked onchange="syncLogTypeCheckboxes('log')">
+                            施工日誌
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:bold;color:#374151;cursor:pointer;">
+                            <input type="radio" name="logTypeRadio" id="chkTypeNotes" style="width:20px;height:20px;accent-color:#333333;flex-shrink:0;" onchange="syncLogTypeCheckboxes('notes')">
+                            工地記事
+                        </label>
                     </div>
                 </div>
                 <!-- 施工日誌區塊 -->
@@ -350,6 +355,95 @@
             </div>
         </section>
 
+        <section id="pageSiteInfo" class="page">
+            <!-- 選擇案場區 -->
+            <div class="card" style="flex-shrink:0; padding:10px 14px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-size:13px; font-weight:bold; color:#4b5563;">選擇案場</span>
+                    <button onclick="showAddSiteInline()" style="background:#1f2937; color:white; font-size:12px; font-weight:bold; padding:5px 14px; border-radius:8px;">＋ 新增</button>
+                </div>
+                <!-- 新增輸入列（隱藏） -->
+                <div id="addSiteInlineWrap" style="display:none; margin-bottom:8px;">
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="inputNewSiteInfo" placeholder="輸入案場名稱..." style="-webkit-user-select:text; user-select:text; flex:1;">
+                        <button onclick="confirmAddSiteInfo()" style="background:#1f2937; color:white; font-size:13px; font-weight:bold; padding:6px 14px; border-radius:8px; flex-shrink:0;">確定</button>
+                        <button onclick="cancelAddSiteInfo()" style="background:#e5e7eb; color:#374151; font-size:13px; font-weight:bold; padding:6px 10px; border-radius:8px; flex-shrink:0;">✕</button>
+                    </div>
+                </div>
+                <!-- 可拖動案場列表 -->
+                <div id="siteInfoList" style="display:flex; flex-direction:column; gap:4px; max-height:180px; overflow-y:auto;"></div>
+            </div>
+            <!-- 案場資訊區（選案場後出現） -->
+            <div id="siteInfoDetailWrap" style="display:none; flex:1; min-height:0; display:flex; flex-direction:column;">
+                <!-- 唯讀模式 -->
+                <div id="siteInfoViewPanel" style="flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:0;">
+                    <div class="card" style="flex-shrink:0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #e5e7eb; margin-bottom:10px;">
+                            <span style="font-size:13px; font-weight:bold; color:#374151;">案場資訊</span>
+                            <button onclick="enterSiteInfoEdit()" style="background:#374151; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px;">編輯</button>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div>
+                                <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:3px; letter-spacing:0.04em;">地址</div>
+                                <div id="siteInfoViewAddress" style="font-size:14px; color:#374151; min-height:22px; line-height:1.6; -webkit-user-select:text; user-select:text;">—</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- PDF 唯讀預覽 -->
+                    <div class="card" style="flex-shrink:0;">
+                        <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:6px; letter-spacing:0.04em;">附件 PDF</div>
+                        <div id="siteInfoPdfEmpty" style="font-size:13px; color:#9ca3af; padding:4px 0 8px;">尚無附件</div>
+                        <div id="siteInfoPdfViewer" style="display:none;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; background:#1f2937; border-radius:8px 8px 0 0; padding:6px 10px;">
+                                <button onclick="siteInfoPdfPage(-1)" style="background:rgba(255,255,255,0.15); color:white; border-radius:6px; padding:4px 12px; font-size:14px; font-weight:bold;">‹</button>
+                                <span id="siteInfoPdfPageInfo" style="font-size:12px; color:white; font-weight:bold;">1 / 1</span>
+                                <button onclick="siteInfoPdfPage(1)" style="background:rgba(255,255,255,0.15); color:white; border-radius:6px; padding:4px 12px; font-size:14px; font-weight:bold;">›</button>
+                            </div>
+                            <div id="siteInfoPdfCanvasWrap" style="overflow:auto; background:#e5e7eb; border-radius:0 0 8px 8px; max-height:400px; touch-action:pan-x pan-y pinch-zoom;">
+                                <canvas id="siteInfoPdfCanvas" style="display:block; margin:0 auto;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 編輯模式 -->
+                <div id="siteInfoEditPanel" style="display:none; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:0;">
+                    <div class="card" style="flex-shrink:0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #e5e7eb; margin-bottom:10px;">
+                            <span style="font-size:13px; font-weight:bold; color:#374151;">編輯案場資訊</span>
+                            <button onclick="saveSiteInfoData()" style="background:#1f2937; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px;">儲存</button>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div>
+                                <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">地址</label>
+                                <input type="text" id="inputSiteInfoAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- PDF 編輯預覽 -->
+                    <div class="card" style="flex-shrink:0;">
+                        <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:6px; letter-spacing:0.04em;">附件 PDF</div>
+                        <div id="siteInfoEditPdfEmpty" style="font-size:13px; color:#9ca3af; padding:4px 0 8px;">尚無附件</div>
+                        <div id="siteInfoEditPdfViewer" style="display:none; margin-bottom:4px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; background:#1f2937; border-radius:8px 8px 0 0; padding:6px 10px;">
+                                <button onclick="siteInfoEditPdfPage(-1)" style="background:rgba(255,255,255,0.15); color:white; border-radius:6px; padding:4px 12px; font-size:14px; font-weight:bold;">‹</button>
+                                <span id="siteInfoEditPdfPageInfo" style="font-size:12px; color:white; font-weight:bold;">1 / 1</span>
+                                <button onclick="siteInfoEditPdfPage(1)" style="background:rgba(255,255,255,0.15); color:white; border-radius:6px; padding:4px 12px; font-size:14px; font-weight:bold;">›</button>
+                            </div>
+                            <div id="siteInfoEditPdfCanvasWrap" style="overflow:auto; background:#e5e7eb; border-radius:0 0 8px 8px; max-height:320px; touch-action:pan-x pan-y pinch-zoom;">
+                                <canvas id="siteInfoEditPdfCanvas" style="display:block; margin:0 auto;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 底部操作按鈕 -->
+                    <div style="padding:0 0 80px; display:flex; gap:8px; flex-shrink:0;">
+                        <input type="file" id="inputSiteInfoPdf" accept="application/pdf" class="hidden" onchange="handleSiteInfoPdfImport(this)">
+                        <button onclick="deleteSiteFromInfo()" style="flex:1; height:44px; background:#ef4444; color:white; border-radius:8px; font-size:13px; font-weight:bold;">刪除案場</button>
+                        <button onclick="document.getElementById('inputSiteInfoPdf').click()" style="flex:1; height:44px; background:#374151; color:white; border-radius:8px; font-size:13px; font-weight:bold;">📎 匯入PDF</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="pageManage" class="page" style="overflow-y: auto;">
             <div class="card" style="background-color: #f8fafc; border: 1px solid #cbd5e1;">
                 <h3 style="font-size: 14px; margin: 0; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a;">系統還原</h3>
@@ -359,14 +453,6 @@
                     <input type="month" id="inputExportOrderMonth" style="flex:1; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: white;">
                     <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding: 10px 14px; font-size: 13px; border-radius: 8px;">📊 匯出Excel</button>
                 </div>
-            </div>
-            <div class="card">
-                <h3 style="font-size: 14px; margin: 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; color: #374151;">案場基本資料維護</h3>
-                <div class="flex-row">
-                    <input type="text" id="inputNewSite" placeholder="輸入新案場名稱">
-                    <button onclick="addSite()" class="btn-green" style="flex-shrink: 0;">新增</button>
-                </div>
-                <div id="manageListSites" class="scroll-box"></div>
             </div>
             <div class="card">
                 <h3 style="font-size: 14px; margin: 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; color: #374151;">材料分類維護</h3>
@@ -402,66 +488,6 @@
         </section>
 
     </main>
-
-    <!-- 案件資訊 彈窗 -->
-    <div id="caseInfoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-end; justify-content:center;">
-        <div style="background:white; border-radius:14px 14px 0 0; width:100%; max-width:448px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
-            <!-- 標題列 -->
-            <div style="padding:14px 16px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5e7eb; flex-shrink:0;">
-                <div style="font-size:15px; font-weight:bold; color:#1f2937;" id="caseInfoModalTitle">案件資訊</div>
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <button id="btnCaseInfoEdit" onclick="enterCaseInfoEdit()" style="background:#374151; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px;">編輯</button>
-                    <button onclick="closeCaseInfoPanel()" style="background:#e5e7eb; color:#374151; font-size:13px; font-weight:bold; padding:5px 10px; border-radius:8px;">✕</button>
-                </div>
-            </div>
-            <!-- 內容區（唯讀） -->
-            <div id="caseInfoViewMode" style="flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:14px;">
-                <div>
-                    <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em;">案名</div>
-                    <div id="caseInfoViewName" style="font-size:15px; font-weight:600; color:#1f2937; min-height:24px;">—</div>
-                </div>
-                <div>
-                    <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em;">地址</div>
-                    <div id="caseInfoViewAddress" style="font-size:14px; color:#374151; min-height:24px; line-height:1.6; -webkit-user-select:text; user-select:text;">—</div>
-                </div>
-                <div>
-                    <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">附件 PDF</div>
-                    <div id="caseInfoViewPdfWrap">
-                        <div id="caseInfoPdfEmpty" style="font-size:13px; color:#9ca3af; padding:12px 0;">尚無附件</div>
-                        <div id="caseInfoPdfViewer" style="display:none; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
-                            <iframe id="caseInfoPdfFrame" style="width:100%; height:360px; border:none;" src=""></iframe>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- 編輯模式內容區 -->
-            <div id="caseInfoEditMode" style="display:none; flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:12px;">
-                <div>
-                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">案名</label>
-                    <input type="text" id="inputCaseName" placeholder="請輸入案名..." style="-webkit-user-select:text; user-select:text;">
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">地址</label>
-                    <input type="text" id="inputCaseAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:6px;">附件 PDF</label>
-                    <div id="caseInfoEditPdfArea">
-                        <div id="caseInfoEditPdfEmpty" style="font-size:13px; color:#9ca3af; margin-bottom:4px;">尚無附件</div>
-                        <div id="caseInfoEditPdfViewer" style="display:none; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; margin-bottom:8px;">
-                            <iframe id="caseInfoEditPdfFrame" style="width:100%; height:300px; border:none;" src=""></iframe>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- 底部按鈕（僅編輯模式顯示） -->
-            <div id="caseInfoEditBtns" style="display:none; padding:12px 16px; border-top:1px solid #e5e7eb; display:flex; gap:8px; flex-shrink:0;">
-                <input type="file" id="inputCaseInfoPdf" accept="application/pdf" class="hidden" onchange="handleCaseInfoPdfImport(this)">
-                <button onclick="document.getElementById('inputCaseInfoPdf').click()" style="flex:1; height:44px; background:#374151; color:white; border-radius:8px; font-size:13px; font-weight:bold;">📎 匯入附件</button>
-                <button onclick="saveCaseInfoData()" style="flex:1; height:44px; background:#1f2937; color:white; border-radius:8px; font-size:14px; font-weight:bold;">儲存</button>
-            </div>
-        </div>
-    </div>
 
     <!-- 舊純文字編輯彈窗（出勤備註用） -->
     <div id="editRecordModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
@@ -1253,106 +1279,225 @@
             return `施工日誌\n案場名稱：${currentState.siteName}\n------------------------\n${projectLogText}`;
         }
 
-        // ================= 案件資訊模組 =================
-        // 案件資訊以案場 ID 為 key 儲存於 db.siteInfo[siteId] = { caseName, caseAddress, pdfBase64 }
+        // ================= 案場資訊頁面模組 =================
+        // 資料存於 db.siteInfo[siteId] = { caseName, caseAddress, pdfBase64 }
+        // 案場清單同 db.sites（拖動排序與 addSite/deleteSite 共用）
 
-        function openCaseInfoPanel() {
-            if (!currentState.siteId) return alert('⚠️ 請先選擇案場！');
+        let _siSelectedSiteId = null; // 目前在 pageSiteInfo 選中的 siteId
+
+        // PDF 狀態（view / edit 各一組）
+        let _siPdf = {
+            view: { doc: null, page: 1, total: 0, rendering: false },
+            edit: { doc: null, page: 1, total: 0, rendering: false }
+        };
+        let _siPdfPending = null; // 編輯時選入但未儲存的 base64
+
+        // ---- PDF.js 渲染 ----
+        async function _siRenderPage(mode) {
+            const s = _siPdf[mode];
+            if (!s.doc || s.rendering) return;
+            s.rendering = true;
+            try {
+                const page = await s.doc.getPage(s.page);
+                const canvasId  = mode === 'view' ? 'siteInfoPdfCanvas'       : 'siteInfoEditPdfCanvas';
+                const wrapId    = mode === 'view' ? 'siteInfoPdfCanvasWrap'    : 'siteInfoEditPdfCanvasWrap';
+                const infoId    = mode === 'view' ? 'siteInfoPdfPageInfo'      : 'siteInfoEditPdfPageInfo';
+                const canvas    = document.getElementById(canvasId);
+                const wrap      = document.getElementById(wrapId);
+                const ctx       = canvas.getContext('2d');
+                const w         = wrap.clientWidth || 320;
+                const vp0       = page.getViewport({ scale: 1 });
+                const scale     = Math.max(w / vp0.width, 1);
+                const vp        = page.getViewport({ scale });
+                canvas.width    = vp.width;
+                canvas.height   = vp.height;
+                canvas.style.width  = vp.width + 'px';
+                canvas.style.height = vp.height + 'px';
+                await page.render({ canvasContext: ctx, viewport: vp }).promise;
+                document.getElementById(infoId).innerText = `${s.page} / ${s.total}`;
+            } catch(e) { console.error('PDF render', e); }
+            s.rendering = false;
+        }
+        async function _siLoadPdf(mode, base64) {
+            const s = _siPdf[mode];
+            s.doc = null; s.page = 1; s.total = 0;
+            const b = atob(base64.split(',')[1]);
+            const arr = new Uint8Array(b.length);
+            for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
+            s.doc   = await pdfjsLib.getDocument({ data: arr }).promise;
+            s.total = s.doc.numPages;
+            s.page  = 1;
+            await _siRenderPage(mode);
+        }
+        function siteInfoPdfPage(delta) {
+            const s = _siPdf.view;
+            if (!s.doc) return;
+            const n = s.page + delta;
+            if (n < 1 || n > s.total) return;
+            s.page = n; _siRenderPage('view');
+        }
+        function siteInfoEditPdfPage(delta) {
+            const s = _siPdf.edit;
+            if (!s.doc) return;
+            const n = s.page + delta;
+            if (n < 1 || n > s.total) return;
+            s.page = n; _siRenderPage('edit');
+        }
+
+        // ---- 渲染案場清單 ----
+        function renderSiteInfoList() {
+            const box = document.getElementById('siteInfoList');
+            box.innerHTML = '';
+            if (db.sites.length === 0) {
+                box.innerHTML = '<p style="color:#9ca3af; font-size:13px; text-align:center; padding:8px 0;">尚無案場，請按新增。</p>';
+                return;
+            }
+            db.sites.forEach(site => {
+                const div = document.createElement('div');
+                div.className = 'manage-item';
+                div.setAttribute('data-id', site.id);
+                div.style.cssText = 'cursor:pointer; border-radius:8px;';
+                const isSelected = site.id === _siSelectedSiteId;
+                if (isSelected) {
+                    div.style.background = '#1f2937';
+                    div.style.borderColor = '#1f2937';
+                }
+                div.innerHTML = `
+                    <span class="drag-handle" style="color:${isSelected?'#9ca3af':'#9ca3af'}; flex-shrink:0;">☰</span>
+                    <span class="manage-text" style="font-size:14px; font-weight:600; color:${isSelected?'#ffffff':'#1f2937'};">${site.name}</span>
+                `;
+                div.addEventListener('click', () => selectSiteInfoSite(site.id));
+                box.appendChild(div);
+            });
+        }
+
+        function selectSiteInfoSite(siteId) {
+            _siSelectedSiteId = siteId;
+            _siPdfPending = null;
+            renderSiteInfoList();
+            showSiteInfoDetail();
+        }
+
+        function showSiteInfoDetail() {
+            const wrap = document.getElementById('siteInfoDetailWrap');
+            wrap.style.display = 'flex';
+            // 確保唯讀面板顯示
+            document.getElementById('siteInfoViewPanel').style.display = 'flex';
+            document.getElementById('siteInfoEditPanel').style.display = 'none';
+            _renderSiteInfoView();
+        }
+
+        function _renderSiteInfoView() {
             if (!db.siteInfo) db.siteInfo = {};
-            const info = db.siteInfo[currentState.siteId] || {};
-            const siteName = currentState.siteName || '';
-            // 更新標題
-            document.getElementById('caseInfoModalTitle').innerText = '案件資訊' + (siteName ? '　' + siteName : '');
-            // 顯示唯讀模式
-            _renderCaseInfoView(info);
-            _setCaseInfoMode('view');
-            document.getElementById('caseInfoModal').style.display = 'flex';
-        }
-
-        function closeCaseInfoPanel() {
-            document.getElementById('caseInfoModal').style.display = 'none';
-        }
-
-        function _renderCaseInfoView(info) {
-            document.getElementById('caseInfoViewName').innerText = info.caseName || '—';
-            document.getElementById('caseInfoViewAddress').innerText = info.caseAddress || '—';
-            const pdfEmpty = document.getElementById('caseInfoPdfEmpty');
-            const pdfViewer = document.getElementById('caseInfoPdfViewer');
-            const pdfFrame = document.getElementById('caseInfoPdfFrame');
+            const info = db.siteInfo[_siSelectedSiteId] || {};
+            document.getElementById('siteInfoViewAddress').innerText = info.caseAddress || '—';
+            const empty  = document.getElementById('siteInfoPdfEmpty');
+            const viewer = document.getElementById('siteInfoPdfViewer');
             if (info.pdfBase64) {
-                pdfEmpty.style.display = 'none';
-                pdfViewer.style.display = '';
-                pdfFrame.src = info.pdfBase64;
+                empty.style.display  = 'none';
+                viewer.style.display = '';
+                setTimeout(() => _siLoadPdf('view', info.pdfBase64), 60);
             } else {
-                pdfEmpty.style.display = '';
-                pdfViewer.style.display = 'none';
-                pdfFrame.src = '';
+                empty.style.display  = '';
+                viewer.style.display = 'none';
+                _siPdf.view.doc = null;
             }
         }
 
-        function _setCaseInfoMode(mode) {
-            const isEdit = mode === 'edit';
-            document.getElementById('caseInfoViewMode').style.display = isEdit ? 'none' : 'flex';
-            document.getElementById('caseInfoEditMode').style.display = isEdit ? 'flex' : 'none';
-            document.getElementById('caseInfoEditBtns').style.display = isEdit ? 'flex' : 'none';
-            document.getElementById('btnCaseInfoEdit').style.display = isEdit ? 'none' : '';
-        }
-
-        function enterCaseInfoEdit() {
+        function enterSiteInfoEdit() {
             if (!db.siteInfo) db.siteInfo = {};
-            const info = db.siteInfo[currentState.siteId] || {};
-            document.getElementById('inputCaseName').value = info.caseName || '';
-            document.getElementById('inputCaseAddress').value = info.caseAddress || '';
-            // 同步 PDF 預覽到編輯區
-            const editEmpty = document.getElementById('caseInfoEditPdfEmpty');
-            const editViewer = document.getElementById('caseInfoEditPdfViewer');
-            const editFrame = document.getElementById('caseInfoEditPdfFrame');
-            if (info.pdfBase64) {
-                editEmpty.style.display = 'none';
+            const info = db.siteInfo[_siSelectedSiteId] || {};
+            document.getElementById('inputSiteInfoAddress').value  = info.caseAddress || '';
+            _siPdfPending = null;
+            const editEmpty  = document.getElementById('siteInfoEditPdfEmpty');
+            const editViewer = document.getElementById('siteInfoEditPdfViewer');
+            const pdfSrc     = info.pdfBase64 || null;
+            if (pdfSrc) {
+                editEmpty.style.display  = 'none';
                 editViewer.style.display = '';
-                editFrame.src = info.pdfBase64;
+                setTimeout(() => _siLoadPdf('edit', pdfSrc), 60);
             } else {
-                editEmpty.style.display = '';
+                editEmpty.style.display  = '';
                 editViewer.style.display = 'none';
-                editFrame.src = '';
+                _siPdf.edit.doc = null;
             }
-            _setCaseInfoMode('edit');
+            document.getElementById('siteInfoViewPanel').style.display = 'none';
+            document.getElementById('siteInfoEditPanel').style.display = 'flex';
         }
 
-        function handleCaseInfoPdfImport(input) {
+        function handleSiteInfoPdfImport(input) {
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                const base64 = e.target.result;
-                // 暫存到 db（未儲存前先放這）
-                if (!db.siteInfo) db.siteInfo = {};
-                if (!db.siteInfo[currentState.siteId]) db.siteInfo[currentState.siteId] = {};
-                db.siteInfo[currentState.siteId]._pendingPdf = base64;
-                const editEmpty = document.getElementById('caseInfoEditPdfEmpty');
-                const editViewer = document.getElementById('caseInfoEditPdfViewer');
-                const editFrame = document.getElementById('caseInfoEditPdfFrame');
-                editEmpty.style.display = 'none';
-                editViewer.style.display = '';
-                editFrame.src = base64;
+                _siPdfPending = e.target.result;
+                document.getElementById('siteInfoEditPdfEmpty').style.display  = 'none';
+                document.getElementById('siteInfoEditPdfViewer').style.display = '';
+                setTimeout(() => _siLoadPdf('edit', _siPdfPending), 60);
             };
             reader.readAsDataURL(file);
             input.value = '';
         }
 
-        function saveCaseInfoData() {
-            const caseName = document.getElementById('inputCaseName').value.trim();
-            const caseAddress = document.getElementById('inputCaseAddress').value.trim();
+        function saveSiteInfoData() {
+            if (!_siSelectedSiteId) return;
+            const caseAddress = document.getElementById('inputSiteInfoAddress').value.trim();
             if (!db.siteInfo) db.siteInfo = {};
-            const existing = db.siteInfo[currentState.siteId] || {};
-            // 若有 pending PDF 則使用，否則保留原有
-            const pdfBase64 = (existing._pendingPdf) ? existing._pendingPdf : (existing.pdfBase64 || null);
-            db.siteInfo[currentState.siteId] = { caseName, caseAddress, pdfBase64 };
+            const existing  = db.siteInfo[_siSelectedSiteId] || {};
+            const pdfBase64 = _siPdfPending || existing.pdfBase64 || null;
+            db.siteInfo[_siSelectedSiteId] = { caseAddress, pdfBase64 };
+            _siPdfPending = null;
             saveToLocalStorage();
-            // 回唯讀模式並刷新顯示
-            _renderCaseInfoView(db.siteInfo[currentState.siteId]);
-            _setCaseInfoMode('view');
-            alert('案件資訊已儲存！');
+            document.getElementById('siteInfoViewPanel').style.display = 'flex';
+            document.getElementById('siteInfoEditPanel').style.display = 'none';
+            _renderSiteInfoView();
+            alert('案場資訊已儲存！');
+        }
+
+        function deleteSiteFromInfo() {
+            if (!_siSelectedSiteId) return;
+            const site = db.sites.find(s => s.id === _siSelectedSiteId);
+            if (!site) return;
+            if (!confirm(`確定要刪除案場「${site.name}」嗎？\n（相關打卡紀錄也會移除，日誌紀錄保留）`)) return;
+            db.sites = db.sites.filter(s => s.id !== _siSelectedSiteId);
+            if (db.punches && db.punches[_siSelectedSiteId]) delete db.punches[_siSelectedSiteId];
+            if (db.siteInfo && db.siteInfo[_siSelectedSiteId]) delete db.siteInfo[_siSelectedSiteId];
+            if (currentState.siteId === _siSelectedSiteId) { currentState.siteId = null; currentState.siteName = ''; }
+            _siSelectedSiteId = null;
+            saveToLocalStorage();
+            document.getElementById('siteInfoDetailWrap').style.display = 'none';
+            renderSiteInfoList();
+        }
+
+        // ---- 新增案場（inline） ----
+        function showAddSiteInline() {
+            document.getElementById('addSiteInlineWrap').style.display = '';
+            document.getElementById('inputNewSiteInfo').value = '';
+            document.getElementById('inputNewSiteInfo').focus();
+        }
+        function cancelAddSiteInfo() {
+            document.getElementById('addSiteInlineWrap').style.display = 'none';
+        }
+        function confirmAddSiteInfo() {
+            const name = document.getElementById('inputNewSiteInfo').value.trim();
+            if (!name) return alert('請輸入案場名稱！');
+            const newSite = { id: Date.now().toString(), name };
+            db.sites.push(newSite);
+            saveToLocalStorage();
+            document.getElementById('addSiteInlineWrap').style.display = 'none';
+            renderSiteInfoList();
+            // 自動選取剛新增的案場
+            selectSiteInfoSite(newSite.id);
+        }
+
+        // ---- 舊有函式相容（設定頁 addSite 已移除，保留 renderManageSites 供 Sortable 使用） ----
+        function addSite() {
+            const el = document.getElementById('inputNewSite');
+            if (!el) return;
+            const name = el.value.trim();
+            if (!name) return alert('請輸入案場名稱');
+            db.sites.push({ id: Date.now().toString(), name });
+            saveToLocalStorage(); el.value = ''; renderManageSites();
         }
 
         // ================= 工地記錄合併頁面（施工日誌＋工地記事） =================
@@ -1565,16 +1710,42 @@
                 const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
                 const exportMonthEl = document.getElementById('inputExportOrderMonth');
                 if (exportMonthEl && !exportMonthEl.value) exportMonthEl.value = thisMonth;
-                renderManageSites();
                 renderManageCategories();
                 renderManageCategoryDropdown(); 
+            } else if (page === 'siteInfo') {
+                document.getElementById('pageSiteInfo').classList.add('active');
+                document.getElementById('appTitle').innerText = '';
+                document.getElementById('homeTitle').classList.add('hidden');
+                document.getElementById('btnHomeTop').classList.add('hidden');
+                // 清空選取狀態，重繪清單
+                _siSelectedSiteId = null;
+                _siPdfPending = null;
+                document.getElementById('siteInfoDetailWrap').style.display = 'none';
+                document.getElementById('addSiteInlineWrap').style.display  = 'none';
+                renderSiteInfoList();
+                // 初始化可拖動排序
+                const siList = document.getElementById('siteInfoList');
+                if (siList && !siList._sortableInit) {
+                    siList._sortableInit = true;
+                    new Sortable(siList, {
+                        animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost',
+                        onEnd: function() {
+                            const sorted = [];
+                            siList.querySelectorAll('.manage-item').forEach(el => {
+                                const s = db.sites.find(s => s.id === el.getAttribute('data-id'));
+                                if (s) sorted.push(s);
+                            });
+                            db.sites = sorted; saveToLocalStorage();
+                        }
+                    });
+                }
             }
             updateCartBadge();
         }
 
         document.getElementById('btnBack').addEventListener('click', (e) => {
             const p = currentState.page;
-            if (p === 'manage' || p === 'log' || p === 'punch' || p === 'categories') navigateTo('sites');
+            if (p === 'manage' || p === 'log' || p === 'punch' || p === 'categories' || p === 'siteInfo') navigateTo('sites');
             else if (p === 'items') navigateTo('categories');
             else if (p === 'cart') {
                 const target = e.target.dataset.backTo || 'items';
@@ -1863,12 +2034,6 @@
         }
 
         // ================= 後台基本資料維護管理 =================
-        function addSite() {
-            const name = document.getElementById('inputNewSite').value.trim();
-            if (!name) return alert('請輸入案場名稱');
-            db.sites.push({ id: Date.now().toString(), name });
-            saveToLocalStorage(); document.getElementById('inputNewSite').value = ''; renderManageSites();
-        }
         function renameSite(id, oldName) {
             const newName = prompt(`請輸入案場新名稱：`, oldName);
             if (!newName?.trim()) return;
@@ -1885,6 +2050,7 @@
         }
         function renderManageSites() {
             const list = document.getElementById('manageListSites');
+            if (!list) return; // 元素已移至案場資訊頁
             list.innerHTML = db.sites.length === 0 ? '<p style="color:#9ca3af; text-align:center;">暫無資料。</p>' : '';
             db.sites.forEach(site => {
                 const div = document.createElement('div');
@@ -2535,18 +2701,6 @@
             const todayEl = document.querySelector('.calendar-day.today');
             if (todayEl) todayEl.classList.add('selected');
             showInlineDayView(todayStr);
-
-            new Sortable(document.getElementById('manageListSites'), {
-                animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost',
-                onEnd: function () {
-                    const sorted = [];
-                    document.querySelectorAll('#manageListSites .manage-item').forEach(el => {
-                        const site = db.sites.find(s => s.id === el.getAttribute('data-id'));
-                        if(site) sorted.push(site);
-                    });
-                    db.sites = sorted; saveToLocalStorage();
-                }
-            });
 
             new Sortable(document.getElementById('manageListCategories'), {
                 animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost',
