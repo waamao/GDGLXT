@@ -251,15 +251,18 @@
                 </div>
                 <!-- 類型選擇 -->
                 <div class="card" style="padding: 10px 14px;">
-                    <div style="display:flex; gap:16px;">
-                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:bold;color:#374151;cursor:pointer;">
-                            <input type="radio" name="logTypeRadio" id="chkTypeLog" style="width:20px;height:20px;accent-color:#333333;flex-shrink:0;" checked onchange="syncLogTypeCheckboxes('log')">
-                            施工日誌
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:bold;color:#374151;cursor:pointer;">
-                            <input type="radio" name="logTypeRadio" id="chkTypeNotes" style="width:20px;height:20px;accent-color:#333333;flex-shrink:0;" onchange="syncLogTypeCheckboxes('notes')">
-                            工地記事
-                        </label>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                        <div style="display:flex; gap:16px; align-items:center;">
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:bold;color:#374151;cursor:pointer;">
+                                <input type="radio" name="logTypeRadio" id="chkTypeLog" style="width:20px;height:20px;accent-color:#333333;flex-shrink:0;" checked onchange="syncLogTypeCheckboxes('log')">
+                                施工日誌
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:bold;color:#374151;cursor:pointer;">
+                                <input type="radio" name="logTypeRadio" id="chkTypeNotes" style="width:20px;height:20px;accent-color:#333333;flex-shrink:0;" onchange="syncLogTypeCheckboxes('notes')">
+                                工地記事
+                            </label>
+                        </div>
+                        <button type="button" id="btnOpenCaseInfo" onclick="openCaseInfoPanel()" style="background-color:#374151; color:white; font-size:12px; font-weight:bold; padding:6px 14px; border-radius:8px; flex-shrink:0; white-space:nowrap;">案件資訊</button>
                     </div>
                 </div>
                 <!-- 施工日誌區塊 -->
@@ -400,6 +403,66 @@
 
     </main>
 
+    <!-- 案件資訊 彈窗 -->
+    <div id="caseInfoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-end; justify-content:center;">
+        <div style="background:white; border-radius:14px 14px 0 0; width:100%; max-width:448px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
+            <!-- 標題列 -->
+            <div style="padding:14px 16px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5e7eb; flex-shrink:0;">
+                <div style="font-size:15px; font-weight:bold; color:#1f2937;" id="caseInfoModalTitle">案件資訊</div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button id="btnCaseInfoEdit" onclick="enterCaseInfoEdit()" style="background:#374151; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px;">編輯</button>
+                    <button onclick="closeCaseInfoPanel()" style="background:#e5e7eb; color:#374151; font-size:13px; font-weight:bold; padding:5px 10px; border-radius:8px;">✕</button>
+                </div>
+            </div>
+            <!-- 內容區（唯讀） -->
+            <div id="caseInfoViewMode" style="flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:14px;">
+                <div>
+                    <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em;">案名</div>
+                    <div id="caseInfoViewName" style="font-size:15px; font-weight:600; color:#1f2937; min-height:24px;">—</div>
+                </div>
+                <div>
+                    <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em;">地址</div>
+                    <div id="caseInfoViewAddress" style="font-size:14px; color:#374151; min-height:24px; line-height:1.6; -webkit-user-select:text; user-select:text;">—</div>
+                </div>
+                <div>
+                    <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">附件 PDF</div>
+                    <div id="caseInfoViewPdfWrap">
+                        <div id="caseInfoPdfEmpty" style="font-size:13px; color:#9ca3af; padding:12px 0;">尚無附件</div>
+                        <div id="caseInfoPdfViewer" style="display:none; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+                            <iframe id="caseInfoPdfFrame" style="width:100%; height:360px; border:none;" src=""></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 編輯模式內容區 -->
+            <div id="caseInfoEditMode" style="display:none; flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">案名</label>
+                    <input type="text" id="inputCaseName" placeholder="請輸入案名..." style="-webkit-user-select:text; user-select:text;">
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">地址</label>
+                    <input type="text" id="inputCaseAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:6px;">附件 PDF</label>
+                    <div id="caseInfoEditPdfArea">
+                        <div id="caseInfoEditPdfEmpty" style="font-size:13px; color:#9ca3af; margin-bottom:4px;">尚無附件</div>
+                        <div id="caseInfoEditPdfViewer" style="display:none; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; margin-bottom:8px;">
+                            <iframe id="caseInfoEditPdfFrame" style="width:100%; height:300px; border:none;" src=""></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 底部按鈕（僅編輯模式顯示） -->
+            <div id="caseInfoEditBtns" style="display:none; padding:12px 16px; border-top:1px solid #e5e7eb; display:flex; gap:8px; flex-shrink:0;">
+                <input type="file" id="inputCaseInfoPdf" accept="application/pdf" class="hidden" onchange="handleCaseInfoPdfImport(this)">
+                <button onclick="document.getElementById('inputCaseInfoPdf').click()" style="flex:1; height:44px; background:#374151; color:white; border-radius:8px; font-size:13px; font-weight:bold;">📎 匯入附件</button>
+                <button onclick="saveCaseInfoData()" style="flex:1; height:44px; background:#1f2937; color:white; border-radius:8px; font-size:14px; font-weight:bold;">儲存</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 舊純文字編輯彈窗（出勤備註用） -->
     <div id="editRecordModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
         <div style="background:white; border-radius:14px; padding:16px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; gap:10px; max-height:80vh;">
@@ -484,6 +547,7 @@
             items: [], 
             punches: {}, 
             config: { scriptUrl: '' },
+            siteInfo: {}, // 格式: { siteId: { caseName, caseAddress, pdfBase64 } }
             dailyRecords: {} // 格式: {'YYYY-MM-DD': { log: { siteId, text }, notes: { siteId, text }, order: { siteId, text } }}
         };
         let currentState = { page: 'sites', siteId: null, siteName: '', catId: null, catName: '' };
@@ -503,6 +567,7 @@
                         if (!db.config) db.config = { scriptUrl: '' };
                         if (!db.punches) db.punches = {};
                         if (!db.dailyRecords) db.dailyRecords = {};
+                        if (!db.siteInfo) db.siteInfo = {};
                     }
                 }
             } catch (e) { console.error("讀取本機存檔失敗", e); }
@@ -556,6 +621,7 @@
                         if (!db.config) db.config = { scriptUrl: '' };
                         if (!db.punches) db.punches = {}; 
                         if (!db.dailyRecords) db.dailyRecords = {};
+                        if (!db.siteInfo) db.siteInfo = {};
                         // 統一把所有 id 轉成字串，避免型別不符導致無法刪除/改名
                         db.sites = db.sites.map(s => ({ ...s, id: String(s.id) }));
                         db.categories = db.categories.map(c => ({ ...c, id: String(c.id) }));
@@ -1187,6 +1253,108 @@
             return `施工日誌\n案場名稱：${currentState.siteName}\n------------------------\n${projectLogText}`;
         }
 
+        // ================= 案件資訊模組 =================
+        // 案件資訊以案場 ID 為 key 儲存於 db.siteInfo[siteId] = { caseName, caseAddress, pdfBase64 }
+
+        function openCaseInfoPanel() {
+            if (!currentState.siteId) return alert('⚠️ 請先選擇案場！');
+            if (!db.siteInfo) db.siteInfo = {};
+            const info = db.siteInfo[currentState.siteId] || {};
+            const siteName = currentState.siteName || '';
+            // 更新標題
+            document.getElementById('caseInfoModalTitle').innerText = '案件資訊' + (siteName ? '　' + siteName : '');
+            // 顯示唯讀模式
+            _renderCaseInfoView(info);
+            _setCaseInfoMode('view');
+            document.getElementById('caseInfoModal').style.display = 'flex';
+        }
+
+        function closeCaseInfoPanel() {
+            document.getElementById('caseInfoModal').style.display = 'none';
+        }
+
+        function _renderCaseInfoView(info) {
+            document.getElementById('caseInfoViewName').innerText = info.caseName || '—';
+            document.getElementById('caseInfoViewAddress').innerText = info.caseAddress || '—';
+            const pdfEmpty = document.getElementById('caseInfoPdfEmpty');
+            const pdfViewer = document.getElementById('caseInfoPdfViewer');
+            const pdfFrame = document.getElementById('caseInfoPdfFrame');
+            if (info.pdfBase64) {
+                pdfEmpty.style.display = 'none';
+                pdfViewer.style.display = '';
+                pdfFrame.src = info.pdfBase64;
+            } else {
+                pdfEmpty.style.display = '';
+                pdfViewer.style.display = 'none';
+                pdfFrame.src = '';
+            }
+        }
+
+        function _setCaseInfoMode(mode) {
+            const isEdit = mode === 'edit';
+            document.getElementById('caseInfoViewMode').style.display = isEdit ? 'none' : 'flex';
+            document.getElementById('caseInfoEditMode').style.display = isEdit ? 'flex' : 'none';
+            document.getElementById('caseInfoEditBtns').style.display = isEdit ? 'flex' : 'none';
+            document.getElementById('btnCaseInfoEdit').style.display = isEdit ? 'none' : '';
+        }
+
+        function enterCaseInfoEdit() {
+            if (!db.siteInfo) db.siteInfo = {};
+            const info = db.siteInfo[currentState.siteId] || {};
+            document.getElementById('inputCaseName').value = info.caseName || '';
+            document.getElementById('inputCaseAddress').value = info.caseAddress || '';
+            // 同步 PDF 預覽到編輯區
+            const editEmpty = document.getElementById('caseInfoEditPdfEmpty');
+            const editViewer = document.getElementById('caseInfoEditPdfViewer');
+            const editFrame = document.getElementById('caseInfoEditPdfFrame');
+            if (info.pdfBase64) {
+                editEmpty.style.display = 'none';
+                editViewer.style.display = '';
+                editFrame.src = info.pdfBase64;
+            } else {
+                editEmpty.style.display = '';
+                editViewer.style.display = 'none';
+                editFrame.src = '';
+            }
+            _setCaseInfoMode('edit');
+        }
+
+        function handleCaseInfoPdfImport(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                // 暫存到 db（未儲存前先放這）
+                if (!db.siteInfo) db.siteInfo = {};
+                if (!db.siteInfo[currentState.siteId]) db.siteInfo[currentState.siteId] = {};
+                db.siteInfo[currentState.siteId]._pendingPdf = base64;
+                const editEmpty = document.getElementById('caseInfoEditPdfEmpty');
+                const editViewer = document.getElementById('caseInfoEditPdfViewer');
+                const editFrame = document.getElementById('caseInfoEditPdfFrame');
+                editEmpty.style.display = 'none';
+                editViewer.style.display = '';
+                editFrame.src = base64;
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        function saveCaseInfoData() {
+            const caseName = document.getElementById('inputCaseName').value.trim();
+            const caseAddress = document.getElementById('inputCaseAddress').value.trim();
+            if (!db.siteInfo) db.siteInfo = {};
+            const existing = db.siteInfo[currentState.siteId] || {};
+            // 若有 pending PDF 則使用，否則保留原有
+            const pdfBase64 = (existing._pendingPdf) ? existing._pendingPdf : (existing.pdfBase64 || null);
+            db.siteInfo[currentState.siteId] = { caseName, caseAddress, pdfBase64 };
+            saveToLocalStorage();
+            // 回唯讀模式並刷新顯示
+            _renderCaseInfoView(db.siteInfo[currentState.siteId]);
+            _setCaseInfoMode('view');
+            alert('案件資訊已儲存！');
+        }
+
         // ================= 工地記錄合併頁面（施工日誌＋工地記事） =================
         function syncLogTypeCheckboxes(changed) {
             const chkLog = document.getElementById('chkTypeLog');
@@ -1251,7 +1419,8 @@
                 if (!Array.isArray(db.dailyRecords[dateStr].notes)) {
                     db.dailyRecords[dateStr].notes = db.dailyRecords[dateStr].notes ? [db.dailyRecords[dateStr].notes] : [];
                 }
-                db.dailyRecords[dateStr].notes.push({ siteId: currentState.siteId, text: notesTextWithDate });
+                const notesEntry = { siteId: currentState.siteId, text: notesTextWithDate };
+                db.dailyRecords[dateStr].notes.push(notesEntry);
                 savedText += notesTextWithDate;
             }
             saveToLocalStorage();
