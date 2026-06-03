@@ -356,13 +356,12 @@
         </section>
 
         <section id="pageSiteInfo" class="page">
-            <!-- 選擇案場區 -->
+            <!-- 選擇案場區（固定） -->
             <div class="card" style="flex-shrink:0; padding:10px 14px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                     <span style="font-size:13px; font-weight:bold; color:#4b5563;">選擇案場</span>
                     <button onclick="showAddSiteInline()" style="background:#1f2937; color:white; font-size:12px; font-weight:bold; padding:5px 14px; border-radius:8px;">＋ 新增</button>
                 </div>
-                <!-- 新增輸入列（隱藏） -->
                 <div id="addSiteInlineWrap" style="display:none; margin-bottom:8px;">
                     <div style="display:flex; gap:8px;">
                         <input type="text" id="inputNewSiteInfo" placeholder="輸入案場名稱..." style="-webkit-user-select:text; user-select:text; flex:1;">
@@ -370,79 +369,88 @@
                         <button onclick="cancelAddSiteInfo()" style="background:#e5e7eb; color:#374151; font-size:13px; font-weight:bold; padding:6px 10px; border-radius:8px; flex-shrink:0;">✕</button>
                     </div>
                 </div>
-                <!-- 可拖動案場列表 -->
                 <div id="siteInfoList" style="display:flex; flex-direction:column; gap:4px; max-height:180px; overflow-y:auto;"></div>
             </div>
-            <!-- 案場資訊區（選案場後出現） -->
-            <div id="siteInfoDetailWrap" style="display:none; flex:1; min-height:0; display:flex; flex-direction:column;">
-                <!-- 唯讀模式 -->
-                <div id="siteInfoViewPanel" style="flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:0;">
-                    <div class="card" style="flex-shrink:0;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #e5e7eb; margin-bottom:10px;">
-                            <span style="font-size:13px; font-weight:bold; color:#374151;">案場資訊</span>
-                            <button onclick="enterSiteInfoEdit()" style="background:#374151; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px;">編輯</button>
-                        </div>
-                        <div style="display:flex; flex-direction:column; gap:10px;">
-                            <div>
-                                <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:3px; letter-spacing:0.04em;">地址</div>
-                                <div id="siteInfoViewAddress" style="font-size:14px; color:#374151; min-height:22px; line-height:1.6; -webkit-user-select:text; user-select:text;">—</div>
+
+            <!-- 案場資訊主卡（固定，選案場後出現） -->
+            <div id="siteInfoDetailWrap" style="display:none; flex-shrink:0;">
+                <div class="card" style="margin-bottom:0;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #e5e7eb; margin-bottom:10px;">
+                        <button onclick="enterMainInfoEdit()" id="btnMainInfoEdit" style="background:#374151; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px; margin-left:auto;">編輯</button>
+                        <button onclick="saveMainInfo()" id="btnMainInfoSave" style="display:none; background:#1f2937; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px; margin-left:auto;">儲存</button>
+                    </div>
+                    <!-- 唯讀 -->
+                    <div id="mainInfoViewArea" style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+                            <div style="flex:1; min-width:0;">
+                                <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:2px; letter-spacing:0.04em;">地址</div>
+                                <div id="siteInfoViewAddress" style="font-size:14px; color:#374151; line-height:1.5; -webkit-user-select:text; user-select:text;">—</div>
                             </div>
+                            <div style="flex-shrink:0; text-align:right;">
+                                <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:2px; letter-spacing:0.04em;">承攬總價</div>
+                                <div id="siteInfoViewTotal" style="font-size:14px; font-weight:600; color:#1f2937;">—</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px solid #f3f4f6;">
+                            <span style="font-size:12px; font-weight:bold; color:#9ca3af; letter-spacing:0.04em;">總計價進度</span>
+                            <span id="siteInfoViewTotalPct" style="font-size:14px; font-weight:700; color:#1f2937;">—</span>
                         </div>
                     </div>
-                    <!-- PDF 唯讀預覽 -->
-                    <div class="card" style="flex-shrink:0;">
-                        <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:6px; letter-spacing:0.04em;">附件 PDF</div>
-                        <div id="siteInfoPdfEmpty" style="font-size:13px; color:#9ca3af; padding:4px 0 8px;">尚無附件</div>
-                        <div id="siteInfoPdfViewer" style="display:none;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; background:#1f2937; border-radius:8px 8px 0 0; padding:6px 10px;">
-                                <button onclick="siteInfoPdfPage(-1)" style="background:rgba(255,255,255,0.15); color:white; border-radius:6px; padding:4px 12px; font-size:14px; font-weight:bold;">‹</button>
-                                <span id="siteInfoPdfPageInfo" style="font-size:12px; color:white; font-weight:bold;">1 / 1</span>
-                                <button onclick="siteInfoPdfPage(1)" style="background:rgba(255,255,255,0.15); color:white; border-radius:6px; padding:4px 12px; font-size:14px; font-weight:bold;">›</button>
-                            </div>
-                            <div id="siteInfoPdfCanvasWrap" style="overflow:auto; background:#e5e7eb; border-radius:0 0 8px 8px; max-height:400px; touch-action:pan-x pan-y pinch-zoom;">
-                                <canvas id="siteInfoPdfCanvas" style="display:block; margin:0 auto;"></canvas>
-                            </div>
+                    <!-- 編輯 -->
+                    <div id="mainInfoEditArea" style="display:none; flex-direction:column; gap:10px;">
+                        <div>
+                            <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">地址</label>
+                            <input type="text" id="inputSiteInfoAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
+                        </div>
+                        <div>
+                            <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">承攬總價</label>
+                            <input type="number" inputmode="numeric" id="inputSiteInfoTotal" placeholder="請輸入承攬總價..." style="-webkit-user-select:text; user-select:text;">
                         </div>
                     </div>
                 </div>
-                <!-- 編輯模式 -->
-                <div id="siteInfoEditPanel" style="display:none; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:0;">
-                    <div class="card" style="flex-shrink:0;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #e5e7eb; margin-bottom:10px;">
-                            <span style="font-size:13px; font-weight:bold; color:#374151;">編輯案場資訊</span>
-                            <button onclick="saveSiteInfoData()" style="background:#1f2937; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px;">儲存</button>
-                        </div>
-                        <div style="display:flex; flex-direction:column; gap:10px;">
-                            <div>
-                                <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">地址</label>
-                                <input type="text" id="inputSiteInfoAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
-                            </div>
-                        </div>
-                    </div>
-                    <!-- PDF 編輯預覽 -->
-                    <div class="card" style="flex-shrink:0;">
-                        <div style="font-size:11px; font-weight:bold; color:#9ca3af; margin-bottom:6px; letter-spacing:0.04em;">附件 PDF</div>
-                        <div id="siteInfoEditPdfEmpty" style="font-size:13px; color:#9ca3af; padding:4px 0 8px;">尚無附件</div>
-                        <div id="siteInfoEditPdfViewer" style="display:none; margin-bottom:4px;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; background:#1f2937; border-radius:8px 8px 0 0; padding:6px 10px;">
-                                <button onclick="siteInfoEditPdfPage(-1)" style="background:rgba(255,255,255,0.15); color:white; border-radius:6px; padding:4px 12px; font-size:14px; font-weight:bold;">‹</button>
-                                <span id="siteInfoEditPdfPageInfo" style="font-size:12px; color:white; font-weight:bold;">1 / 1</span>
-                                <button onclick="siteInfoEditPdfPage(1)" style="background:rgba(255,255,255,0.15); color:white; border-radius:6px; padding:4px 12px; font-size:14px; font-weight:bold;">›</button>
-                            </div>
-                            <div id="siteInfoEditPdfCanvasWrap" style="overflow:auto; background:#e5e7eb; border-radius:0 0 8px 8px; max-height:320px; touch-action:pan-x pan-y pinch-zoom;">
-                                <canvas id="siteInfoEditPdfCanvas" style="display:block; margin:0 auto;"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- 底部操作按鈕 -->
-                    <div style="padding:0 0 80px; display:flex; gap:8px; flex-shrink:0;">
-                        <input type="file" id="inputSiteInfoPdf" accept="application/pdf" class="hidden" onchange="handleSiteInfoPdfImport(this)">
-                        <button onclick="deleteSiteFromInfo()" style="flex:1; height:44px; background:#ef4444; color:white; border-radius:8px; font-size:13px; font-weight:bold;">刪除案場</button>
-                        <button onclick="document.getElementById('inputSiteInfoPdf').click()" style="flex:1; height:44px; background:#374151; color:white; border-radius:8px; font-size:13px; font-weight:bold;">📎 匯入PDF</button>
-                    </div>
+            </div>
+
+            <!-- 計價進度列表（可捲動，選案場後出現） -->
+            <div id="progressDetailWrap" style="display:none; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:0; padding-bottom:24px;">
+                <div id="progressBlocksContainer" style="display:flex; flex-direction:column; gap:0;"></div>
+                <!-- 新增計價進度 ＋ 刪除案場（案場資訊編輯時才顯示） -->
+                <div id="siteInfoEditActions" style="display:none; flex-direction:column; gap:8px; padding:8px 0 4px;">
+                    <button onclick="addProgressBlock()" style="width:100%; height:44px; background:#374151; color:white; border-radius:8px; font-size:13px; font-weight:bold;">＋ 新增計價進度</button>
+                    <button onclick="deleteSiteFromInfo()" style="width:100%; height:44px; background:#ef4444; color:white; border-radius:8px; font-size:13px; font-weight:bold;">刪除案場</button>
                 </div>
             </div>
         </section>
+
+        <!-- ══ 計價進度 編輯彈窗 ══ -->
+        <div id="progressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-end; justify-content:center;">
+            <div style="background:white; border-radius:14px 14px 0 0; width:100%; max-width:448px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
+                <!-- 標題列 -->
+                <div style="padding:14px 16px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5e7eb; flex-shrink:0;">
+                    <input type="text" id="progressEditTitle" placeholder="計價進度名稱..." style="flex:1; font-size:15px; font-weight:bold; border:none; outline:none; color:#1f2937; background:transparent; -webkit-user-select:text; user-select:text; padding:0;">
+                    <button onclick="_saveProgressModal()" style="background:#1f2937; color:white; font-size:12px; font-weight:bold; padding:6px 16px; border-radius:8px; flex-shrink:0; margin-left:8px;">儲存</button>
+                </div>
+                <!-- 表頭 -->
+                <div style="padding:8px 16px 4px; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:4px; border-bottom:1px solid #f3f4f6; flex-shrink:0;">
+                    <span style="font-size:11px; font-weight:bold; color:#9ca3af;">年月</span>
+                    <span style="font-size:11px; font-weight:bold; color:#9ca3af; text-align:right;">計價金額</span>
+                    <span style="font-size:11px; font-weight:bold; color:#9ca3af; text-align:right;">%</span>
+                    <span></span>
+                </div>
+                <!-- 明細列 -->
+                <div id="progressModalItems" style="flex:1; overflow-y:auto; padding:8px 16px; display:flex; flex-direction:column; gap:4px;"></div>
+                <!-- 合計 -->
+                <div style="padding:6px 16px 4px; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:4px; border-top:1px solid #e5e7eb; flex-shrink:0;">
+                    <span style="font-size:12px; font-weight:bold; color:#374151;">合計</span>
+                    <span id="progressModalSumAmt" style="font-size:12px; font-weight:bold; color:#1f2937; text-align:right;">—</span>
+                    <span id="progressModalSumPct" style="font-size:12px; font-weight:bold; color:#1f2937; text-align:right;">—</span>
+                    <span></span>
+                </div>
+                <!-- 底部按鈕 -->
+                <div style="padding:10px 16px 16px; flex-shrink:0;">
+                    <button onclick="_addProgressModalItem()" style="width:100%; height:44px; background:#374151; color:white; border-radius:8px; font-size:13px; font-weight:bold;">＋ 新增月份</button>
+                </div>
+            </div>
+        </div>
 
         <section id="pageManage" class="page" style="overflow-y: auto;">
             <div class="card" style="background-color: #f8fafc; border: 1px solid #cbd5e1;">
@@ -1280,68 +1288,30 @@
         }
 
         // ================= 案場資訊頁面模組 =================
-        // 資料存於 db.siteInfo[siteId] = { caseName, caseAddress, pdfBase64 }
-        // 案場清單同 db.sites（拖動排序與 addSite/deleteSite 共用）
+        // db.siteInfo[siteId] = {
+        //   caseAddress, contractTotal,
+        //   progressBlocks: [{ id, title, items:[{month, amount}] }]
+        // }
 
-        let _siSelectedSiteId = null; // 目前在 pageSiteInfo 選中的 siteId
+        let _siSelectedSiteId = null;
+        let _siEditingBlockIdx = null; // 目前在彈窗編輯的 block index
 
-        // PDF 狀態（view / edit 各一組）
-        let _siPdf = {
-            view: { doc: null, page: 1, total: 0, rendering: false },
-            edit: { doc: null, page: 1, total: 0, rendering: false }
-        };
-        let _siPdfPending = null; // 編輯時選入但未儲存的 base64
-
-        // ---- PDF.js 渲染 ----
-        async function _siRenderPage(mode) {
-            const s = _siPdf[mode];
-            if (!s.doc || s.rendering) return;
-            s.rendering = true;
-            try {
-                const page = await s.doc.getPage(s.page);
-                const canvasId  = mode === 'view' ? 'siteInfoPdfCanvas'       : 'siteInfoEditPdfCanvas';
-                const wrapId    = mode === 'view' ? 'siteInfoPdfCanvasWrap'    : 'siteInfoEditPdfCanvasWrap';
-                const infoId    = mode === 'view' ? 'siteInfoPdfPageInfo'      : 'siteInfoEditPdfPageInfo';
-                const canvas    = document.getElementById(canvasId);
-                const wrap      = document.getElementById(wrapId);
-                const ctx       = canvas.getContext('2d');
-                const w         = wrap.clientWidth || 320;
-                const vp0       = page.getViewport({ scale: 1 });
-                const scale     = Math.max(w / vp0.width, 1);
-                const vp        = page.getViewport({ scale });
-                canvas.width    = vp.width;
-                canvas.height   = vp.height;
-                canvas.style.width  = vp.width + 'px';
-                canvas.style.height = vp.height + 'px';
-                await page.render({ canvasContext: ctx, viewport: vp }).promise;
-                document.getElementById(infoId).innerText = `${s.page} / ${s.total}`;
-            } catch(e) { console.error('PDF render', e); }
-            s.rendering = false;
+        // ---- 月份下拉工具 ----
+        function _currentMonthValue() {
+            const n = new Date();
+            return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
         }
-        async function _siLoadPdf(mode, base64) {
-            const s = _siPdf[mode];
-            s.doc = null; s.page = 1; s.total = 0;
-            const b = atob(base64.split(',')[1]);
-            const arr = new Uint8Array(b.length);
-            for (let i = 0; i < b.length; i++) arr[i] = b.charCodeAt(i);
-            s.doc   = await pdfjsLib.getDocument({ data: arr }).promise;
-            s.total = s.doc.numPages;
-            s.page  = 1;
-            await _siRenderPage(mode);
-        }
-        function siteInfoPdfPage(delta) {
-            const s = _siPdf.view;
-            if (!s.doc) return;
-            const n = s.page + delta;
-            if (n < 1 || n > s.total) return;
-            s.page = n; _siRenderPage('view');
-        }
-        function siteInfoEditPdfPage(delta) {
-            const s = _siPdf.edit;
-            if (!s.doc) return;
-            const n = s.page + delta;
-            if (n < 1 || n > s.total) return;
-            s.page = n; _siRenderPage('edit');
+        function _buildMonthOptions(selected) {
+            const now = new Date();
+            const selVal = selected || _currentMonthValue();
+            let html = '';
+            for (let offset = -36; offset <= 12; offset++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+                const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                const label = `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月`;
+                html += `<option value="${val}"${val===selVal?' selected':''}>${label}</option>`;
+            }
+            return html;
         }
 
         // ---- 渲染案場清單 ----
@@ -1357,14 +1327,11 @@
                 div.className = 'manage-item';
                 div.setAttribute('data-id', site.id);
                 div.style.cssText = 'cursor:pointer; border-radius:8px;';
-                const isSelected = site.id === _siSelectedSiteId;
-                if (isSelected) {
-                    div.style.background = '#1f2937';
-                    div.style.borderColor = '#1f2937';
-                }
+                const isSel = site.id === _siSelectedSiteId;
+                if (isSel) { div.style.background = '#1f2937'; div.style.borderColor = '#1f2937'; }
                 div.innerHTML = `
-                    <span class="drag-handle" style="color:${isSelected?'#9ca3af':'#9ca3af'}; flex-shrink:0;">☰</span>
-                    <span class="manage-text" style="font-size:14px; font-weight:600; color:${isSelected?'#ffffff':'#1f2937'};">${site.name}</span>
+                    <span class="drag-handle" style="flex-shrink:0; color:#9ca3af;">☰</span>
+                    <span class="manage-text" style="font-size:14px; font-weight:600; color:${isSel?'#ffffff':'#1f2937'};">${site.name}</span>
                 `;
                 div.addEventListener('click', () => selectSiteInfoSite(site.id));
                 box.appendChild(div);
@@ -1373,103 +1340,326 @@
 
         function selectSiteInfoSite(siteId) {
             _siSelectedSiteId = siteId;
-            _siPdfPending = null;
             renderSiteInfoList();
-            showSiteInfoDetail();
+            document.getElementById('siteInfoDetailWrap').style.display = '';
+            document.getElementById('progressDetailWrap').style.display = 'flex';
+            _renderAllSiteInfo();
         }
 
-        function showSiteInfoDetail() {
-            const wrap = document.getElementById('siteInfoDetailWrap');
-            wrap.style.display = 'flex';
-            // 確保唯讀面板顯示
-            document.getElementById('siteInfoViewPanel').style.display = 'flex';
-            document.getElementById('siteInfoEditPanel').style.display = 'none';
-            _renderSiteInfoView();
+        // ---- 格式化金額 ----
+        function _fmtAmount(v) {
+            if (v === null || v === undefined || v === '') return '—';
+            const n = Number(v);
+            return isNaN(n) ? '—' : n.toLocaleString('zh-TW');
         }
 
-        function _renderSiteInfoView() {
+        // ---- 取得承攬總價 ----
+        function _getContractTotal() {
+            if (!db.siteInfo || !db.siteInfo[_siSelectedSiteId]) return 0;
+            return Number(db.siteInfo[_siSelectedSiteId].contractTotal) || 0;
+        }
+
+        // ---- 渲染全部 ----
+        function _renderAllSiteInfo() {
+            _renderMainInfoView();
+            _renderAllProgressBlocks();
+        }
+
+        // ---- 主資訊：唯讀 ----
+        function _renderMainInfoView() {
             if (!db.siteInfo) db.siteInfo = {};
             const info = db.siteInfo[_siSelectedSiteId] || {};
             document.getElementById('siteInfoViewAddress').innerText = info.caseAddress || '—';
-            const empty  = document.getElementById('siteInfoPdfEmpty');
-            const viewer = document.getElementById('siteInfoPdfViewer');
-            if (info.pdfBase64) {
-                empty.style.display  = 'none';
-                viewer.style.display = '';
-                setTimeout(() => _siLoadPdf('view', info.pdfBase64), 60);
+            document.getElementById('siteInfoViewTotal').innerText   = info.contractTotal ? _fmtAmount(info.contractTotal) : '—';
+            // 計算總計價進度%
+            _updateTotalProgressPct();
+            document.getElementById('mainInfoViewArea').style.display  = 'flex';
+            document.getElementById('mainInfoEditArea').style.display  = 'none';
+            document.getElementById('btnMainInfoEdit').style.display   = '';
+            document.getElementById('btnMainInfoSave').style.display   = 'none';
+            // 隱藏新增/刪除按鈕
+            document.getElementById('siteInfoEditActions').style.display = 'none';
+            // 計價進度框：顯示「編輯」，隱藏「刪除」
+            _setProgressEditBtnsVisible(true);
+        }
+
+        // ---- 計算並更新總計價進度% ----
+        function _updateTotalProgressPct() {
+            const ct = _getContractTotal();
+            const blocks = _getBlocks();
+            const totalAmt = blocks.reduce((sum, blk) => {
+                return sum + (blk.items || []).reduce((s, r) => s + (Number(r.amount)||0), 0);
+            }, 0);
+            const el = document.getElementById('siteInfoViewTotalPct');
+            if (!el) return;
+            if (ct > 0) {
+                el.innerText = (totalAmt / ct * 100).toFixed(1) + '%';
             } else {
-                empty.style.display  = '';
-                viewer.style.display = 'none';
-                _siPdf.view.doc = null;
+                el.innerText = '—';
             }
         }
 
-        function enterSiteInfoEdit() {
+        // ---- 主資訊：進入編輯 ----
+        function enterMainInfoEdit() {
             if (!db.siteInfo) db.siteInfo = {};
             const info = db.siteInfo[_siSelectedSiteId] || {};
-            document.getElementById('inputSiteInfoAddress').value  = info.caseAddress || '';
-            _siPdfPending = null;
-            const editEmpty  = document.getElementById('siteInfoEditPdfEmpty');
-            const editViewer = document.getElementById('siteInfoEditPdfViewer');
-            const pdfSrc     = info.pdfBase64 || null;
-            if (pdfSrc) {
-                editEmpty.style.display  = 'none';
-                editViewer.style.display = '';
-                setTimeout(() => _siLoadPdf('edit', pdfSrc), 60);
-            } else {
-                editEmpty.style.display  = '';
-                editViewer.style.display = 'none';
-                _siPdf.edit.doc = null;
-            }
-            document.getElementById('siteInfoViewPanel').style.display = 'none';
-            document.getElementById('siteInfoEditPanel').style.display = 'flex';
+            document.getElementById('inputSiteInfoAddress').value = info.caseAddress   || '';
+            document.getElementById('inputSiteInfoTotal').value   = info.contractTotal || '';
+            document.getElementById('mainInfoViewArea').style.display  = 'none';
+            document.getElementById('mainInfoEditArea').style.display  = 'flex';
+            document.getElementById('btnMainInfoEdit').style.display   = 'none';
+            document.getElementById('btnMainInfoSave').style.display   = '';
+            // 顯示新增/刪除按鈕
+            document.getElementById('siteInfoEditActions').style.display = 'flex';
+            // 計價進度框：隱藏「編輯」，顯示「刪除」
+            _setProgressEditBtnsVisible(false);
         }
 
-        function handleSiteInfoPdfImport(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                _siPdfPending = e.target.result;
-                document.getElementById('siteInfoEditPdfEmpty').style.display  = 'none';
-                document.getElementById('siteInfoEditPdfViewer').style.display = '';
-                setTimeout(() => _siLoadPdf('edit', _siPdfPending), 60);
-            };
-            reader.readAsDataURL(file);
-            input.value = '';
+        function cancelMainInfoEdit() {
+            _renderMainInfoView();
         }
 
-        function saveSiteInfoData() {
-            if (!_siSelectedSiteId) return;
-            const caseAddress = document.getElementById('inputSiteInfoAddress').value.trim();
+        function saveMainInfo() {
+            const caseAddress   = document.getElementById('inputSiteInfoAddress').value.trim();
+            const contractTotal = document.getElementById('inputSiteInfoTotal').value.trim();
             if (!db.siteInfo) db.siteInfo = {};
-            const existing  = db.siteInfo[_siSelectedSiteId] || {};
-            const pdfBase64 = _siPdfPending || existing.pdfBase64 || null;
-            db.siteInfo[_siSelectedSiteId] = { caseAddress, pdfBase64 };
-            _siPdfPending = null;
+            if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
+            db.siteInfo[_siSelectedSiteId].caseAddress   = caseAddress;
+            db.siteInfo[_siSelectedSiteId].contractTotal = contractTotal;
             saveToLocalStorage();
-            document.getElementById('siteInfoViewPanel').style.display = 'flex';
-            document.getElementById('siteInfoEditPanel').style.display = 'none';
-            _renderSiteInfoView();
-            alert('案場資訊已儲存！');
+            _renderMainInfoView();
+            _renderAllProgressBlocks();
         }
 
+        // ---- 控制計價進度框的按鈕顯示 ----
+        function _setProgressEditBtnsVisible(viewMode) {
+            // viewMode=true：唯讀狀態，顯示「編輯」，隱藏「刪除」
+            // viewMode=false：編輯狀態，隱藏「編輯」，顯示「刪除」
+            document.querySelectorAll('.progress-block-edit-btn').forEach(btn => {
+                btn.style.display = viewMode ? '' : 'none';
+            });
+            document.querySelectorAll('.progress-block-delete-btn').forEach(btn => {
+                btn.style.display = viewMode ? 'none' : '';
+            });
+        }
+
+        // ---- 取得/初始化 blocks ----
+        function _getBlocks() {
+            if (!db.siteInfo) db.siteInfo = {};
+            if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
+            if (!db.siteInfo[_siSelectedSiteId].progressBlocks) db.siteInfo[_siSelectedSiteId].progressBlocks = [];
+            return db.siteInfo[_siSelectedSiteId].progressBlocks;
+        }
+
+        // ---- 渲染所有計價進度卡片（唯讀） ----
+        function _renderAllProgressBlocks() {
+            const container = document.getElementById('progressBlocksContainer');
+            container.innerHTML = '';
+            const blocks = _getBlocks();
+            const ct = _getContractTotal();
+            blocks.forEach((blk, bIdx) => {
+                container.appendChild(_buildProgressBlockCard(blk, bIdx, ct));
+            });
+            // 同步編輯按鈕的可見性（依主資訊模式決定）
+            const isMainEditing = document.getElementById('mainInfoEditArea').style.display !== 'none';
+            _setProgressEditBtnsVisible(!isMainEditing);
+            // 更新總計價進度%
+            _updateTotalProgressPct();
+        }
+
+        function _buildProgressBlockCard(blk, bIdx, ct) {
+            const items = blk.items || [];
+            const totalAmt = items.reduce((s, r) => s + (Number(r.amount)||0), 0);
+            const totalPct = ct > 0 ? (totalAmt / ct * 100).toFixed(1) + '%' : '—';
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.flexShrink = '0';
+
+            // 標題列
+            const titleBar = document.createElement('div');
+            titleBar.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #e5e7eb; margin-bottom:8px;';
+            titleBar.innerHTML = `
+                <span style="font-size:13px; font-weight:bold; color:#374151;">${blk.title || '計價進度'}</span>
+                <div style="display:flex; gap:6px; flex-shrink:0;">
+                    <button class="progress-block-edit-btn" onclick="_openProgressModal(${bIdx})"
+                        style="background:#374151; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px;">編輯</button>
+                    <button class="progress-block-delete-btn" onclick="_deleteProgressBlock(${bIdx})"
+                        style="display:none; background:#ef4444; color:white; font-size:12px; font-weight:bold; padding:5px 12px; border-radius:8px;">刪除</button>
+                </div>
+            `;
+            card.appendChild(titleBar);
+
+            // 內容
+            if (items.length === 0) {
+                const empty = document.createElement('p');
+                empty.style.cssText = 'font-size:13px; color:#9ca3af; text-align:center; padding:6px 0; margin:0;';
+                empty.textContent = '尚無計價明細';
+                card.appendChild(empty);
+            } else {
+                const tableHead = document.createElement('div');
+                tableHead.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 56px; gap:4px; padding:0 2px 4px; border-bottom:1px solid #f3f4f6; margin-bottom:4px;';
+                tableHead.innerHTML = `
+                    <span style="font-size:11px; font-weight:bold; color:#9ca3af;">年月</span>
+                    <span style="font-size:11px; font-weight:bold; color:#9ca3af; text-align:right;">計價金額</span>
+                    <span style="font-size:11px; font-weight:bold; color:#9ca3af; text-align:right;">%</span>
+                `;
+                card.appendChild(tableHead);
+                items.forEach(item => {
+                    const amt = Number(item.amount)||0;
+                    const pct = ct > 0 ? (amt/ct*100).toFixed(1)+'%' : '—';
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 56px; gap:4px; padding:4px 2px; border-bottom:1px solid #f9fafb;';
+                    row.innerHTML = `
+                        <span style="font-size:13px; color:#374151;">${item.month||'—'}</span>
+                        <span style="font-size:13px; color:#374151; text-align:right;">${_fmtAmount(item.amount)}</span>
+                        <span style="font-size:13px; color:#374151; text-align:right;">${pct}</span>
+                    `;
+                    card.appendChild(row);
+                });
+                const sumRow = document.createElement('div');
+                sumRow.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 56px; gap:4px; padding:6px 2px 0; border-top:1px solid #e5e7eb; margin-top:6px;';
+                sumRow.innerHTML = `
+                    <span style="font-size:12px; font-weight:bold; color:#374151;">合計</span>
+                    <span style="font-size:12px; font-weight:bold; color:#1f2937; text-align:right;">${_fmtAmount(totalAmt)}</span>
+                    <span style="font-size:12px; font-weight:bold; color:#1f2937; text-align:right;">${ct>0?totalPct:'—'}</span>
+                `;
+                card.appendChild(sumRow);
+            }
+            return card;
+        }
+
+        // ---- 計價進度彈窗 ----
+        function _openProgressModal(bIdx) {
+            _siEditingBlockIdx = bIdx;
+            const blocks = _getBlocks();
+            const blk = blocks[bIdx];
+            const ct = _getContractTotal();
+
+            document.getElementById('progressEditTitle').value = blk.title || '計價進度';
+
+            const itemsContainer = document.getElementById('progressModalItems');
+            itemsContainer.innerHTML = '';
+            (blk.items || []).forEach((item, iIdx) => {
+                itemsContainer.appendChild(_makeModalItemRow(iIdx, item.month, item.amount, ct));
+            });
+            _recalcModalSummary();
+            document.getElementById('progressEditModal').style.display = 'flex';
+        }
+
+        function _makeModalItemRow(iIdx, month, amount, ct) {
+            const div = document.createElement('div');
+            div.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:4px; align-items:center;';
+            div.setAttribute('data-modal-row', iIdx);
+            const amt = Number(amount)||0;
+            const pct = ct > 0 ? (amt/ct*100).toFixed(1)+'%' : '—';
+            div.innerHTML = `
+                <select class="modal-month-sel" onchange="_recalcModalSummary()"
+                    style="font-size:12px; padding:4px 2px; border:1px solid #d1d5db; border-radius:6px; background:white; -webkit-user-select:text; user-select:text;">
+                    ${_buildMonthOptions(month || _currentMonthValue())}
+                </select>
+                <input type="number" inputmode="numeric" value="${amount||''}" placeholder="金額"
+                    class="modal-amount-inp" oninput="_recalcModalSummary()"
+                    style="font-size:12px; padding:4px 6px; border:1px solid #d1d5db; border-radius:6px; background:white; text-align:right; -webkit-user-select:text; user-select:text;">
+                <span class="modal-pct-cell" style="font-size:12px; color:#374151; text-align:right; padding-right:2px;">${pct}</span>
+                <button type="button" onclick="_removeModalItem(this)"
+                    style="background:none; color:#ef4444; font-size:16px; padding:0; line-height:1; font-weight:bold;">×</button>
+            `;
+            return div;
+        }
+
+        function _addProgressModalItem() {
+            const ct = _getContractTotal();
+            const container = document.getElementById('progressModalItems');
+            container.appendChild(_makeModalItemRow(container.children.length, _currentMonthValue(), '', ct));
+            _recalcModalSummary();
+        }
+
+        function _removeModalItem(btn) {
+            btn.closest('div[data-modal-row]').remove();
+            _recalcModalSummary();
+        }
+
+        function _recalcModalSummary() {
+            const ct = _getContractTotal();
+            const rows = document.querySelectorAll('#progressModalItems div[data-modal-row]');
+            let total = 0;
+            rows.forEach(row => {
+                const amt = Number(row.querySelector('.modal-amount-inp').value)||0;
+                total += amt;
+                row.querySelector('.modal-pct-cell').innerText = ct > 0 ? (amt/ct*100).toFixed(1)+'%' : '—';
+            });
+            document.getElementById('progressModalSumAmt').innerText = rows.length ? _fmtAmount(total) : '—';
+            document.getElementById('progressModalSumPct').innerText = rows.length && ct>0 ? (total/ct*100).toFixed(1)+'%' : '—';
+        }
+
+        function _saveProgressModal() {
+            const blocks = _getBlocks();
+            const title = document.getElementById('progressEditTitle').value.trim() || '計價進度';
+            const rows  = document.querySelectorAll('#progressModalItems div[data-modal-row]');
+            const items = [];
+            rows.forEach(row => {
+                const month  = row.querySelector('.modal-month-sel').value;
+                const amount = row.querySelector('.modal-amount-inp').value.trim();
+                const amtNum = Number(amount);
+                // 金額為空或為 0 則略過
+                if (!amount || amtNum === 0) return;
+                items.push({ month, amount });
+            });
+            blocks[_siEditingBlockIdx].title = title;
+            blocks[_siEditingBlockIdx].items = items;
+            saveToLocalStorage();
+            document.getElementById('progressEditModal').style.display = 'none';
+            _renderAllProgressBlocks();
+        }
+
+        function _deleteProgressBlock(bIdx) {
+            const blocks = _getBlocks();
+            // bIdx 可能來自卡片按鈕（直接傳入）或彈窗（用 _siEditingBlockIdx）
+            const idx = (bIdx !== undefined) ? bIdx : _siEditingBlockIdx;
+            if (idx === null || idx === undefined) return;
+            const title = (blocks[idx] && blocks[idx].title) || '計價進度';
+            if (!confirm(`確定要刪除「${title}」？`)) return;
+            blocks.splice(idx, 1);
+            saveToLocalStorage();
+            document.getElementById('progressEditModal').style.display = 'none';
+            _siEditingBlockIdx = null;
+            _renderAllProgressBlocks();
+            // 重新同步按鈕狀態（維持編輯模式）
+            _setProgressEditBtnsVisible(false);
+        }
+
+        // ---- 新增計價進度 block ----
+        function addProgressBlock() {
+            const blocks = _getBlocks();
+            const newBlk = { id: Date.now().toString(), title: '計價進度', items: [] };
+            blocks.push(newBlk);
+            saveToLocalStorage();
+            _renderAllProgressBlocks();
+            // 捲動到最底
+            setTimeout(() => {
+                const wrap = document.getElementById('progressDetailWrap');
+                if (wrap) wrap.scrollTop = wrap.scrollHeight;
+            }, 50);
+        }
+
+        // ---- 刪除案場（保留打卡紀錄） ----
         function deleteSiteFromInfo() {
             if (!_siSelectedSiteId) return;
             const site = db.sites.find(s => s.id === _siSelectedSiteId);
             if (!site) return;
-            if (!confirm(`確定要刪除案場「${site.name}」嗎？\n（相關打卡紀錄也會移除，日誌紀錄保留）`)) return;
+            if (!confirm(`確定要刪除案場「${site.name}」嗎？`)) return;
             db.sites = db.sites.filter(s => s.id !== _siSelectedSiteId);
-            if (db.punches && db.punches[_siSelectedSiteId]) delete db.punches[_siSelectedSiteId];
             if (db.siteInfo && db.siteInfo[_siSelectedSiteId]) delete db.siteInfo[_siSelectedSiteId];
             if (currentState.siteId === _siSelectedSiteId) { currentState.siteId = null; currentState.siteName = ''; }
             _siSelectedSiteId = null;
             saveToLocalStorage();
             document.getElementById('siteInfoDetailWrap').style.display = 'none';
+            document.getElementById('progressDetailWrap').style.display = 'none';
             renderSiteInfoList();
         }
 
-        // ---- 新增案場（inline） ----
+        // ---- 新增案場 inline ----
         function showAddSiteInline() {
             document.getElementById('addSiteInlineWrap').style.display = '';
             document.getElementById('inputNewSiteInfo').value = '';
@@ -1486,11 +1676,10 @@
             saveToLocalStorage();
             document.getElementById('addSiteInlineWrap').style.display = 'none';
             renderSiteInfoList();
-            // 自動選取剛新增的案場
             selectSiteInfoSite(newSite.id);
         }
 
-        // ---- 舊有函式相容（設定頁 addSite 已移除，保留 renderManageSites 供 Sortable 使用） ----
+        // ---- 舊有相容 ----
         function addSite() {
             const el = document.getElementById('inputNewSite');
             if (!el) return;
@@ -1499,6 +1688,10 @@
             db.sites.push({ id: Date.now().toString(), name });
             saveToLocalStorage(); el.value = ''; renderManageSites();
         }
+        function saveSiteInfoData() { saveMainInfo(); }
+        function _refreshAllProgressPct() {}
+        function _cancelProgressBlockEdit() {}
+        function _enterProgressBlockEdit() {}
 
         // ================= 工地記錄合併頁面（施工日誌＋工地記事） =================
         function syncLogTypeCheckboxes(changed) {
@@ -1719,10 +1912,12 @@
                 document.getElementById('btnHomeTop').classList.add('hidden');
                 // 清空選取狀態，重繪清單
                 _siSelectedSiteId = null;
-                _siPdfPending = null;
-                document.getElementById('siteInfoDetailWrap').style.display = 'none';
-                document.getElementById('addSiteInlineWrap').style.display  = 'none';
+                document.getElementById('siteInfoDetailWrap').style.display  = 'none';
+                document.getElementById('progressDetailWrap').style.display  = 'none';
+                document.getElementById('addSiteInlineWrap').style.display   = 'none';
                 renderSiteInfoList();
+                // 預設選取第一個案場
+                if (db.sites.length > 0) selectSiteInfoSite(db.sites[0].id);
                 // 初始化可拖動排序
                 const siList = document.getElementById('siteInfoList');
                 if (siList && !siList._sortableInit) {
