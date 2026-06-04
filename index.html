@@ -2313,7 +2313,7 @@
             db.dailyRecords[dateStr].log.push({ siteId: currentState.siteId, text: logTextWithDate });
             const newIdx = db.dailyRecords[dateStr].log.length - 1;
             saveToLocalStorage();
-            alert('紀錄已儲存！');
+            alert('已儲存！');
             // 回首頁並自動選取該日期＋勾選記錄卡
             const [y, m] = dateStr.split('-').map(Number);
             homeCalYear = y;
