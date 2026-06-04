@@ -48,11 +48,11 @@
         
         .home-sites-scroll-zone { max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; border: 1px dashed #cbd5e1; padding: 6px; border-radius: 8px; background-color: #f9fafb; }
         
-        .card { background-color: #ffffff; padding: 14px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+        .card { background-color: #F0F0F0; padding: 14px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
         .alert-box { padding: 12px; border-radius: 12px; font-size: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); flex-shrink: 0; }
         .alert-blue { background-color: #e5e7eb; border: 1px solid #cbd5e1; color: #111111; font-weight: 600; }
         
-        input[type="text"], input[type="number"], input[type="date"], input[type="month"], select, textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; background-color: white; -webkit-user-select: text; user-select: text; }
+        input[type="text"], input[type="number"], input[type="date"], input[type="month"], select, textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; background-color: #F0F0F0; -webkit-user-select: text; user-select: text; }
         input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus { border-color: #333333; }
         .flex-row { display: flex; gap: 8px; width: 100%; align-items: center; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -61,7 +61,7 @@
         .list-container { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
         .scroll-list-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 120px; }
         
-        .list-item { background-color: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02); gap: 8px; min-height: 44px; }
+        .list-item { background-color: #F0F0F0; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02); gap: 8px; min-height: 44px; }
         .list-item.selected { background-color: #1f2937 !important; border-color: #1f2937 !important; }
         .list-item.selected span { color: #ffffff !important; }
 
@@ -71,7 +71,7 @@
         .cart-qty-input { width: 96px !important; text-align: center; font-weight: bold; background-color: #e5e7eb !important; color: #333333; }
         
         .scroll-box { max-height: 220px; overflow-y: auto; background-color: #f9fafb; padding: 8px; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; }
-        .manage-item { background-color: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 13px; gap: 4px; user-select: none; }
+        .manage-item { background-color: #F0F0F0; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 13px; gap: 4px; user-select: none; }
         .drag-handle { cursor: move; padding-right: 4px; }
         .sortable-ghost { opacity: 0.4; background-color: #e2e8f0 !important; border: 1px dashed #94a3b8 !important; }
         
@@ -120,7 +120,7 @@
         .calendar-day:active { background-color: #555555; }
         .calendar-day.empty { background-color: transparent; border: none; cursor: default; }
         .calendar-day.today { border-color: #aaaaaa; background-color: #555555; }
-        .calendar-day.selected { background-color: #ffffff; border-color: #ffffff; }
+        .calendar-day.selected { background-color: #F0F0F0; border-color: #F0F0F0; }
         .calendar-day.selected .day-num { color: #111111; }
         .day-num { font-size: 11px; font-weight: bold; color: #dddddd; }
         .day-dots { display: flex; gap: 2px; justify-content: center; overflow: hidden; padding-top: 2px; }
@@ -134,7 +134,7 @@
         .view-box-card { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; background-color: #f9fafb; display: flex; flex-direction: column; gap: 4px; cursor: pointer; user-select: none; }
         .view-box-card:active { background-color: #f0f0f0; }
         .view-box-title { font-size: 13px; font-weight: bold; color: #374151; display: flex; align-items: center; gap: 6px; }
-        .view-box-content { font-size: 13px; background: white; border: 1px solid #e5e7eb; padding: 6px; border-radius: 6px; min-height: 40px; white-space: pre-wrap; word-break: break-all; }
+        .view-box-content { font-size: 13px; background: #F0F0F0; border: 1px solid #e5e7eb; padding: 6px; border-radius: 6px; min-height: 40px; white-space: pre-wrap; word-break: break-all; }
 
         /* 黑色捲動條 */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -459,7 +459,7 @@
                 <div id="backupWarningBanner" style="display:none; background:#fff7ed; border:1px solid #fb923c; border-radius:8px; padding:8px 12px; font-size:12px; color:#9a3412; font-weight:600;">⚠️ <span id="backupWarningText"></span></div>
                 <div id="lastExportTimeDisplay" style="display:none; font-size:12px; color:#64748b; text-align:right; margin-top:-4px;">上次備份：<span id="lastExportTimeText"></span></div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-                    <select id="inputExportOrderMonth" style="flex:1; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: white;"></select>
+                    <select id="inputExportOrderMonth" style="flex:1; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: #F0F0F0;"></select>
                     <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding: 10px 14px; font-size: 13px; border-radius: 8px;">📊 匯出Excel</button>
                 </div>
             </div>
