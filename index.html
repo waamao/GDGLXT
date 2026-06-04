@@ -126,10 +126,11 @@
         .day-num { font-size: 11px; font-weight: bold; color: #dddddd; }
         .day-dots { display: flex; gap: 2px; justify-content: center; overflow: hidden; padding-top: 2px; }
         .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
-        .dot-log { background-color: #ef4444; }
-        .dot-notes { background-color: #777777; }
-        .dot-punch { background-color: #06C755; }
-        .dot-order { background-color: #111111; }
+        .dot-log { background-color: #7ec8e3; }
+        .dot-memo { background-color: #ef4444; }
+        .dot-notes { background-color: #aaaaaa; }
+        .dot-punch { background-color: #f5c518; }
+        .dot-order { background-color: #cccccc; }
 
         /* 綜合查看框樣式 */
         .view-box-card { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; background-color: #f9fafb; display: flex; flex-direction: column; gap: 4px; user-select: none; }
@@ -883,7 +884,16 @@
                 const dotsEl = document.createElement('div');
                 dotsEl.className = 'day-dots';
 
-                let hasLog = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].log;
+                let hasLog = false, hasMemo = false;
+                const logRec = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].log;
+                if (logRec) {
+                    const logArr = Array.isArray(logRec) ? logRec : [logRec];
+                    logArr.forEach(item => {
+                        if (!item || !item.text) return;
+                        if (/備忘錄/.test(item.text)) hasMemo = true;
+                        else hasLog = true;
+                    });
+                }
                 let hasNotes = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].notes;
                 let hasOrder = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].order;
                 
@@ -898,6 +908,7 @@
                 }
 
                 if(hasLog) dotsEl.innerHTML += '<span class="dot dot-log"></span>';
+                if(hasMemo) dotsEl.innerHTML += '<span class="dot dot-memo"></span>';
                 if(hasNotes) dotsEl.innerHTML += '<span class="dot dot-notes"></span>';
                 if(hasPunch) dotsEl.innerHTML += '<span class="dot dot-punch"></span>';
                 if(hasOrder) dotsEl.innerHTML += '<span class="dot dot-order"></span>';
@@ -2313,7 +2324,7 @@
             db.dailyRecords[dateStr].log.push({ siteId: currentState.siteId, text: logTextWithDate });
             const newIdx = db.dailyRecords[dateStr].log.length - 1;
             saveToLocalStorage();
-            alert('已儲存！');
+            alert('紀錄已儲存！');
             // 回首頁並自動選取該日期＋勾選記錄卡
             const [y, m] = dateStr.split('-').map(Number);
             homeCalYear = y;
