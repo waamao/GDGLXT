@@ -108,9 +108,10 @@
             background-color: rgba(255,255,255,0.18);
         }
 
-        .log-entry-item { padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background-color: #f9fafb; position: relative; display: flex; flex-direction: column; gap: 8px; }
+        .log-entry-item { padding: 0; border: none; border-radius: 8px; background-color: #f9fafb; position: relative; display: flex; flex-direction: column; gap: 8px; }
+        .log-page-entry-item { padding: 12px; border: none; border-radius: 8px; background-color: #f9fafb; position: relative; display: flex; flex-direction: column; gap: 8px; }
         .log-entry-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn-delete-log-item { background: none; color: #D9006C; font-size: 16px; padding: 4px 8px; position: absolute; top: 4px; right: 4px; }
+        .btn-delete-log-item { background: #D9006C; color: #ffffff; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 6px; position: absolute; top: 4px; right: 4px; }
 
         /* 月曆元件樣式 */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -262,9 +263,8 @@
                     <div id="logSiteGroup" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto;"></div>
                 </div>
                 <!-- 施工日誌區塊 -->
-                <div id="logSection" class="card">
-                    <h3 style="font-size: 14px; margin: 0; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; color: #374151;">內容填寫</h3>
-                    <div id="logItemsContainer" style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;"></div>
+                <div id="logSection">
+                    <div id="logItemsContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
                     <button onclick="addLogItemRow()" class="btn-slate" style="width: 100%; padding: 10px; margin-top: 4px;">➕ 新增施工項目/記錄事項</button>
                 </div>
             </div>
@@ -568,7 +568,7 @@
                 </div>
                 <!-- 工地記事 textarea -->
                 <div id="editNotesWrap" style="display:none;">
-                    <textarea id="editNotesTextarea" rows="10" style="width:100%; resize:none; line-height:1.6; border:1px solid #d1d5db; border-radius:8px; padding:8px; font-size:14px;"></textarea>
+                    <textarea id="editNotesTextarea" rows="10" style="width:100%; resize:none; line-height:1.6; border:none; border-radius:8px; padding:8px; font-size:14px;"></textarea>
                 </div>
             </div>
             <div style="padding:12px 16px; border-top:1px solid #e5e7eb; display:flex; gap:8px;">
@@ -1568,11 +1568,13 @@
         function addLogItemRow(itemValue = '', floorValue = '', peopleValue = '') {
             const container = document.getElementById('logItemsContainer');
             const div = document.createElement('div');
-            div.className = 'log-entry-item';
+            div.className = 'log-page-entry-item';
             div.innerHTML = `
-                <button type="button" class="btn-delete-log-item" onclick="removeLogItemRow(this)">移除</button>
-                <div style="margin-top: 8px;">
-                    <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: #4b5563;">施工項目/記錄事項：</label>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                    <label style="font-size:13px; font-weight:bold; color:#4b5563; margin:0;">施工項目/記錄事項：</label>
+                    <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeLogItemRow(this)">移除</button>
+                </div>
+                <div>
                     <textarea class="log-item-input" rows="2" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:white;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
                 </div>
                 <div class="log-entry-row">
@@ -2273,7 +2275,7 @@
         // ================= 工地記錄（施工日誌／記錄事項） =================
         function getLogRawText() {
             const container = document.getElementById('logItemsContainer');
-            const items = container.getElementsByClassName('log-entry-item');
+            const items = container.getElementsByClassName('log-page-entry-item');
             let projectLogText = '';
             let hasContent = false;
             let hasFloorOrPeople = false;
