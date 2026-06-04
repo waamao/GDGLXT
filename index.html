@@ -186,7 +186,7 @@
                         <button onclick="changeHomeMonth(-1)" class="btn-slate" style="padding: 0; font-size:12px; width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">←</button>
                         <div style="display:flex; flex-direction:row; align-items:center; gap:6px; flex:1; justify-content:center; position:relative;">
                             <button onclick="goToToday()" class="btn-slate" style="padding: 9px 12px; font-size:12px; border-radius:18px;">今天</button>
-                            <span id="homeCalendarDateDisplay" onclick="toggleCalendarMonthPicker(event)" style="font-size:12px; color:#ffffff; font-weight:500; background-color:#222222; padding:9px 12px; border-radius:18px; white-space:nowrap; cursor:pointer; position:relative;"></span>
+                            <span id="homeCalendarDateDisplay" onclick="toggleCalendarMonthPicker(event)" style="font-size:12px; color:#ffffff; font-weight:500; background-color:#000000; padding:9px 12px; border-radius:18px; white-space:nowrap; cursor:pointer; position:relative;"></span>
                             <!-- 月份下拉選擇器 -->
                             <div id="calendarMonthPickerDropdown" style="display:none; position:absolute; z-index:500; background:white; border:1px solid #d1d5db; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.15); padding:8px 0; min-width:160px; max-height:260px; overflow-y:auto; top:36px; left:50%; transform:translateX(-50%);">
                             </div>
@@ -458,7 +458,7 @@
                 <div id="lastExportTimeDisplay" style="display:none; font-size:12px; color:#64748b; text-align:right; margin-top:-4px;">上次備份：<span id="lastExportTimeText"></span></div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
                     <select id="inputExportOrderMonth" style="flex:1; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: #F0F0F0;"></select>
-                    <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding: 10px 14px; font-size: 13px; border-radius: 8px;">📊 匯出Excel</button>
+                    <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding: 10px 14px; font-size: 13px; border-radius: 8px;">📊 訂單Excel</button>
                 </div>
             </div>
             <div class="card">
@@ -2324,7 +2324,7 @@
             db.dailyRecords[dateStr].log.push({ siteId: currentState.siteId, text: logTextWithDate });
             const newIdx = db.dailyRecords[dateStr].log.length - 1;
             saveToLocalStorage();
-            alert('紀錄已儲存！');
+            alert('已儲存！');
             // 回首頁並自動選取該日期＋勾選記錄卡
             const [y, m] = dateStr.split('-').map(Number);
             homeCalYear = y;
