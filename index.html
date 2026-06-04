@@ -228,7 +228,7 @@
                 </div>
                 <div id="homeActionBtns" class="hidden">
                     <div class="bottom-btn-group-inner">
-                        <button onclick="shareCombinedViewToLine(); uncheckAllInline();" class="btn-line large-bottom-btn">傳送到LINE</button>
+                        <!-- 已移除：原為勾選卡片後傳LINE用，現每張卡片有獨立LINE按鈕 -->
                     </div>
                 </div>
             </div>
@@ -255,17 +255,28 @@
         <section id="pageLog" class="page">
             <div class="scroll-list-body" style="flex: 1;">
                 <div class="card">
-                    <label style="font-size: 13px; font-weight: bold; color: #4b5563;">請選擇紀錄日期：</label>
+                    <label style="font-size: 13px; font-weight: bold; color: #4b5563;">選擇日期：</label>
                     <input type="date" id="inputLogDate" style="width: 100%; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none;">
                 </div>
                 <div class="card">
                     <label style="font-size: 13px; font-weight: bold; color: #4b5563;">選擇案場：</label>
                     <div id="logSiteGroup" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto;"></div>
+                    <!-- 記錄類型選擇 -->
+                    <div style="display: flex; gap: 20px; align-items: center; padding-top: 4px;">
+                        <label style="display:flex; align-items:center; gap:6px; font-size:14px; font-weight:bold; color:#4b5563; cursor:pointer;">
+                            <input type="radio" name="logType" id="logTypeLog" value="log" checked onchange="onLogTypeChange()" style="width:18px;height:18px;accent-color:#333;flex-shrink:0;">
+                            施工日誌
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:14px; font-weight:bold; cursor:pointer;" id="logTypeMemoLabel">
+                            <input type="radio" name="logType" id="logTypeMemo" value="memo" onchange="onLogTypeChange()" style="width:18px;height:18px;accent-color:#D9006C;flex-shrink:0;">
+                            <span id="logTypeMemoText" style="color:#4b5563;">備忘錄</span>
+                        </label>
+                    </div>
                 </div>
                 <!-- 施工日誌區塊 -->
                 <div id="logSection">
                     <div id="logItemsContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
-                    <button onclick="addLogItemRow()" class="btn-slate" style="width: 100%; padding: 10px; margin-top: 4px;">➕ 新增施工項目/記錄事項</button>
+                    <button onclick="addLogItemRow()" class="btn-slate" style="width: 100%; padding: 10px; margin-top: 4px;">➕新增項目</button>
                 </div>
             </div>
             <div class="bottom-btn-group">
@@ -277,7 +288,7 @@
 
         <section id="pageCategories" class="page">
             <div class="card" style="padding: 10px; flex-shrink: 0;">
-                <label style="font-size: 13px; font-weight: bold; color: #4b5563; margin-bottom: 4px; display:block;">請選擇訂購日期：</label>
+                <label style="font-size: 13px; font-weight: bold; color: #4b5563; margin-bottom: 4px; display:block;">選擇訂購日期：</label>
                 <input type="date" id="inputOrderDate" style="width: 100%; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none;">
             </div>
 
@@ -286,7 +297,7 @@
                 <input type="text" id="globalSearchBar" oninput="renderCategories()" style="border: none; padding: 4px; font-size: 14px; width: 100%; outline: none;" placeholder="搜尋全部材料品項...">
             </div>
             <div class="list-container" style="flex: 1; min-height: 0;">
-                <h3 id="categoryListHeader" style="font-size: 14px; color: #4b5563; margin: 4px; flex-shrink: 0;">請選擇材料分類：</h3>
+                <h3 id="categoryListHeader" style="font-size: 14px; color: #4b5563; margin: 4px; flex-shrink: 0;">選擇材料分類：</h3>
                 <div id="listCategories" class="scroll-list-body" style="padding-bottom: 63px; max-height: calc(9 * (44px + 8px) - 8px); overflow-y: auto;"></div>
             </div>
             <div class="bottom-btn-group">
@@ -521,7 +532,7 @@
             </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
                 <div>
-                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">請選擇打卡日期：</label>
+                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">選擇打卡日期：</label>
                     <input type="date" id="inputPunchDate" onchange="syncPunchDateChange()" style="width:180px; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; background:white; box-sizing:border-box;">
                 </div>
                 <div>
@@ -553,7 +564,7 @@
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
                 <!-- 日期選擇 -->
                 <div>
-                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">紀錄日期：</label>
+                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">選擇日期：</label>
                     <input type="date" id="editLogDate" style="width:180px; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; background:white;">
                 </div>
                 <!-- 案場選擇 -->
@@ -564,7 +575,7 @@
                 <!-- 施工日誌項目 -->
                 <div id="editLogItemsWrap">
                     <div id="editLogItemsContainer" style="display:flex; flex-direction:column; gap:12px;"></div>
-                    <button onclick="addEditLogItemRow()" class="btn-slate" style="width:100%; padding:10px; margin-top:8px;">➕ 新增施工項目</button>
+                    <button onclick="addEditLogItemRow()" class="btn-slate" style="width:100%; padding:10px; margin-top:8px;">➕新增項目</button>
                 </div>
                 <!-- 工地記事 textarea -->
                 <div id="editNotesWrap" style="display:none;">
@@ -975,36 +986,33 @@
             const rec = db.dailyRecords[dateStr] || {};
             let hasAnyContent = false;
 
-            // 建立 siteId → 在 db.sites 的 index 對照表（排序依據）
-            const siteOrderMap = {};
-            db.sites.forEach((s, i) => { siteOrderMap[s.id] = i; });
-            const getSiteOrder = (siteId) => siteOrderMap[siteId] !== undefined ? siteOrderMap[siteId] : 9999;
-
             // 收集所有卡片資料，統一排序後再渲染
-            const cardQueue = []; // { siteOrder, typeOrder, type, arr, idx, item }
+            const cardQueue = []; // { typeOrder, type, arr, idx, item }
 
-            // log（施工日誌 typeOrder=0，記錄事項 typeOrder=1）
+            // log：備忘錄 typeOrder=0，施工日誌 typeOrder=1，記錄事項 typeOrder=2
             const logArr = rec.log ? (Array.isArray(rec.log) ? rec.log : [rec.log]) : [];
             logArr.forEach((item, idx) => {
                 if (!item || !item.text) return;
-                const isNoteType = /記錄事項/.test(item.text);
-                cardQueue.push({ siteOrder: getSiteOrder(item.siteId), typeOrder: isNoteType ? 1 : 0, type: 'log', item, idx });
+                let to = 1;
+                if (/備忘錄/.test(item.text)) to = 0;
+                else if (/記錄事項/.test(item.text)) to = 2;
+                cardQueue.push({ typeOrder: to, type: 'log', item, idx });
             });
-            // notes（工地記事 typeOrder=2）
+            // notes（工地記事 typeOrder=3）
             const notesArr = rec.notes ? (Array.isArray(rec.notes) ? rec.notes : [rec.notes]) : [];
             notesArr.forEach((item, idx) => {
                 if (!item || !item.text) return;
-                cardQueue.push({ siteOrder: getSiteOrder(item.siteId), typeOrder: 2, type: 'notes', item, idx });
+                cardQueue.push({ typeOrder: 3, type: 'notes', item, idx });
             });
-            // order（材料訂購 typeOrder=3）
+            // order（材料訂購 typeOrder=4）
             const orderArr = rec.order ? (Array.isArray(rec.order) ? rec.order : [rec.order]) : [];
             orderArr.forEach((item, idx) => {
                 if (!item || !item.text) return;
-                cardQueue.push({ siteOrder: getSiteOrder(item.siteId), typeOrder: 3, type: 'order', item, idx });
+                cardQueue.push({ typeOrder: 4, type: 'order', item, idx });
             });
 
-            // 排序：先案場順序，再類型順序
-            cardQueue.sort((a, b) => a.siteOrder !== b.siteOrder ? a.siteOrder - b.siteOrder : a.typeOrder - b.typeOrder);
+            // 排序：依類型順序
+            cardQueue.sort((a, b) => a.typeOrder - b.typeOrder);
 
             // 渲染排序後的卡片
             const prefixMap = { log: 'inlineChkLog', notes: 'inlineChkNotes', order: 'inlineChkOrder' };
@@ -1014,24 +1022,25 @@
                 const prefix = prefixMap[type];
                 let displayTitle = baseTitleMap[type];
                 if (type === 'log') {
-                    if (/記錄事項/.test(item.text)) displayTitle = '記錄事項';
+                    if (/備忘錄/.test(item.text)) displayTitle = '備忘錄';
+                    else if (/記錄事項/.test(item.text)) displayTitle = '記錄事項';
                     else if (/施工日誌/.test(item.text)) displayTitle = '施工日誌';
                 }
+                const isMemoCard = (displayTitle === '備忘錄');
+                const titleLabel = displayTitle;
                 if (item.siteId) {
                     const siteObj = db.sites.find(s => s.id === item.siteId);
                     if (siteObj && siteObj.name) displayTitle += `・${siteObj.name}`;
                 }
-                const card = document.createElement('label');
+                const card = document.createElement('div');
                 card.className = 'view-box-card';
-                card.setAttribute('for', `${prefix}_${idx}`);
+                card.style.cursor = 'default';
                 card.innerHTML = `
                     <div class="view-box-title" style="justify-content:space-between;">
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <input type="checkbox" id="${prefix}_${idx}" class="item-checkbox inline-day-chk">
-                            <span>${displayTitle}</span>
-                        </div>
+                        <span style="${isMemoCard ? 'color:#D9006C;font-weight:bold;' : ''}">${displayTitle}</span>
                         <div style="display:flex;gap:4px;">
-                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openInlineEdit('${prefix}','${idx}','${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 8px;border-radius:6px;flex-shrink:0;">編輯</button>
+                            <button type="button" onclick="shareInlineCardToLine('${prefix}','${idx}','${dateStr}')" style="background:#06C755;color:white;font-size:11px;padding:3px 8px;border-radius:6px;flex-shrink:0;">LINE</button>
+                            <button type="button" onclick="openInlineEdit('${prefix}','${idx}','${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 8px;border-radius:6px;flex-shrink:0;">編輯</button>
                         </div>
                     </div>
                     <div class="view-box-content" id="${prefix}_content_${idx}">${item.text}</div>
@@ -1039,7 +1048,7 @@
                 inlineContent.appendChild(card);
             });
 
-            // 出勤卡（無案場歸屬，固定最後）
+            // 出勤卡（固定最後，typeOrder=5）
             let punchLines = [];
             let punchNote = '';
             if (db.punches) {
@@ -1060,18 +1069,16 @@
             }
             if (punchLines.length) {
                 hasAnyContent = true;
-                const card = document.createElement('label');
+                const card = document.createElement('div');
                 card.className = 'view-box-card';
-                card.setAttribute('for', 'inlineChkPunch');
+                card.style.cursor = 'default';
                 const punchDisplayText = `${dateStr} 出勤：${punchLines.join('、')}${punchNote ? `（${punchNote}）` : ''}`;
                 card.innerHTML = `
                     <div class="view-box-title" style="justify-content:space-between;">
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <input type="checkbox" id="inlineChkPunch" class="item-checkbox inline-day-chk">
-                            <span>出勤</span>
-                        </div>
+                        <span>出勤</span>
                         <div style="display:flex;gap:4px;">
-                            <button type="button" onclick="event.preventDefault();event.stopPropagation();openInlineEditPunch('${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 8px;border-radius:6px;flex-shrink:0;">編輯</button>
+                            <button type="button" onclick="shareInlinePunchToLine('${dateStr}')" style="background:#06C755;color:white;font-size:11px;padding:3px 8px;border-radius:6px;flex-shrink:0;">LINE</button>
+                            <button type="button" onclick="openInlineEditPunch('${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 8px;border-radius:6px;flex-shrink:0;">編輯</button>
                         </div>
                     </div>
                     <div class="view-box-content" id="inlineChkPunch_content">${punchDisplayText}</div>
@@ -1086,45 +1093,29 @@
             inlineView.classList.remove('hidden');
             inlineContent.scrollTop = 0;
 
-            // listen for checkbox changes to toggle action buttons
-            inlineContent.querySelectorAll('.inline-day-chk').forEach(chk => {
-                chk.addEventListener('change', updateHomeBottomBtns);
-            });
-
-            // 編輯返回後自動勾選對應記錄卡，捲動到卡片，並同步月曆選取
+            // 編輯返回後捲動到對應卡片並同步月曆選取
             if (_afterShowCheckId) {
-                const chk = document.getElementById(_afterShowCheckId);
-                if (chk) {
-                    chk.checked = true;
-                    // 同步月曆：切到正確月份並選取日期
-                    const d = new Date(dateStr + 'T00:00:00');
-                    if (d.getFullYear() !== homeCalYear || d.getMonth() !== homeCalMonth) {
-                        homeCalYear = d.getFullYear();
-                        homeCalMonth = d.getMonth();
-                        initHomeCalendar();
-                    }
-                    document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
-                    document.querySelectorAll('.calendar-day:not(.empty)').forEach(el => {
-                        if (parseInt(el.querySelector('.day-num')?.innerText) === d.getDate()) el.classList.add('selected');
-                    });
-                    selectedHomeDateStr = dateStr;
-                    // 捲動到對應記錄卡
-                    setTimeout(() => {
-                        const card = chk.closest('.view-box-card');
-                        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }, 80);
+                const d = new Date(dateStr + 'T00:00:00');
+                if (d.getFullYear() !== homeCalYear || d.getMonth() !== homeCalMonth) {
+                    homeCalYear = d.getFullYear();
+                    homeCalMonth = d.getMonth();
+                    initHomeCalendar();
                 }
+                document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+                document.querySelectorAll('.calendar-day:not(.empty)').forEach(el => {
+                    if (parseInt(el.querySelector('.day-num')?.innerText) === d.getDate()) el.classList.add('selected');
+                });
+                selectedHomeDateStr = dateStr;
                 _afterShowCheckId = null;
             }
 
-            updateHomeBottomBtns();
             updateHomeImportBtn();
         }
 
         function updateHomeBottomBtns() {
-            const anyChecked = document.querySelectorAll('.inline-day-chk:checked').length > 0;
-            document.getElementById('homeMainBtns').classList.toggle('hidden', anyChecked);
-            document.getElementById('homeActionBtns').classList.toggle('hidden', !anyChecked);
+            // 無核取方塊，底部按鈕保持顯示主功能
+            document.getElementById('homeMainBtns').classList.remove('hidden');
+            document.getElementById('homeActionBtns').classList.add('hidden');
         }
 
         // ================= 記錄卡左右滑動換日 =================
@@ -1202,8 +1193,42 @@
         })();
 
         function uncheckAllInline() {
-            document.querySelectorAll('.inline-day-chk').forEach(chk => { chk.checked = false; });
+            // 已移除核取方塊，保留此函式避免呼叫錯誤
             updateHomeBottomBtns();
+        }
+
+        // 單張記錄卡傳送到LINE
+        function shareInlineCardToLine(prefix, idx, dateStr) {
+            const typeMap = { inlineChkLog: 'log', inlineChkNotes: 'notes', inlineChkOrder: 'order' };
+            const type = typeMap[prefix];
+            if (!type) return;
+            const rec = db.dailyRecords[dateStr];
+            if (!rec || !rec[type]) return;
+            const arr = Array.isArray(rec[type]) ? rec[type] : [rec[type]];
+            const item = arr[parseInt(idx)];
+            if (!item || !item.text) return;
+            window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(item.text.trim())}`;
+        }
+
+        function shareInlinePunchToLine(dateStr) {
+            let lines = [], note = '';
+            if (db.punches) {
+                db.sites.forEach(site => {
+                    if (db.punches[site.id] && db.punches[site.id][dateStr]) {
+                        lines.push(site.name);
+                        if (!note && db.punches[site.id][dateStr].note) note = db.punches[site.id][dateStr].note;
+                    }
+                });
+                for (let sId in db.punches) {
+                    if (db.punches[sId] && db.punches[sId][dateStr] && !db.sites.find(s => s.id === sId)) {
+                        lines.push('未知案場');
+                        if (!note && db.punches[sId][dateStr].note) note = db.punches[sId][dateStr].note;
+                    }
+                }
+            }
+            if (!lines.length) return alert('該日期無出勤記錄！');
+            const text = `${dateStr} 出勤：${lines.join('、')}${note ? `（${note}）` : ''}`;
+            window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
         }
 
         // ================= 案場選擇器（施工日誌、工地記事、材料訂購） =================
@@ -1215,7 +1240,7 @@
             sel.id = 'cartSiteSelect';
             sel.style.cssText = 'width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 10px; font-size:14px; background:white; color:#1f2937;';
             const ph = document.createElement('option');
-            ph.value = ''; ph.textContent = '— 請選擇送貨地點 —';
+            ph.value = ''; ph.textContent = '— 選擇送貨地點 —';
             sel.appendChild(ph);
             db.sites.forEach(site => {
                 const opt = document.createElement('option');
@@ -1243,7 +1268,7 @@
             sel.id = containerId;
             sel.style.cssText = 'width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 10px; font-size:14px; background:white; color:#1f2937;';
             const ph = document.createElement('option');
-            ph.value = ''; ph.textContent = '— 請選擇案場 —';
+            ph.value = ''; ph.textContent = '— 選擇案場 —';
             sel.appendChild(ph);
             db.sites.forEach(site => {
                 const opt = document.createElement('option');
@@ -1565,13 +1590,22 @@
         }
 
         // ================= 施工日誌模組 =================
+        function _updateLogItemLabels() {
+            const container = document.getElementById('logItemsContainer');
+            Array.from(container.children).forEach((div, i) => {
+                const lbl = div.querySelector('.log-item-label');
+                if (lbl) lbl.innerText = `項目${i + 1}`;
+            });
+        }
+
         function addLogItemRow(itemValue = '', floorValue = '', peopleValue = '') {
             const container = document.getElementById('logItemsContainer');
+            const itemNum = container.children.length + 1;
             const div = document.createElement('div');
             div.className = 'log-page-entry-item';
             div.innerHTML = `
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                    <label style="font-size:13px; font-weight:bold; color:#4b5563; margin:0;">施工項目/記錄事項：</label>
+                    <label style="font-size:13px; font-weight:bold; color:#4b5563; margin:0;" class="log-item-label">項目${itemNum}</label>
                     <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeLogItemRow(this)">移除</button>
                 </div>
                 <div>
@@ -1589,12 +1623,18 @@
                 </div>
             `;
             container.appendChild(div);
+            // 若目前為備忘錄模式，隱藏樓層/人數
+            const isMemo = document.getElementById('logTypeMemo') && document.getElementById('logTypeMemo').checked;
+            if (isMemo) {
+                div.querySelector('.log-entry-row').style.display = 'none';
+            }
         }
 
         function removeLogItemRow(button) {
             const container = document.getElementById('logItemsContainer');
-            if (container.children.length <= 1) return alert('請至少保留一個施工項目！');
-            button.parentElement.remove();
+            if (container.children.length <= 1) return alert('請至少保留一個項目！');
+            button.closest('.log-page-entry-item').remove();
+            _updateLogItemLabels();
         }
 
         function clearLogInputs() {
@@ -2272,28 +2312,45 @@
         function _cancelProgressBlockEdit() {}
         function _enterProgressBlockEdit() {}
 
-        // ================= 工地記錄（施工日誌／記錄事項） =================
+        // ================= 工地記錄（施工日誌／備忘錄） =================
+        function onLogTypeChange() {
+            const isMemo = document.getElementById('logTypeMemo').checked;
+            // 備忘錄文字變紅色
+            const memoText = document.getElementById('logTypeMemoText');
+            if (memoText) memoText.style.color = isMemo ? '#D9006C' : '#4b5563';
+            // 每個項目的樓層/人數列顯示/隱藏
+            document.querySelectorAll('#logItemsContainer .log-entry-row').forEach(row => {
+                row.style.display = isMemo ? 'none' : '';
+            });
+        }
+
         function getLogRawText() {
+            const isMemo = document.getElementById('logTypeMemo') && document.getElementById('logTypeMemo').checked;
             const container = document.getElementById('logItemsContainer');
             const items = container.getElementsByClassName('log-page-entry-item');
             let projectLogText = '';
             let hasContent = false;
-            let hasFloorOrPeople = false;
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
-                const floorVal = items[i].querySelector('.log-floor-input').value.trim();
-                const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal) {
-                    hasContent = true;
-                    if (floorVal && peopleVal) hasFloorOrPeople = true;
-                    let line = `項目 ${i + 1}：${itemVal || '無'}`;
-                    if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
-                    projectLogText += line + '\n';
+                if (isMemo) {
+                    if (itemVal) {
+                        hasContent = true;
+                        projectLogText += `項目 ${i + 1}：${itemVal}\n`;
+                    }
+                } else {
+                    const floorVal = items[i].querySelector('.log-floor-input').value.trim();
+                    const peopleVal = items[i].querySelector('.log-people-input').value.trim();
+                    if (itemVal || floorVal || peopleVal) {
+                        hasContent = true;
+                        let line = `項目 ${i + 1}：${itemVal || '無'}`;
+                        if (floorVal) line += `\n↳ 區域：${floorVal}`;
+                        if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
+                        projectLogText += line + '\n';
+                    }
                 }
             }
             if (!hasContent) return null;
-            const title = hasFloorOrPeople ? '施工日誌' : '記錄事項';
+            const title = isMemo ? '備忘錄' : '施工日誌';
             return `${title}\n案場名稱：${currentState.siteName}\n${projectLogText}`;
         }
 
@@ -2301,7 +2358,7 @@
             if (!currentState.siteId) return alert('⚠️ 請先在上方選擇案場！');
             const dateStr = document.getElementById('inputLogDate').value || getTargetDateStr();
             const logText = getLogRawText();
-            if (!logText) return alert('請至少填寫一項施工項目內容！');
+            if (!logText) return alert('請至少填寫一項項目內容！');
             const logTextWithDate = `${dateStr} ${logText}`;
             if (!db.dailyRecords[dateStr]) db.dailyRecords[dateStr] = {};
             if (!Array.isArray(db.dailyRecords[dateStr].log)) {
@@ -2374,6 +2431,9 @@
                 document.getElementById('homeTitle').classList.add('hidden');
                 document.getElementById('inputLogDate').value = selectedHomeDateStr || getTargetDateStr();
                 renderPageSiteSelector('logSiteGroup', 'log');
+                // 重置記錄類型為施工日誌
+                const logTypeLogEl = document.getElementById('logTypeLog');
+                if (logTypeLogEl) { logTypeLogEl.checked = true; onLogTypeChange(); }
                 clearLogInputs();
                 document.querySelector('#pageLog .scroll-list-body')?.scrollTo(0,0);
             } else if (page === 'categories') {
@@ -2484,7 +2544,7 @@
             const header = document.getElementById('categoryListHeader');
 
             if (keyword === '') {
-                header.innerText = '請選擇材料分類：';
+                header.innerText = '選擇材料分類：';
                 list.innerHTML = db.categories.length === 0 ? '<p class="text-muted text-center">目前無分類，請先至後台新增。</p>' : '';
                 db.categories.forEach(cat => {
                     const div = document.createElement('div');
@@ -2998,7 +3058,14 @@
         function openEditLogModal(item, dateStr, type) {
             _editCtx = { type, dateStr, idx: _editCtx ? _editCtx.idx : 0 };
             const isLog = type === 'log';
-            document.getElementById('editLogModalTitle').innerText = isLog ? '編輯工程記錄' : '編輯工地記事';
+            // 根據內容判斷是施工日誌還是記錄事項
+            let modalTitle = isLog ? '編輯工程記錄' : '編輯工地記事';
+            if (isLog) {
+                if (/備忘錄/.test(item.text)) modalTitle = '編輯備忘錄';
+                else if (/記錄事項/.test(item.text)) modalTitle = '編輯記錄事項';
+                else if (/施工日誌/.test(item.text)) modalTitle = '編輯施工日誌';
+            }
+            document.getElementById('editLogModalTitle').innerText = modalTitle;
             document.getElementById('editLogDate').value = dateStr;
             document.getElementById('editLogItemsWrap').style.display = isLog ? '' : 'none';
             document.getElementById('editNotesWrap').style.display = isLog ? 'none' : '';
@@ -3010,7 +3077,7 @@
             siteSel.id = 'editLogSiteSelect';
             siteSel.style.cssText = 'width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 10px; font-size:14px; background:white; color:#1f2937;';
             const ph = document.createElement('option');
-            ph.value = ''; ph.textContent = '— 請選擇案場 —';
+            ph.value = ''; ph.textContent = '— 選擇案場 —';
             siteSel.appendChild(ph);
             db.sites.forEach(site => {
                 const opt = document.createElement('option');
@@ -3029,6 +3096,7 @@
             const siteObj = db.sites.find(s => s.id === item.siteId);
             _editCtx.siteId = item.siteId;
             _editCtx.siteName = siteObj ? siteObj.name : '';
+            _editCtx._isMemo = isLog && /備忘錄/.test(item.text);
 
             if (isLog) {
                 // 解析現有文字填入 log rows
@@ -3052,6 +3120,10 @@
                 if (cur) rows.push(cur);
                 if (rows.length === 0) rows.push({ item: '', floor: '', people: '' });
                 rows.forEach(r => addEditLogItemRow(r.item, r.floor, r.people));
+                // 備忘錄模式：隱藏所有樓層/人數列
+                if (_editCtx._isMemo) {
+                    container.querySelectorAll('.log-entry-row').forEach(row => { row.style.display = 'none'; });
+                }
             } else {
                 // 工地記事：提取內容部分
                 const lines = item.text.split('\n');
@@ -3062,14 +3134,23 @@
             document.getElementById('editLogModal').style.display = 'flex';
         }
 
+        function _updateEditLogItemLabels() {
+            const container = document.getElementById('editLogItemsContainer');
+            Array.from(container.children).forEach((div, i) => {
+                const lbl = div.querySelector('.log-item-label');
+                if (lbl) lbl.innerText = `項目${i + 1}`;
+            });
+        }
+
         function addEditLogItemRow(itemValue = '', floorValue = '', peopleValue = '') {
             const container = document.getElementById('editLogItemsContainer');
+            const itemNum = container.children.length + 1;
             const div = document.createElement('div');
             div.className = 'log-entry-item';
             div.innerHTML = `
                 <button type="button" class="btn-delete-log-item" onclick="removeEditLogItemRow(this)">移除</button>
                 <div style="margin-top:8px;">
-                    <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;">施工項目/記錄事項：</label>
+                    <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;" class="log-item-label">項目${itemNum}</label>
                     <textarea class="log-item-input" rows="2" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:white;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
                 </div>
                 <div class="log-entry-row">
@@ -3084,12 +3165,17 @@
                 </div>
             `;
             container.appendChild(div);
+            // 備忘錄模式：隱藏樓層/人數
+            if (_editCtx && _editCtx._isMemo) {
+                div.querySelector('.log-entry-row').style.display = 'none';
+            }
         }
 
         function removeEditLogItemRow(btn) {
             const container = document.getElementById('editLogItemsContainer');
-            if (container.children.length <= 1) return alert('請至少保留一個施工項目！');
-            btn.parentElement.remove();
+            if (container.children.length <= 1) return alert('請至少保留一個項目！');
+            btn.closest('.log-entry-item').remove();
+            _updateEditLogItemLabels();
         }
 
         function compileEditLogText() {
@@ -3115,7 +3201,8 @@
                     }
                 }
                 if (!hasContent) return null;
-                const title = hasFloorOrPeople ? '施工日誌' : '記錄事項';
+                const isMemoEdit = _editCtx && _editCtx._isMemo;
+                const title = isMemoEdit ? '備忘錄' : '施工日誌';
                 return `${dateStr} ${title}\n案場名稱：${siteName}\n${projectLogText}`;
             } else {
                 const val = document.getElementById('editNotesTextarea').value.trim();
@@ -3152,7 +3239,7 @@
             const prefixMap = { log: 'inlineChkLog', notes: 'inlineChkNotes' };
             _afterShowCheckId = `${prefixMap[type] || 'inlineChkLog'}_${newRec[type].length - 1}`;
             showInlineDayView(newDateStr);
-            alert('紀錄已儲存！');
+            alert('已儲存！');
         }
 
         function deleteFromEditLogModal() {
@@ -3236,7 +3323,7 @@
             const oSel = document.getElementById('editOrderSiteSelect');
             oSel.innerHTML = '';
             const oph = document.createElement('option');
-            oph.value = ''; oph.textContent = '— 請選擇案場 —';
+            oph.value = ''; oph.textContent = '— 選擇案場 —';
             oSel.appendChild(oph);
             db.sites.forEach(site => {
                 const opt = document.createElement('option');
