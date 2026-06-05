@@ -2298,7 +2298,7 @@
             if (!data) return alert('訂單裡沒有材料！');
 
             const dateStr = document.getElementById('inputOrderDate')?.value || getTargetDateStr();
-            const cartTextWithDate = `${dateStr} ${data.text}`;
+            const cartTextWithDate = `${dateStr} \n${data.text}`;
             if (!db.dailyRecords[dateStr]) db.dailyRecords[dateStr] = {};
             if (!Array.isArray(db.dailyRecords[dateStr].order)) {
                 db.dailyRecords[dateStr].order = db.dailyRecords[dateStr].order ? [db.dailyRecords[dateStr].order] : [];
