@@ -596,13 +596,14 @@
             if (!toast) {
                 toast = document.createElement('div');
                 toast.id = '_appToast';
-                toast.style.cssText = 'display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;';
+                toast.style.cssText = 'display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;pointer-events:none;';
                 toast.innerHTML = '<div id="_appToastBox" style="background:rgba(30,30,30,0.88);color:#fff;font-size:16px;font-weight:bold;padding:18px 32px;border-radius:16px;text-align:center;max-width:260px;line-height:1.5;box-shadow:0 4px 24px rgba(0,0,0,0.25);"></div>';
-                toast.addEventListener('click', function() { this.style.display = 'none'; clearTimeout(this._timer); });
                 document.body.appendChild(toast);
             }
             document.getElementById('_appToastBox').innerText = msg;
             toast.style.display = 'flex';
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(function() { toast.style.display = 'none'; }, 1000);
         }
 
         let db = { 
@@ -3010,13 +3011,14 @@
 
         // ================= 右滑返回手勢 =================
         (function() {
-            let touchStartX = 0, touchStartY = 0, isDragging = false, mainEl = null;
-            const EDGE_ZONE = 80;
+            let touchStartX = 0, touchStartY = 0, touchStartTime = 0, isDragging = false, mainEl = null;
+            const EDGE_ZONE = 80, LONG_PRESS_MS = 300;
             function getMain() { return mainEl || (mainEl = document.querySelector('main.max-w-md')); }
 
             document.addEventListener('touchstart', e => {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
                 isDragging = false;
                 getMain().style.transition = 'none';
             }, { passive: true });
@@ -3025,7 +3027,8 @@
                 const dx = e.touches[0].clientX - touchStartX;
                 const dy = Math.abs(e.touches[0].clientY - touchStartY);
                 const btn = document.getElementById('btnBack');
-                if (!isDragging && touchStartX <= EDGE_ZONE && dx > 8 && dy < 50 && btn && !btn.classList.contains('hidden')) {
+                const elapsed = Date.now() - touchStartTime;
+                if (!isDragging && touchStartX <= EDGE_ZONE && dx > 8 && dy < 50 && btn && !btn.classList.contains('hidden') && elapsed < LONG_PRESS_MS) {
                     isDragging = true;
                 }
                 if (isDragging && dx > 0) {
