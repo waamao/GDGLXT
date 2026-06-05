@@ -102,17 +102,15 @@
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background-color: #2a2a2a; padding: 4px; border-radius: 8px; height: 254px; }
         .calendar-weekday { text-align: center; font-size: 11px; font-weight: bold; color: #aaaaaa; padding: 2px 0; }
-        .calendar-day { background-color: #3d3d3d; border: 1px solid #555555; border-radius: 6px; min-height: 0; padding: 2px; display: flex; flex-direction: column; justify-content: flex-start; position: relative; cursor: pointer; overflow: hidden; }
+        .calendar-day { background-color: #3d3d3d; border: 1px solid #555555; border-radius: 6px; min-height: 0; padding: 2px; display: flex; flex-direction: column; justify-content: space-between; position: relative; cursor: pointer; overflow: hidden; }
         .calendar-day:active { background-color: #555555; }
         .calendar-day.empty { background-color: transparent; border: none; cursor: default; }
         .calendar-day.today { border-color: #aaaaaa; background-color: #555555; }
         .calendar-day.selected { background-color: #F0F0F0; border-color: #F0F0F0; }
         .calendar-day.selected .day-num { color: #111111; }
         .day-num { font-size: 11px; font-weight: bold; color: #dddddd; }
-        .day-dots { position: absolute; bottom: 2px; right: 2px; display: flex; flex-direction: row; gap: 2px; align-items: center; }
-        .dot-punch-corner { position: absolute; bottom: 2px; left: 2px; width: 5px; height: 5px; border-radius: 50%; background-color: #f5c518; display: none; }
-        .calendar-day.has-punch .dot-punch-corner { display: block; }
-        .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .day-dots { display: flex; gap: 2px; justify-content: center; overflow: hidden; padding-top: 2px; }
+        .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
         .dot-log { background-color: #7ec8e3; }
         .dot-memo { background-color: #ef4444; }
         .dot-notes { background-color: #aaaaaa; }
@@ -869,13 +867,8 @@
                 if (hasLog)   dotsEl.innerHTML += '<span class="dot dot-log"></span>';
                 if (hasMemo)  dotsEl.innerHTML += '<span class="dot dot-memo"></span>';
                 if (hasNotes) dotsEl.innerHTML += '<span class="dot dot-notes"></span>';
+                if (hasPunch) dotsEl.innerHTML += '<span class="dot dot-punch"></span>';
                 if (hasOrder) dotsEl.innerHTML += '<span class="dot dot-order"></span>';
-                if (hasPunch) dayEl.classList.add('has-punch');
-
-                // 左下角出勤點
-                const punchCornerEl = document.createElement('div');
-                punchCornerEl.className = 'dot-punch-corner';
-                dayEl.appendChild(punchCornerEl);
 
                 dayEl.appendChild(dotsEl);
                 gridEl.appendChild(dayEl);
@@ -946,13 +939,6 @@
             el.innerText = `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月`;
         }
 
-        // 記錄卡顯示：把 ● 行前綴換成小圓點 + 項目標籤
-        function _formatLogTextDisplay(text) {
-            if (!text) return '';
-            const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-            return escaped.replace(/^● ?/mg, '<span style="font-size:9px;">●</span><span style="font-size:13px;font-weight:bold;color:#4b5563;margin-right:3px;"> 項目</span>');
-        }
-
         // ================= 首頁內嵌單日記錄 =================
         function showInlineDayView(dateStr) {
             updateCalendarDateDisplay(dateStr);
@@ -1019,7 +1005,7 @@
                             <button type="button" onclick="openInlineEdit('${prefix}','${idx}','${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">編輯</button>
                         </div>
                     </div>
-                    <div class="view-box-content" id="${prefix}_content_${idx}">${_formatLogTextDisplay(item.text)}</div>
+                    <div class="view-box-content" id="${prefix}_content_${idx}">${item.text}</div>
                 `;
                 inlineContent.appendChild(card);
             });
@@ -1401,7 +1387,7 @@
             const container = document.getElementById('logItemsContainer');
             Array.from(container.children).forEach((div, i) => {
                 const lbl = div.querySelector('.log-item-label');
-                if (lbl) lbl.innerHTML = '<span style="font-size:9px;">●</span> 項目';
+                if (lbl) lbl.innerText = `●`;
             });
         }
 
@@ -1412,7 +1398,7 @@
             div.className = 'log-page-entry-item';
             div.innerHTML = `
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                    <label style="font-size:13px; font-weight:bold; color:#4b5563; margin:0; line-height:2;" class="log-item-label"><span style="font-size:9px;">●</span> 項目</label>
+                    <label style="font-size:10px; font-weight:normal; color:#4b5563; margin:0; line-height:2;" class="log-item-label">●</label>
                     <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeLogItemRow(this)">移除</button>
                 </div>
                 <div>
@@ -2713,7 +2699,7 @@
             const container = document.getElementById('editLogItemsContainer');
             Array.from(container.children).forEach((div, i) => {
                 const lbl = div.querySelector('.log-item-label');
-                if (lbl) lbl.innerHTML = '<span style="font-size:9px;">●</span> 項目';
+                if (lbl) lbl.innerText = `●`;
             });
         }
 
@@ -2725,7 +2711,7 @@
             div.innerHTML = `
                 <button type="button" class="btn-delete-log-item" onclick="removeEditLogItemRow(this)">移除</button>
                 <div style="margin-top:8px;">
-                    <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;line-height:2;" class="log-item-label"><span style="font-size:9px;">●</span> 項目</label>
+                    <label style="font-size:10px;font-weight:normal;display:block;margin-bottom:4px;color:#4b5563;line-height:2;" class="log-item-label">●</label>
                     <textarea class="log-item-input" rows="2" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:white;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
                 </div>
                 <div class="log-entry-row">
