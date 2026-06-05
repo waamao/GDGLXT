@@ -242,19 +242,11 @@
                 <input type="date" id="inputLogDate" style="width: 100%; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none;">
             </div>
             <div class="card" style="flex-shrink:0;">
-                <label style="font-size: 13px; font-weight: bold; color: #4b5563;">選擇案場：</label>
-                <div id="logSiteGroup" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto;"></div>
-                <div style="display: flex; gap: 20px; align-items: center; padding-top: 4px;">
-                    <label style="display:flex; align-items:center; gap:6px; font-size:14px; font-weight:bold; color:#4b5563; cursor:pointer;">
-                        <input type="radio" name="logType" id="logTypeLog" value="log" checked onchange="onLogTypeChange()" style="width:18px;height:18px;accent-color:#333;flex-shrink:0;">
-                        施工日誌
-                    </label>
-                    <label style="display:flex; align-items:center; gap:6px; font-size:14px; font-weight:bold; cursor:pointer;" id="logTypeMemoLabel">
-                        <input type="radio" name="logType" id="logTypeMemo" value="memo" onchange="onLogTypeChange()" style="width:18px;height:18px;accent-color:#D9006C;flex-shrink:0;">
-                        <span id="logTypeMemoText" style="color:#4b5563;">備忘錄</span>
-                    </label>
-                    <button id="btnSaveLog" onclick="saveLogOrNotes()" class="btn-green" style="margin-left:auto; padding:6px 12px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0;">儲存</button>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                    <label style="font-size: 13px; font-weight: bold; color: #4b5563;">選擇案場：</label>
+                    <button id="btnSaveLog" onclick="saveLogOrNotes()" class="btn-green" style="padding:6px 12px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0;">儲存</button>
                 </div>
+                <div id="logSiteGroup" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto;"></div>
             </div>
             <div class="scroll-list-body" style="flex: 1;">
                 <div id="logSection">
@@ -516,7 +508,7 @@
         </div>
     </div>
 
-    <!-- 施工日誌 / 備忘錄 編輯彈窗 -->
+    <!-- 工程記錄 編輯彈窗 -->
     <div id="editLogModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
         <div style="background:white; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:90vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -536,9 +528,6 @@
                 <div id="editLogItemsWrap">
                     <div id="editLogItemsContainer" style="display:flex; flex-direction:column; gap:12px; max-height:calc(2 * 130px + 2 * 12px); overflow-y:auto; padding-right:2px;"></div>
                     <button onclick="addEditLogItemRow()" class="btn-slate" style="width:100%; padding:10px; margin-top:8px;">➕新增項目</button>
-                </div>
-                <div id="editNotesWrap" style="display:none;">
-                    <textarea id="editNotesTextarea" rows="10" style="width:100%; resize:none; line-height:1.6; border:none; border-radius:8px; padding:8px; font-size:14px;"></textarea>
                 </div>
             </div>
         </div>
@@ -787,7 +776,7 @@
             if (db.dailyRecords) {
                 for (const d in db.dailyRecords) {
                     const r = db.dailyRecords[d];
-                    if (r && (r.log || r.notes || r.order)) { hasAny = true; break; }
+                    if (r && (r.log || r.order)) { hasAny = true; break; }
                 }
             }
             if (!hasAny && db.punches) {
@@ -845,17 +834,12 @@
                 const dotsEl = document.createElement('div');
                 dotsEl.className = 'day-dots';
 
-                let hasLog = false, hasMemo = false;
+                let hasLog = false;
                 const logRec = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].log;
                 if (logRec) {
                     const logArr = Array.isArray(logRec) ? logRec : [logRec];
-                    logArr.forEach(item => {
-                        if (!item || !item.text) return;
-                        if (/備忘錄/.test(item.text)) hasMemo = true;
-                        else hasLog = true;
-                    });
+                    logArr.forEach(item => { if (item && item.text) hasLog = true; });
                 }
-                const hasNotes = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].notes;
                 const hasOrder = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].order;
 
                 let hasPunch = false;
@@ -866,8 +850,6 @@
                 }
 
                 if (hasLog)   dotsEl.innerHTML += '<span class="dot dot-log"></span>';
-                if (hasMemo)  dotsEl.innerHTML += '<span class="dot dot-memo"></span>';
-                if (hasNotes) dotsEl.innerHTML += '<span class="dot dot-notes"></span>';
                 if (hasPunch) dotsEl.innerHTML += '<span class="dot dot-punch"></span>';
                 if (hasOrder) dotsEl.innerHTML += '<span class="dot dot-order"></span>';
 
@@ -958,39 +940,24 @@
             const logArr = rec.log ? (Array.isArray(rec.log) ? rec.log : [rec.log]) : [];
             logArr.forEach((item, idx) => {
                 if (!item || !item.text) return;
-                let to = 1;
-                if (/備忘錄/.test(item.text)) to = 0;
-                else if (/記錄事項/.test(item.text)) to = 2;
-                cardQueue.push({ typeOrder: to, type: 'log', item, idx });
-            });
-
-            const notesArr = rec.notes ? (Array.isArray(rec.notes) ? rec.notes : [rec.notes]) : [];
-            notesArr.forEach((item, idx) => {
-                if (!item || !item.text) return;
-                cardQueue.push({ typeOrder: 3, type: 'notes', item, idx });
+                cardQueue.push({ typeOrder: 1, type: 'log', item, idx });
             });
 
             const orderArr = rec.order ? (Array.isArray(rec.order) ? rec.order : [rec.order]) : [];
             orderArr.forEach((item, idx) => {
                 if (!item || !item.text) return;
-                cardQueue.push({ typeOrder: 4, type: 'order', item, idx });
+                cardQueue.push({ typeOrder: 2, type: 'order', item, idx });
             });
 
             cardQueue.sort((a, b) => a.typeOrder - b.typeOrder);
 
-            const prefixMap = { log: 'inlineChkLog', notes: 'inlineChkNotes', order: 'inlineChkOrder' };
-            const baseTitleMap = { log: '施工日誌', notes: '工地記事', order: '材料訂購' };
+            const prefixMap = { log: 'inlineChkLog', order: 'inlineChkOrder' };
+            const baseTitleMap = { log: '工程記錄', order: '材料訂購' };
 
             cardQueue.forEach(({ type, item, idx }) => {
                 hasAnyContent = true;
                 const prefix = prefixMap[type];
                 let displayTitle = baseTitleMap[type];
-                if (type === 'log') {
-                    if (/備忘錄/.test(item.text)) displayTitle = '備忘錄';
-                    else if (/記錄事項/.test(item.text)) displayTitle = '記錄事項';
-                    else if (/施工日誌/.test(item.text)) displayTitle = '施工日誌';
-                }
-                const isMemoCard = (displayTitle === '備忘錄');
                 if (item.siteId) {
                     const siteObj = db.sites.find(s => s.id === item.siteId);
                     if (siteObj && siteObj.name) displayTitle += `・${siteObj.name}`;
@@ -1000,7 +967,7 @@
                 card.style.cursor = 'default';
                 card.innerHTML = `
                     <div class="view-box-title" style="justify-content:space-between;">
-                        <span style="${isMemoCard ? 'color:#D9006C;font-weight:bold;' : ''}">${displayTitle}</span>
+                        <span>${displayTitle}</span>
                         <div style="display:flex;gap:4px;">
                             <button type="button" onclick="shareInlineCardToLine('${prefix}','${idx}','${dateStr}')" style="background:#06C755;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">LINE</button>
                             <button type="button" onclick="openInlineEdit('${prefix}','${idx}','${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">編輯</button>
@@ -1197,7 +1164,7 @@
 
         // ================= 單張記錄卡傳送LINE =================
         function shareInlineCardToLine(prefix, idx, dateStr) {
-            const typeMap = { inlineChkLog: 'log', inlineChkNotes: 'notes', inlineChkOrder: 'order' };
+            const typeMap = { inlineChkLog: 'log', inlineChkOrder: 'order' };
             const type = typeMap[prefix];
             if (!type) return;
             const rec = db.dailyRecords[dateStr];
@@ -1383,7 +1350,7 @@
             navigateTo('sites');
         }
 
-        // ================= 施工日誌模組 =================
+        // ================= 工程記錄模組 =================
         function _updateLogItemLabels() {
             const container = document.getElementById('logItemsContainer');
             Array.from(container.children).forEach((div, i) => {
@@ -1417,8 +1384,6 @@
                 </div>
             `;
             container.appendChild(div);
-            const isMemo = document.getElementById('logTypeMemo') && document.getElementById('logTypeMemo').checked;
-            if (isMemo) div.querySelector('.log-entry-row').style.display = 'none';
         }
 
         function removeLogItemRow(button) {
@@ -1687,7 +1652,7 @@
                     Object.keys(db.dailyRecords).forEach(dateStr => {
                         const rec = db.dailyRecords[dateStr];
                         if (!rec) return;
-                        ['log','notes','order'].forEach(type => {
+                        ['log','order'].forEach(type => {
                             if (!rec[type]) return;
                             const arr = Array.isArray(rec[type]) ? rec[type] : [rec[type]];
                             arr.forEach(entry => {
@@ -1982,54 +1947,41 @@
             selectSiteInfoSite(newSite.id);
         }
 
-        // ================= 施工日誌 / 備忘錄 =================
-        function onLogTypeChange() {
-            const isMemo = document.getElementById('logTypeMemo').checked;
-            const memoText = document.getElementById('logTypeMemoText');
-            if (memoText) memoText.style.color = isMemo ? '#D9006C' : '#4b5563';
-            document.querySelectorAll('#logItemsContainer .log-entry-row').forEach(row => {
-                row.style.display = isMemo ? 'none' : '';
-            });
-        }
+        // ================= 工程記錄 =================
+        function onLogTypeChange() {}
 
         function getLogRawText() {
-            const isMemo = document.getElementById('logTypeMemo') && document.getElementById('logTypeMemo').checked;
             const container = document.getElementById('logItemsContainer');
             const items = container.getElementsByClassName('log-page-entry-item');
             let projectLogText = '';
             let hasContent = false;
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
-                if (isMemo) {
-                    if (itemVal) { hasContent = true; projectLogText += `● ${itemVal}\n`; }
-                } else {
-                    const floorVal = items[i].querySelector('.log-floor-input').value.trim();
-                    const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                    if (itemVal || floorVal || peopleVal) {
-                        hasContent = true;
-                        let line = `● ${itemVal || '無'}`;
-                        if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                        if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
-                        projectLogText += line + '\n';
-                    }
+                const floorVal = items[i].querySelector('.log-floor-input').value.trim();
+                const peopleVal = items[i].querySelector('.log-people-input').value.trim();
+                if (itemVal || floorVal || peopleVal) {
+                    hasContent = true;
+                    let line = `● ${itemVal || '無'}`;
+                    if (floorVal) line += `\n↳ 區域：${floorVal}`;
+                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
+                    projectLogText += line + '\n';
                 }
             }
             if (!hasContent) return null;
-            const title = isMemo ? '備忘錄' : '施工日誌';
-            return `${title}\n案場名稱：${currentState.siteName}\n${projectLogText}`;
+            return `案場名稱：${currentState.siteName}\n${projectLogText}`;
         }
 
         function saveLogOrNotes() {
             if (!currentState.siteId) return alert('⚠️ 請先在上方選擇案場！');
             const dateStr = document.getElementById('inputLogDate').value || getTargetDateStr();
-            const logText = getLogRawText();
-            if (!logText) return alert('請至少填寫一項項目內容！');
-            const logTextWithDate = `${dateStr} ${logText}`;
+            const logBody = getLogRawText();
+            if (!logBody) return alert('請至少填寫一項項目內容！');
+            const logText = `${dateStr}\n${logBody}`;
             if (!db.dailyRecords[dateStr]) db.dailyRecords[dateStr] = {};
             if (!Array.isArray(db.dailyRecords[dateStr].log)) {
                 db.dailyRecords[dateStr].log = db.dailyRecords[dateStr].log ? [db.dailyRecords[dateStr].log] : [];
             }
-            db.dailyRecords[dateStr].log.push({ siteId: currentState.siteId, text: logTextWithDate });
+            db.dailyRecords[dateStr].log.push({ siteId: currentState.siteId, text: logText });
             const newIdx = db.dailyRecords[dateStr].log.length - 1;
             saveToLocalStorage();
             showToast('儲存成功');
@@ -2074,8 +2026,6 @@
                 document.getElementById('homeTitle').classList.add('hidden');
                 document.getElementById('inputLogDate').value = selectedHomeDateStr || getTargetDateStr();
                 renderPageSiteSelector('logSiteGroup');
-                const logTypeLogEl = document.getElementById('logTypeLog');
-                if (logTypeLogEl) { logTypeLogEl.checked = true; onLogTypeChange(); }
                 clearLogInputs();
                 document.querySelector('#pageLog .scroll-list-body')?.scrollTo(0, 0);
             } else if (page === 'categories') {
@@ -2337,7 +2287,7 @@
                 if (!grouped[item.catName]) grouped[item.catName] = [];
                 grouped[item.catName].push(`${item.itemName} *${item.qty}`);
             });
-            let textOutput = `材料訂購\n送貨地點：${currentState.siteName}\n`;
+            let textOutput = `\n送貨地點：${currentState.siteName}\n`;
             for (const catName in grouped) { textOutput += `【${catName}】\n` + grouped[catName].join('\n') + '\n'; }
             return { text: textOutput.trim(), items: selectedItems };
         }
@@ -2566,7 +2516,7 @@
         let _afterShowCheckId = null;
 
         function openInlineEdit(prefix, idx, dateStr) {
-            const typeMap = { inlineChkLog: 'log', inlineChkNotes: 'notes', inlineChkOrder: 'order' };
+            const typeMap = { inlineChkLog: 'log', inlineChkOrder: 'order' };
             const type = typeMap[prefix];
             if (!type) return;
             const rec = db.dailyRecords[dateStr];
@@ -2576,7 +2526,6 @@
             if (!item) return;
             _editCtx = { type, idx: parseInt(idx), dateStr };
             if (type === 'log') openEditLogModal(item, dateStr, 'log');
-            else if (type === 'notes') openEditLogModal(item, dateStr, 'notes');
             else if (type === 'order') openEditOrderModal(item, dateStr, parseInt(idx));
         }
 
@@ -2626,20 +2575,12 @@
             if (e.target === this) closeInlineEdit();
         });
 
-        // ================= 施工日誌 / 備忘錄 編輯彈窗 =================
+        // ================= 工程記錄 編輯彈窗 =================
         function openEditLogModal(item, dateStr, type) {
-            _editCtx = { type, dateStr, idx: _editCtx ? _editCtx.idx : 0 };
-            const isLog = type === 'log';
-            let modalTitle = isLog ? '編輯工程記錄' : '編輯工地記事';
-            if (isLog) {
-                if (/備忘錄/.test(item.text)) modalTitle = '編輯備忘錄';
-                else if (/記錄事項/.test(item.text)) modalTitle = '編輯記錄事項';
-                else if (/施工日誌/.test(item.text)) modalTitle = '編輯施工日誌';
-            }
-            document.getElementById('editLogModalTitle').innerText = modalTitle;
+            _editCtx = { type: 'log', dateStr, idx: _editCtx ? _editCtx.idx : 0 };
+            document.getElementById('editLogModalTitle').innerText = '編輯工程記錄';
             document.getElementById('editLogDate').value = dateStr;
-            document.getElementById('editLogItemsWrap').style.display = isLog ? '' : 'none';
-            document.getElementById('editNotesWrap').style.display = isLog ? 'none' : '';
+            document.getElementById('editLogItemsWrap').style.display = '';
 
             const siteGroup = document.getElementById('editLogSiteGroup');
             siteGroup.innerHTML = '';
@@ -2664,35 +2605,24 @@
             const siteObj = db.sites.find(s => s.id === item.siteId);
             _editCtx.siteId = item.siteId;
             _editCtx.siteName = siteObj ? siteObj.name : '';
-            _editCtx._isMemo = isLog && /備忘錄/.test(item.text);
 
-            if (isLog) {
-                const container = document.getElementById('editLogItemsContainer');
-                container.innerHTML = '';
-                const lines = item.text.split('\n');
-                let rows = [], cur = null;
-                lines.forEach(line => {
-                    const mItem = line.match(/^(?:項目 \d+：|● ?)(.*)$/);
-                    const mFloor = line.match(/^↳ 區域：(.*)$/);
-                    if (mItem) { if (cur) rows.push(cur); cur = { item: mItem[1] === '無' ? '' : mItem[1], floor: '', people: '' }; }
-                    else if (mFloor && cur) { cur.floor = mFloor[1] === '無' ? '' : mFloor[1]; }
-                    else if (cur) {
-                        const m2 = line.match(/^↳ 人數：(.+?) 人$/);
-                        if (m2) cur.people = m2[1];
-                    }
-                });
-                if (cur) rows.push(cur);
-                if (rows.length === 0) rows.push({ item: '', floor: '', people: '' });
-                rows.forEach(r => addEditLogItemRow(r.item, r.floor, r.people));
-                if (_editCtx._isMemo) {
-                    container.querySelectorAll('.log-entry-row').forEach(row => { row.style.display = 'none'; });
+            const container = document.getElementById('editLogItemsContainer');
+            container.innerHTML = '';
+            const lines = item.text.split('\n');
+            let rows = [], cur = null;
+            lines.forEach(line => {
+                const mItem = line.match(/^(?:項目 \d+：|● ?)(.*)$/);
+                const mFloor = line.match(/^↳ 區域：(.*)$/);
+                if (mItem) { if (cur) rows.push(cur); cur = { item: mItem[1] === '無' ? '' : mItem[1], floor: '', people: '' }; }
+                else if (mFloor && cur) { cur.floor = mFloor[1] === '無' ? '' : mFloor[1]; }
+                else if (cur) {
+                    const m2 = line.match(/^↳ 人數：(.+?) 人$/);
+                    if (m2) cur.people = m2[1];
                 }
-            } else {
-                const lines = item.text.split('\n');
-                const startIdx = lines.findIndex(l => l.startsWith('------------------------'));
-                const content = startIdx >= 0 ? lines.slice(startIdx + 1).join('\n').trim() : item.text;
-                document.getElementById('editNotesTextarea').value = content;
-            }
+            });
+            if (cur) rows.push(cur);
+            if (rows.length === 0) rows.push({ item: '', floor: '', people: '' });
+            rows.forEach(r => addEditLogItemRow(r.item, r.floor, r.people));
             document.getElementById('editLogModal').style.display = 'flex';
         }
 
@@ -2727,7 +2657,6 @@
                 </div>
             `;
             container.appendChild(div);
-            if (_editCtx && _editCtx._isMemo) div.querySelector('.log-entry-row').style.display = 'none';
         }
 
         function removeEditLogItemRow(btn) {
@@ -2738,33 +2667,25 @@
         }
 
         function compileEditLogText() {
-            const { type, siteId, siteName } = _editCtx;
+            const { siteId, siteName } = _editCtx;
             const dateStr = document.getElementById('editLogDate').value || _editCtx.dateStr;
-            if (type === 'log') {
-                const container = document.getElementById('editLogItemsContainer');
-                const items = container.getElementsByClassName('log-entry-item');
-                let projectLogText = '', hasContent = false;
-                for (let i = 0; i < items.length; i++) {
-                    const itemVal = items[i].querySelector('.log-item-input').value.trim();
-                    const floorVal = items[i].querySelector('.log-floor-input').value.trim();
-                    const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                    if (itemVal || floorVal || peopleVal) {
-                        hasContent = true;
-                        let line = `● ${itemVal || '無'}`;
-                        if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                        if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
-                        projectLogText += line + '\n';
-                    }
+            const container = document.getElementById('editLogItemsContainer');
+            const items = container.getElementsByClassName('log-entry-item');
+            let projectLogText = '', hasContent = false;
+            for (let i = 0; i < items.length; i++) {
+                const itemVal = items[i].querySelector('.log-item-input').value.trim();
+                const floorVal = items[i].querySelector('.log-floor-input').value.trim();
+                const peopleVal = items[i].querySelector('.log-people-input').value.trim();
+                if (itemVal || floorVal || peopleVal) {
+                    hasContent = true;
+                    let line = `● ${itemVal || '無'}`;
+                    if (floorVal) line += `\n↳ 區域：${floorVal}`;
+                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
+                    projectLogText += line + '\n';
                 }
-                if (!hasContent) return null;
-                const isMemoEdit = _editCtx && _editCtx._isMemo;
-                const title = isMemoEdit ? '備忘錄' : '施工日誌';
-                return `${dateStr} ${title}\n案場名稱：${siteName}\n${projectLogText}`;
-            } else {
-                const val = document.getElementById('editNotesTextarea').value.trim();
-                if (!val) return null;
-                return `${dateStr} 工地記事\n案場名稱：${siteName}\n${val}\n`;
             }
+            if (!hasContent) return null;
+            return `${dateStr}\n案場名稱：${siteName}\n${projectLogText}`;
         }
 
         function saveEditLogModal() {
@@ -2790,8 +2711,7 @@
             saveToLocalStorage();
             closeEditLogModal();
             initHomeCalendar();
-            const prefixMap = { log: 'inlineChkLog', notes: 'inlineChkNotes' };
-            _afterShowCheckId = `${prefixMap[type] || 'inlineChkLog'}_${newRec[type].length - 1}`;
+            _afterShowCheckId = `inlineChkLog_${newRec[type].length - 1}`;
             showInlineDayView(newDateStr);
             showToast('儲存成功');
         }
@@ -2896,7 +2816,7 @@
                 if (!grouped[it.catName]) grouped[it.catName] = [];
                 grouped[it.catName].push(`${it.itemName} *${it.qty || '未填'}`);
             });
-            let text = `${newDateStr} 材料訂購\n送貨地點：${siteName}\n`;
+            let text = `${newDateStr} \n送貨地點：${siteName}\n`;
             for (const cat in grouped) { text += `【${cat}】\n` + grouped[cat].join('\n') + '\n'; }
             return text.trim();
         }
