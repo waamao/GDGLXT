@@ -102,15 +102,17 @@
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background-color: #2a2a2a; padding: 4px; border-radius: 8px; height: 254px; }
         .calendar-weekday { text-align: center; font-size: 11px; font-weight: bold; color: #aaaaaa; padding: 2px 0; }
-        .calendar-day { background-color: #3d3d3d; border: 1px solid #555555; border-radius: 6px; min-height: 0; padding: 2px; display: flex; flex-direction: column; justify-content: space-between; position: relative; cursor: pointer; overflow: hidden; }
+        .calendar-day { background-color: #3d3d3d; border: 1px solid #555555; border-radius: 6px; min-height: 0; padding: 2px; display: flex; flex-direction: column; justify-content: flex-start; position: relative; cursor: pointer; overflow: hidden; }
         .calendar-day:active { background-color: #555555; }
         .calendar-day.empty { background-color: transparent; border: none; cursor: default; }
         .calendar-day.today { border-color: #aaaaaa; background-color: #555555; }
         .calendar-day.selected { background-color: #F0F0F0; border-color: #F0F0F0; }
         .calendar-day.selected .day-num { color: #111111; }
         .day-num { font-size: 11px; font-weight: bold; color: #dddddd; }
-        .day-dots { display: flex; gap: 2px; justify-content: center; overflow: hidden; padding-top: 2px; }
-        .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+        .day-dots { position: absolute; bottom: 2px; right: 2px; display: flex; flex-direction: row; gap: 2px; align-items: center; }
+        .dot-punch-corner { position: absolute; bottom: 2px; left: 2px; width: 5px; height: 5px; border-radius: 50%; background-color: #f5c518; display: none; }
+        .calendar-day.has-punch .dot-punch-corner { display: block; }
+        .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
         .dot-log { background-color: #7ec8e3; }
         .dot-memo { background-color: #ef4444; }
         .dot-notes { background-color: #aaaaaa; }
@@ -128,7 +130,15 @@
         * { scrollbar-color: #000000 transparent; scrollbar-width: thin; }
 
         #listItems .item-label span,
-        #listCategories .item-label span {
+        #listCategories .item-label span,
+        #manageListItems .manage-text {
+            -webkit-user-select: text;
+            user-select: text;
+            -webkit-touch-callout: default;
+        }
+
+        #standardModal #standardOutline *,
+        #standardModal #standardSearchResults * {
             -webkit-user-select: text;
             user-select: text;
             -webkit-touch-callout: default;
@@ -501,10 +511,6 @@
                     <div id="punchSitesGroup" style="display:flex; flex-direction:column; gap:6px; max-height:133px; overflow-y:auto;"></div>
                 </div>
                 <div>
-                    <label style="font-size:12px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">打卡備註 (選填)：</label>
-                    <input type="text" id="inputPunchNote" placeholder="輸入備註事項..." style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
-                </div>
-                <div>
                     <label style="font-size:12px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">加班時數 (選填)：</label>
                     <input type="number" inputmode="numeric" pattern="[0-9]*" id="inputOvertimeHours" placeholder="輸入加班小時數..." min="0" style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
                 </div>
@@ -586,6 +592,21 @@
     </div>
 
     <script>
+        // ================= 提示 Toast =================
+        function showToast(msg) {
+            let toast = document.getElementById('_appToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = '_appToast';
+                toast.style.cssText = 'display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;';
+                toast.innerHTML = '<div id="_appToastBox" style="background:rgba(30,30,30,0.88);color:#fff;font-size:16px;font-weight:bold;padding:18px 32px;border-radius:16px;text-align:center;max-width:260px;line-height:1.5;box-shadow:0 4px 24px rgba(0,0,0,0.25);"></div>';
+                toast.addEventListener('click', function() { this.style.display = 'none'; clearTimeout(this._timer); });
+                document.body.appendChild(toast);
+            }
+            document.getElementById('_appToastBox').innerText = msg;
+            toast.style.display = 'flex';
+        }
+
         let db = { 
             sites: [], 
             categories: [], 
@@ -848,8 +869,13 @@
                 if (hasLog)   dotsEl.innerHTML += '<span class="dot dot-log"></span>';
                 if (hasMemo)  dotsEl.innerHTML += '<span class="dot dot-memo"></span>';
                 if (hasNotes) dotsEl.innerHTML += '<span class="dot dot-notes"></span>';
-                if (hasPunch) dotsEl.innerHTML += '<span class="dot dot-punch"></span>';
                 if (hasOrder) dotsEl.innerHTML += '<span class="dot dot-order"></span>';
+                if (hasPunch) dayEl.classList.add('has-punch');
+
+                // 左下角出勤點
+                const punchCornerEl = document.createElement('div');
+                punchCornerEl.className = 'dot-punch-corner';
+                dayEl.appendChild(punchCornerEl);
 
                 dayEl.appendChild(dotsEl);
                 gridEl.appendChild(dayEl);
@@ -920,6 +946,13 @@
             el.innerText = `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月`;
         }
 
+        // 記錄卡顯示：把 ● 行前綴換成小圓點 + 項目標籤
+        function _formatLogTextDisplay(text) {
+            if (!text) return '';
+            const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return escaped.replace(/^● ?/mg, '<span style="font-size:9px;">●</span><span style="font-size:13px;font-weight:bold;color:#4b5563;margin-right:3px;"> 項目</span>');
+        }
+
         // ================= 首頁內嵌單日記錄 =================
         function showInlineDayView(dateStr) {
             updateCalendarDateDisplay(dateStr);
@@ -986,7 +1019,7 @@
                             <button type="button" onclick="openInlineEdit('${prefix}','${idx}','${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">編輯</button>
                         </div>
                     </div>
-                    <div class="view-box-content" id="${prefix}_content_${idx}">${item.text}</div>
+                    <div class="view-box-content" id="${prefix}_content_${idx}">${_formatLogTextDisplay(item.text)}</div>
                 `;
                 inlineContent.appendChild(card);
             });
@@ -1046,6 +1079,30 @@
                     if (parseInt(el.querySelector('.day-num')?.innerText) === d.getDate()) el.classList.add('selected');
                 });
                 selectedHomeDateStr = dateStr;
+
+                // 捲動到目標卡片
+                const checkId = _afterShowCheckId;
+                _afterShowCheckId = null;
+                setTimeout(() => {
+                    // content id 格式：prefix_content_idx 或 inlineChkPunch_content
+                    let targetEl = null;
+                    if (checkId === 'inlineChkPunch') {
+                        targetEl = document.getElementById('inlineChkPunch_content');
+                    } else {
+                        // e.g. inlineChkLog_2 → inlineChkLog_content_2
+                        const m = checkId.match(/^(.+?)_(\d+)$/);
+                        if (m) targetEl = document.getElementById(`${m[1]}_content_${m[2]}`);
+                    }
+                    if (targetEl) {
+                        const card = targetEl.closest('.view-box-card');
+                        const container = document.getElementById('inlineDayContent');
+                        if (card && container) {
+                            const cardTop = card.offsetTop - container.offsetTop;
+                            container.scrollTo({ top: cardTop - 8, behavior: 'smooth' });
+                        }
+                    }
+                }, 80);
+            } else {
                 _afterShowCheckId = null;
             }
 
@@ -1271,12 +1328,17 @@
             document.querySelectorAll('.punch-site-chk').forEach(el => {
                 if (checkedBefore.has(el.value)) el.checked = true;
             });
-            const noteInput = document.getElementById('inputPunchNote');
-            noteInput.value = '';
             document.getElementById('inputOvertimeHours').value = '';
             for (let sId in db.punches) {
-                if (db.punches[sId] && db.punches[sId][dateStr] && db.punches[sId][dateStr].note) {
-                    noteInput.value = db.punches[sId][dateStr].note;
+                if (db.punches[sId] && db.punches[sId][dateStr]) {
+                    const rec = db.punches[sId][dateStr];
+                    // 優先用獨立 overtime 欄位，否則解析 note 裡的加班時數
+                    if (rec.overtime !== undefined && rec.overtime !== '') {
+                        document.getElementById('inputOvertimeHours').value = rec.overtime;
+                    } else if (rec.note) {
+                        const m = rec.note.match(/加班(\d+(?:\.\d+)?)小時/);
+                        if (m) document.getElementById('inputOvertimeHours').value = m[1];
+                    }
                     break;
                 }
             }
@@ -1284,7 +1346,6 @@
 
         function openPunchModal() {
             document.getElementById('inputPunchDate').value = getTargetDateStr();
-            document.getElementById('inputPunchNote').value = '';
             document.getElementById('inputOvertimeHours').value = '';
             const delBtn = document.getElementById('btnPunchDeleteInEdit');
             if (delBtn) delBtn.classList.add('hidden');
@@ -1307,16 +1368,14 @@
             const dateStr = document.getElementById('inputPunchDate').value;
             if (!dateStr) return alert('請先選擇打卡日期！');
             const chks = document.querySelectorAll('.punch-site-chk');
-            const noteBase = document.getElementById('inputPunchNote').value.trim();
             const overtime = document.getElementById('inputOvertimeHours').value.trim();
-            let note = noteBase;
-            if (overtime) note = note ? `${note}、加班${overtime}小時` : `加班${overtime}小時`;
+            let note = overtime ? `加班${overtime}小時` : '';
             let selectedCount = 0;
             chks.forEach(chk => {
                 const sId = chk.value;
                 if (chk.checked) {
                     if (!db.punches[sId]) db.punches[sId] = {};
-                    db.punches[sId][dateStr] = { status: '上班', note };
+                    db.punches[sId][dateStr] = { status: '上班', note, overtime };
                     selectedCount++;
                 } else {
                     if (db.punches[sId] && db.punches[sId][dateStr]) delete db.punches[sId][dateStr];
@@ -1325,7 +1384,7 @@
             if (selectedCount === 0) return alert('請至少勾選一個今日前往的施工案場！');
             saveToLocalStorage();
             closePunchModal();
-            alert('出勤已儲存！');
+            showToast('儲存成功');
             const punchDate = document.getElementById('inputPunchDate').value;
             if (punchDate) {
                 selectedHomeDateStr = punchDate;
@@ -1342,7 +1401,7 @@
             const container = document.getElementById('logItemsContainer');
             Array.from(container.children).forEach((div, i) => {
                 const lbl = div.querySelector('.log-item-label');
-                if (lbl) lbl.innerText = `●`;
+                if (lbl) lbl.innerHTML = '<span style="font-size:9px;">●</span> 項目';
             });
         }
 
@@ -1353,7 +1412,7 @@
             div.className = 'log-page-entry-item';
             div.innerHTML = `
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                    <label style="font-size:10px; font-weight:normal; color:#4b5563; margin:0; line-height:2;" class="log-item-label">●</label>
+                    <label style="font-size:13px; font-weight:bold; color:#4b5563; margin:0; line-height:2;" class="log-item-label"><span style="font-size:9px;">●</span> 項目</label>
                     <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeLogItemRow(this)">移除</button>
                 </div>
                 <div>
@@ -1986,7 +2045,7 @@
             db.dailyRecords[dateStr].log.push({ siteId: currentState.siteId, text: logTextWithDate });
             const newIdx = db.dailyRecords[dateStr].log.length - 1;
             saveToLocalStorage();
-            alert('已儲存！');
+            showToast('儲存成功');
             const [y, m] = dateStr.split('-').map(Number);
             homeCalYear = y;
             homeCalMonth = m - 1;
@@ -2114,6 +2173,39 @@
                 navigateTo(target === 'sites' ? 'categories' : target);
             }
         });
+
+        // ================= 右滑返回（非首頁）=================
+        (function() {
+            let _backSwipeStartX = 0, _backSwipeStartY = 0, _backSwipeActive = false;
+            const EDGE_ZONE = 40, THRESHOLD = 80, MAX_Y = 80;
+
+            document.addEventListener('touchstart', function(e) {
+                _backSwipeActive = false;
+                if (currentState.page === 'sites') return;
+                // 只偵測從左側邊緣開始的滑動
+                if (e.touches[0].clientX > EDGE_ZONE) return;
+                _backSwipeStartX = e.touches[0].clientX;
+                _backSwipeStartY = e.touches[0].clientY;
+                _backSwipeActive = true;
+            }, { passive: true });
+
+            document.addEventListener('touchend', function(e) {
+                if (!_backSwipeActive) return;
+                _backSwipeActive = false;
+                if (currentState.page === 'sites') return;
+                const dx = e.changedTouches[0].clientX - _backSwipeStartX;
+                const dy = Math.abs(e.changedTouches[0].clientY - _backSwipeStartY);
+                if (dx < THRESHOLD || dy > MAX_Y) return;
+                // 觸發返回
+                const p = currentState.page;
+                if (p === 'manage' || p === 'log' || p === 'punch' || p === 'categories' || p === 'siteInfo') navigateTo('sites');
+                else if (p === 'items') navigateTo('categories');
+                else if (p === 'cart') {
+                    const backTo = document.getElementById('btnBack').dataset.backTo || 'items';
+                    navigateTo(backTo === 'sites' ? 'categories' : backTo);
+                }
+            }, { passive: true });
+        })();
 
         // ================= 材料選單與訂購 =================
         function renderCategories() {
@@ -2593,7 +2685,7 @@
                 const lines = item.text.split('\n');
                 let rows = [], cur = null;
                 lines.forEach(line => {
-                    const mItem = line.match(/^項目 \d+：(.*)$/);
+                    const mItem = line.match(/^(?:項目 \d+：|● ?)(.*)$/);
                     const mFloor = line.match(/^↳ 區域：(.*)$/);
                     if (mItem) { if (cur) rows.push(cur); cur = { item: mItem[1] === '無' ? '' : mItem[1], floor: '', people: '' }; }
                     else if (mFloor && cur) { cur.floor = mFloor[1] === '無' ? '' : mFloor[1]; }
@@ -2621,7 +2713,7 @@
             const container = document.getElementById('editLogItemsContainer');
             Array.from(container.children).forEach((div, i) => {
                 const lbl = div.querySelector('.log-item-label');
-                if (lbl) lbl.innerText = `●`;
+                if (lbl) lbl.innerHTML = '<span style="font-size:9px;">●</span> 項目';
             });
         }
 
@@ -2633,7 +2725,7 @@
             div.innerHTML = `
                 <button type="button" class="btn-delete-log-item" onclick="removeEditLogItemRow(this)">移除</button>
                 <div style="margin-top:8px;">
-                    <label style="font-size:10px;font-weight:normal;display:block;margin-bottom:4px;color:#4b5563;line-height:2;" class="log-item-label">●</label>
+                    <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;line-height:2;" class="log-item-label"><span style="font-size:9px;">●</span> 項目</label>
                     <textarea class="log-item-input" rows="2" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:white;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
                 </div>
                 <div class="log-entry-row">
@@ -2714,7 +2806,7 @@
             const prefixMap = { log: 'inlineChkLog', notes: 'inlineChkNotes' };
             _afterShowCheckId = `${prefixMap[type] || 'inlineChkLog'}_${newRec[type].length - 1}`;
             showInlineDayView(newDateStr);
-            alert('已儲存！');
+            showToast('儲存成功');
         }
 
         function deleteFromEditLogModal() {
