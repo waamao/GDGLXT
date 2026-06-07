@@ -273,7 +273,7 @@
         </section>
 
     <!-- 案場資訊 彈窗 -->
-    <div id="siteInfoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;if(_blurActiveInput())return;const _cur=_snapshotSiteInfoModal();const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none';if(_isEditing&&_siteInfoModalSnapshot!==null&&_cur!==_siteInfoModalSnapshot){_confirmLeaveModal('案場資訊',closeSiteInfoModal);}else{closeSiteInfoModal();}}">
+    <div id="siteInfoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none';if(_isEditing){const _cur=_snapshotSiteInfoModal();if(_siteInfoModalSnapshot!==null&&_cur!==_siteInfoModalSnapshot){if(confirm('資訊尚未儲存，是否要離開？'))_cancelMainInfoEdit();}else{_cancelMainInfoEdit();}}else{closeSiteInfoModal();}}">
         <div id="siteInfoModalInner" style="background:white; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span style="font-size:14px; font-weight:bold; color:#1f2937; flex:1; min-width:0;">案場資訊</span>
@@ -313,17 +313,20 @@
                                 <input type="text" id="inputSiteInfoAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
                             </div>
                             <textarea id="inputSiteInfoNotes" rows="3" placeholder="" style="width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; font-size:14px; resize:none; line-height:1.6; -webkit-user-select:text; user-select:text;"></textarea>
-                            <div>
-                                <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">承攬總價</label>
-                                <input type="number" inputmode="numeric" id="inputSiteInfoTotal" placeholder="請輸入承攬總價..." style="-webkit-user-select:text; user-select:text;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="flex:1; min-width:0;">
+                                    <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">承攬總價（自動計算）</label>
+                                    <div id="inputSiteInfoTotalDisplay" style="font-size:14px; font-weight:600; color:#1f2937; padding:8px 10px; background:#e5e7eb; border:1px solid #d1d5db; border-radius:8px; min-height:38px; line-height:1.4;">—</div>
+                                    <input type="hidden" id="inputSiteInfoTotal">
+                                </div>
+                                <div style="flex-shrink:0; padding-top:22px;">
+                                    <button onclick="addProgressBlock()" style="height:38px; padding:0 12px; background:#111111; color:white; border-radius:8px; font-size:12px; font-weight:bold; white-space:nowrap;">＋ 新增計價表</button>
+                                </div>
                             </div>
                         </div>
                         <!-- 計價進度表：與上方資訊同框顯示 -->
                         <div id="progressDetailWrap" style="display:none; flex-direction:column; gap:0; border-top:1px solid #e5e7eb; margin:0 -14px -14px; padding:0 0 2px; overflow:hidden;">
                             <div id="progressBlocksContainer" style="display:flex; flex-direction:column; gap:0;"></div>
-                            <div id="siteInfoEditActions" style="display:none; flex-direction:row; gap:8px; padding:8px 14px 4px;">
-                                <button onclick="addProgressBlock()" style="flex:1; height:44px; background:#111111; color:white; border-radius:8px; font-size:13px; font-weight:bold;">＋ 新增計價進度表</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -332,7 +335,7 @@
     </div>
 
         <!-- 計價進度 彈窗 -->
-        <div id="progressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;" onclick="if(event.target===this)document.getElementById('progressEditModal').style.display='none';">
+        <div id="progressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
             <div style="background:white; border-radius:14px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
                 <div style="padding:14px 16px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5e7eb; flex-shrink:0; gap:8px;">
                     <span id="progressModalTitleView" style="flex:1; font-size:15px; font-weight:bold; color:#1f2937; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
@@ -1738,7 +1741,6 @@
             document.getElementById('mainInfoEditArea').style.display  = 'none';
             document.getElementById('btnMainInfoEdit').style.display   = '';
             document.getElementById('btnMainInfoSave').style.display   = 'none';
-            document.getElementById('siteInfoEditActions').style.display = 'none';
         }
 
         function _updateTotalProgressPct() {
@@ -1756,36 +1758,60 @@
         function enterMainInfoEdit() {
             if (!db.siteInfo) db.siteInfo = {};
             const info = db.siteInfo[_siSelectedSiteId] || {};
-            document.getElementById('inputSiteInfoAddress').value = info.caseAddress   || '';
-            document.getElementById('inputSiteInfoNotes').value   = info.notes         || '';
-            document.getElementById('inputSiteInfoTotal').value   = info.contractTotal || '';
+            document.getElementById('inputSiteInfoAddress').value = info.caseAddress || '';
+            document.getElementById('inputSiteInfoNotes').value   = info.notes       || '';
             document.getElementById('mainInfoViewArea').style.display  = 'none';
             document.getElementById('mainInfoEditArea').style.display  = 'flex';
             document.getElementById('btnMainInfoEdit').style.display   = 'none';
             document.getElementById('btnMainInfoSave').style.display   = '';
-            document.getElementById('siteInfoEditActions').style.display = 'flex';
+            _updateEditTotalDisplay();
             _renderAllProgressBlocks();
             setTimeout(() => { _siteInfoModalSnapshot = _snapshotSiteInfoModal(); }, 30);
         }
 
+        function _cancelMainInfoEdit() {
+            _siteInfoModalSnapshot = null;
+            document.getElementById('mainInfoViewArea').style.display  = 'flex';
+            document.getElementById('mainInfoEditArea').style.display  = 'none';
+            document.getElementById('btnMainInfoEdit').style.display   = '';
+            document.getElementById('btnMainInfoSave').style.display   = 'none';
+            _renderAllProgressBlocks();
+        }
+
         function saveMainInfo() {
-            const caseAddress   = document.getElementById('inputSiteInfoAddress').value.trim();
-            const notes         = document.getElementById('inputSiteInfoNotes').value.trim();
-            const contractTotal = document.getElementById('inputSiteInfoTotal').value.trim();
+            const caseAddress = document.getElementById('inputSiteInfoAddress').value.trim();
+            const notes       = document.getElementById('inputSiteInfoNotes').value.trim();
+            // 承攬總價 = 勾選「列入總計價」計價表的 blockTotal 加總
+            const contractTotal = _computeContractTotalFromBlocks();
             if (!db.siteInfo) db.siteInfo = {};
             if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
             db.siteInfo[_siSelectedSiteId].caseAddress   = caseAddress;
             db.siteInfo[_siSelectedSiteId].notes         = notes;
-            db.siteInfo[_siSelectedSiteId].contractTotal = contractTotal;
+            db.siteInfo[_siSelectedSiteId].contractTotal = contractTotal ? String(contractTotal) : '';
             saveToLocalStorage();
             document.getElementById('mainInfoViewArea').style.display = '';
             document.getElementById('mainInfoEditArea').style.display = 'none';
             document.getElementById('btnMainInfoEdit').style.display  = '';
             document.getElementById('btnMainInfoSave').style.display  = 'none';
-            document.getElementById('siteInfoEditActions').style.display = 'none';
             _renderMainInfoView();
             _renderAllProgressBlocks();
             showToast('儲存成功');
+        }
+
+        function _computeContractTotalFromBlocks() {
+            const blocks = _getBlocks();
+            return blocks.reduce((sum, blk) => {
+                if (blk.includeInTotal === false) return sum;
+                return sum + (Number(blk.blockTotal) || 0);
+            }, 0);
+        }
+
+        function _updateEditTotalDisplay() {
+            const total = _computeContractTotalFromBlocks();
+            const el = document.getElementById('inputSiteInfoTotalDisplay');
+            if (el) el.innerText = total > 0 ? total.toLocaleString('zh-TW') : '—';
+            const hidden = document.getElementById('inputSiteInfoTotal');
+            if (hidden) hidden.value = total > 0 ? String(total) : '';
         }
 
         function _getBlocks() {
@@ -1826,23 +1852,12 @@
             if (isMainEditing) {
                 titleBar.innerHTML = `
                     <span class="progress-drag-handle" style="cursor:move; color:#9ca3af; font-size:16px; padding:4px 6px 4px 0; flex-shrink:0; touch-action:none;">☰</span>
-                    <input type="text" value="${blk.title || '計價進度'}" class="progress-title-input" data-bidx="${bIdx}"
-                        style="flex:1; min-width:0; font-size:13px; font-weight:bold; color:#374151; border:1px solid #d1d5db; border-radius:8px; padding:6px 10px; background:white; -webkit-user-select:text; user-select:text;">
+                    <span style="flex:1; min-width:0; font-size:13px; font-weight:bold; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${blk.title || '計價進度'}</span>
                     <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <button class="progress-rename-btn" data-bidx="${bIdx}" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 10px; border-radius:8px;">更名</button>
                         <button onclick="_deleteProgressBlock(${bIdx})" style="background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:6px 10px; border-radius:8px;">刪除</button>
                     </div>
                 `;
-                const inp = titleBar.querySelector('.progress-title-input');
-                inp.addEventListener('blur', () => {
-                    const blocks = _getBlocks();
-                    const val = inp.value.trim() || '計價進度';
-                    if (blocks[bIdx] && blocks[bIdx].title !== val) {
-                        blocks[bIdx].title = val;
-                        saveToLocalStorage();
-                    }
-                });
-                inp.addEventListener('click', e => e.stopPropagation());
                 const renameBtn = titleBar.querySelector('.progress-rename-btn');
                 renameBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1876,7 +1891,6 @@
             blocks[bIdx].title = newTitle.trim();
             saveToLocalStorage();
             _renderAllProgressBlocks();
-            _initProgressBlockSortable();
             showToast('儲存成功');
         }
 
@@ -1975,6 +1989,7 @@
             });
             _recalcModalSummary();
             _scrollModalToBottom();
+            setTimeout(() => { _progressModalSnapshot = _snapshotProgressModal(); }, 50);
         }
 
         function _makeModalItemRow(iIdx, month, amount, ct, editable) {
@@ -2090,10 +2105,48 @@
             blocks[_siEditingBlockIdx].includeInTotal = inclChk ? inclChk.checked : true;
             saveToLocalStorage();
             _progressModalIsEditing = false;
+            _progressModalSnapshot = null;
+            _updateEditTotalDisplay();
             _renderAllProgressBlocks();
             _openProgressModal(_siEditingBlockIdx);
             showToast('儲存成功');
         }
+
+        function _closeProgressModal() {
+            document.getElementById('progressEditModal').style.display = 'none';
+            _progressModalSnapshot = null;
+            _progressModalIsEditing = false;
+        }
+
+        function _exitProgressModalEdit() {
+            // Discard edits, return to view mode (keep modal open)
+            _progressModalSnapshot = null;
+            _progressModalIsEditing = false;
+            if (_siEditingBlockIdx !== null && _siEditingBlockIdx !== undefined) {
+                _openProgressModal(_siEditingBlockIdx);
+            } else {
+                _closeProgressModal();
+            }
+        }
+
+        document.getElementById('progressEditModal').addEventListener('click', function(e) {
+            if (e.target !== this) return;
+            if (_justBlurredKeyboard) return;
+            if (_blurActiveInput()) return;
+            if (_progressModalIsEditing) {
+                // In edit mode: exit edit mode (stay in modal), with confirm if changed
+                if (_progressModalSnapshot !== null && _snapshotProgressModal() !== _progressModalSnapshot) {
+                    if (confirm('資訊尚未儲存，是否要離開？')) {
+                        _exitProgressModalEdit();
+                    }
+                } else {
+                    _exitProgressModalEdit();
+                }
+            } else {
+                // In view mode: close the modal
+                _closeProgressModal();
+            }
+        });
 
         function _deleteProgressBlock(bIdx) {
             const blocks = _getBlocks();
@@ -2105,13 +2158,17 @@
             saveToLocalStorage();
             document.getElementById('progressEditModal').style.display = 'none';
             _siEditingBlockIdx = null;
+            _updateEditTotalDisplay();
             _renderAllProgressBlocks();
         }
 
         function addProgressBlock() {
+            const name = prompt('請輸入新計價表名稱：', '計價進度');
+            if (!name || !name.trim()) return;
             const blocks = _getBlocks();
-            blocks.push({ id: Date.now().toString(), title: '計價進度', items: [] });
+            blocks.push({ id: Date.now().toString(), title: name.trim(), items: [], includeInTotal: true });
             saveToLocalStorage();
+            _updateEditTotalDisplay();
             _renderAllProgressBlocks();
             setTimeout(() => {
                 const wrap = document.getElementById('progressDetailWrap');
@@ -2406,6 +2463,7 @@
         let _addLogModalSnapshot = null;
         let _editLogModalSnapshot = null;
         let _siteInfoModalSnapshot = null;
+        let _progressModalSnapshot = null;
 
         function _snapshotPunchModal() {
             const date = document.getElementById('inputPunchDate').value;
@@ -2442,8 +2500,20 @@
             const site = document.getElementById('siteInfoSiteSelect')?.value || '';
             const address = document.getElementById('inputSiteInfoAddress')?.value || '';
             const notes = document.getElementById('inputSiteInfoNotes')?.value || '';
-            const total = document.getElementById('inputSiteInfoTotal')?.value || '';
-            return JSON.stringify({ site, address, notes, total });
+            return JSON.stringify({ site, address, notes });
+        }
+
+        function _snapshotProgressModal() {
+            const btInp = document.getElementById('progressModalBlockTotalInput');
+            const inclChk = document.getElementById('progressModalIncludeInput');
+            const blockTotal = btInp ? btInp.value : '';
+            const includeInTotal = inclChk ? inclChk.checked : true;
+            const rows = Array.from(document.querySelectorAll('#progressModalItems div[data-modal-row]')).map(row => {
+                const sel = row.querySelector('.modal-month-sel');
+                const inp = row.querySelector('.modal-amount-inp');
+                return { month: sel ? sel.value : '', amount: inp ? inp.value : '' };
+            });
+            return JSON.stringify({ blockTotal, includeInTotal, rows });
         }
 
         // 通用「離開確認」提示框
@@ -2617,14 +2687,22 @@
             }
 
             if (keyword !== '') {
-                // 搜尋模式：顯示品項結果
+                // 搜尋模式：分詞子字串交集搜尋
                 _catPageMode = 'search';
                 header.innerText = '🔍 全品項搜尋結果：';
                 document.getElementById('catEditBtnGroup').style.display = 'none';
                 document.getElementById('itemEditBtnGroup').style.display = 'none';
                 document.getElementById('btnQuickAddInSearch').style.display = '';
                 list.innerHTML = '';
-                const filteredItems = db.items.filter(item => item.name.toLowerCase().includes(keyword)).sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'));
+                list.scrollTop = 0;
+                // 分詞：以空白切分，每個 token 都必須出現在品項名稱中
+                const tokens = keyword.split(/\s+/).filter(t => t.length > 0);
+                const filteredItems = db.items
+                    .filter(item => {
+                        const nameLow = item.name.toLowerCase();
+                        return tokens.every(token => nameLow.includes(token));
+                    })
+                    .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'));
                 list.innerHTML = filteredItems.length === 0 ? '<p class="text-muted text-center">無符合的材料品項。</p>' : '';
                 filteredItems.forEach(item => {
                     const catObj = db.categories.find(c => c.id === item.catId);
@@ -2654,6 +2732,7 @@
                 header.innerText = '分類編輯模式：';
                 document.getElementById('btnQuickAddInSearch').style.display = 'none';
                 list.innerHTML = db.categories.length === 0 ? '<p class="text-muted text-center">目前無分類，請先至後台新增。</p>' : '';
+                list.scrollTop = 0;
                 db.categories.forEach(cat => {
                     const div = document.createElement('div');
                     div.className = 'list-item cat-inline-item';
@@ -2695,7 +2774,7 @@
                 document.getElementById('itemEditBtnGroup').style.display = 'none';
                 document.getElementById('btnHomeTop').classList.add('hidden');
                 header.innerText = '選擇材料分類：';
-                
+                list.scrollTop = 0;
                 document.getElementById('btnQuickAddInSearch').style.display = '';
                 list.innerHTML = db.categories.length === 0 ? '<p class="text-muted text-center">目前無分類，請先至後台新增。</p>' : '';
                 db.categories.forEach(cat => {
@@ -2732,6 +2811,8 @@
             // 顯示品項編輯按鈕組，隱藏分類編輯按鈕組
             document.getElementById('catEditBtnGroup').style.display = 'none';
             document.getElementById('itemEditBtnGroup').style.display = 'flex';
+            // 每次切換到品項列表都捲回最上
+            list.scrollTop = 0;
 
             if (_itemInlineEditMode) {
                 header.innerText = '品項編輯模式：';
