@@ -476,6 +476,7 @@
         <div id="addLogModalInner" style="background:white; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span style="font-size:14px; font-weight:bold; color:#1f2937; flex:1; min-width:0;">新增工程記錄</span>
+                <button onclick="closeAddLogModal()" style="background:#6b7280; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">取消</button>
                 <button onclick="saveAddLogModal()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">儲存</button>
             </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
@@ -501,13 +502,16 @@
             <div style="padding:12px 16px 8px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span id="editLogModalTitle" style="font-size:14px; font-weight:bold; color:#1f2937; flex:1; min-width:0;">編輯工程記錄</span>
                 <button onclick="deleteFromEditLogModal()" class="btn-red" style="padding:6px 18px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0;">刪除</button>
-                <button onclick="copyEditLogToDate()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">複製到…</button>
+                <button onclick="closeEditLogModal()" style="background:#6b7280; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">取消</button>
                 <button onclick="saveEditLogModal()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">儲存</button>
             </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
                 <div>
                     <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">選擇日期：</label>
-                    <input type="date" id="editLogDate" style="width:100%; max-width:100%; box-sizing:border-box; -webkit-appearance:none; appearance:none;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="date" id="editLogDate" style="flex:1; max-width:100%; box-sizing:border-box; -webkit-appearance:none; appearance:none;">
+                        <button onclick="copyEditLogToDate()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px; flex-shrink:0; white-space:nowrap;">複製到…</button>
+                    </div>
                 </div>
                 <div>
                     <label style="font-size:13px; font-weight:bold; color:#4b5563; display:block; margin-bottom:4px;">選擇案場：</label>
@@ -3235,10 +3239,7 @@
             showInlineDayView(dateStr);
         }
 
-        document.getElementById('addLogModal').addEventListener('click', function(e) {
-            if (e.target !== this) return;
-            _tryCloseAddLogModal();
-        });
+        // 新增工程記錄彈窗：不支援點視窗外關閉，請使用取消按鈕
 
         // ================= 工程記錄 編輯彈窗 =================
         function openEditLogModal(item, dateStr, type) {
@@ -3494,10 +3495,7 @@
             }
         }
 
-        document.getElementById('editLogModal').addEventListener('click', function(e) {
-            if (e.target !== this) return;
-            _tryCloseEditLogModal();
-        });
+        // 編輯工程記錄彈窗：不支援點視窗外關閉，請使用取消按鈕
 
         // ================= 材料訂購 編輯彈窗 =================
         let _editOrderItems = [];
