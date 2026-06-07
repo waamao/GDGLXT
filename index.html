@@ -472,8 +472,8 @@
     </div>
 
     <!-- 工程記錄 新增彈窗 -->
-    <div id="addLogModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:90vh; overflow:hidden;">
+    <div id="addLogModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;">
+        <div id="addLogModalInner" style="background:white; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span style="font-size:14px; font-weight:bold; color:#1f2937; flex:1; min-width:0;">新增工程記錄</span>
                 <button onclick="saveAddLogModal()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">儲存</button>
@@ -496,8 +496,8 @@
     </div>
 
     <!-- 工程記錄 編輯彈窗 -->
-    <div id="editLogModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:90vh; overflow:hidden;">
+    <div id="editLogModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;">
+        <div id="editLogModalInner" style="background:white; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span id="editLogModalTitle" style="font-size:14px; font-weight:bold; color:#1f2937; flex:1; min-width:0;">編輯工程記錄</span>
                 <button onclick="deleteFromEditLogModal()" class="btn-red" style="padding:6px 18px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0;">刪除</button>
@@ -1336,6 +1336,7 @@
             if (delBtn) delBtn.classList.add('hidden');
             renderPunchSites();
             document.getElementById('punchModal').style.display = 'flex';
+            document.querySelector('#punchModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
         }
 
         function closePunchModal() {
@@ -1402,7 +1403,7 @@
             });
         }
 
-        function addLogItemRow(itemValue = '', floorValue = '', peopleValue = '') {
+        function addLogItemRow(itemValue = '', floorValue = '', peopleValue = '', contractorValue = '') {
             const container = document.getElementById('logItemsContainer');
             const div = document.createElement('div');
             div.className = 'log-page-entry-item';
@@ -1414,10 +1415,14 @@
                 <div>
                     <textarea class="log-item-input" rows="2" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:white;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
                 </div>
-                <div class="log-entry-row">
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
                         <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: #4b5563;">樓層/區域：</label>
                         <input type="text" class="log-floor-input" value="${floorValue}" placeholder="如：1F柱牆">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: #4b5563;">施工廠商：</label>
+                        <input type="text" class="log-contractor-input" value="${contractorValue}" placeholder="廠商名稱" style="-webkit-user-select:text;user-select:text;">
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: #4b5563;">人數：</label>
@@ -2023,12 +2028,19 @@
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
                 const floorVal = items[i].querySelector('.log-floor-input').value.trim();
+                const contractorEl = items[i].querySelector('.log-contractor-input');
+                const contractorVal = contractorEl ? contractorEl.value.trim() : '';
                 const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal) {
+                if (itemVal || floorVal || peopleVal || contractorVal) {
                     hasContent = true;
                     let line = `● ${itemVal || '無'}`;
                     if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
+                    if (peopleVal) {
+                        line += `\n↳ 人數：${peopleVal} 人`;
+                        if (contractorVal) line += `（${contractorVal}）`;
+                    } else if (contractorVal) {
+                        line += `\n↳ 人數：（${contractorVal}）`;
+                    }
                     projectLogText += line + '\n';
                 }
             }
@@ -2097,6 +2109,7 @@
                 renderPageSiteSelector('logSiteGroup');
                 clearLogInputs();
                 document.querySelector('#pageLog .scroll-list-body')?.scrollTo(0, 0);
+                document.getElementById('logItemsContainer')?.scrollTo(0, 0);
             } else if (page === 'categories') {
                 document.getElementById('pageCategories').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
@@ -2128,6 +2141,8 @@
                 document.getElementById('globalSearchBar').value = '';
                 _catPageMode = 'items';
                 renderCategories();
+                const listItemsEl = document.getElementById('listItems');
+                if (listItemsEl) listItemsEl.scrollTop = 0;
             } else if (page === 'cart') {
                 document.getElementById('pageCart').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
@@ -2139,6 +2154,8 @@
                 if (_cartDateEl) _cartDateEl.innerText = _orderDateVal || '';
                 renderCartSiteSelector();
                 renderCart();
+                const listCartEl = document.getElementById('listCartItems');
+                if (listCartEl) listCartEl.scrollTop = 0;
             } else if (page === 'manage') {
                 document.getElementById('pageManage').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
@@ -2174,16 +2191,20 @@
             updateCartBadge();
         }
 
-        function openSiteInfoModal() {
-            const modal = document.getElementById('siteInfoModal');
-            const inner = document.getElementById('siteInfoModalInner');
-            // 對齊月曆上緣：header 高度 + main padding (16px)
+        function _openModalAlignedToCalendar(modalId, innerId) {
+            const modal = document.getElementById(modalId);
+            const inner = document.getElementById(innerId);
             const header = document.querySelector('header');
-            const calCard = document.querySelector('#pageSites .card');
-            let topOffset = 16;
-            if (header) topOffset = header.getBoundingClientRect().bottom + 16;
+            const topOffset = header ? header.getBoundingClientRect().bottom + 16 : 16;
             inner.style.marginTop = topOffset + 'px';
+            const maxByBottom = `calc(100vh - ${topOffset + 16}px)`;
+            inner.style.maxHeight = `min(80vh, ${maxByBottom})`;
             modal.style.display = 'flex';
+        }
+
+        function openSiteInfoModal() {
+            _openModalAlignedToCalendar('siteInfoModal', 'siteInfoModalInner');
+            document.querySelector('#siteInfoModalInner [style*="overflow-y:auto"]')?.scrollTo(0, 0);
             document.getElementById('siteInfoDetailWrap').style.display = 'none';
             document.getElementById('progressDetailWrap').style.display = 'none';
             _siSelectedSiteId = null;
@@ -3031,6 +3052,7 @@
             const delBtn = document.getElementById('btnPunchDeleteInEdit');
             if (delBtn) delBtn.classList.remove('hidden');
             document.getElementById('punchModal').style.display = 'flex';
+            document.querySelector('#punchModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
         }
 
         function saveInlineEdit() {
@@ -3095,7 +3117,9 @@
             const container = document.getElementById('addLogItemsContainer');
             container.innerHTML = '';
             addNewLogItemRow('', '', '', true);
-            document.getElementById('addLogModal').style.display = 'flex';
+            _openModalAlignedToCalendar('addLogModal', 'addLogModalInner');
+            document.querySelector('#addLogModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
+            document.getElementById('addLogItemsContainer')?.scrollTo(0, 0);
         }
 
         function closeAddLogModal() {
@@ -3110,7 +3134,7 @@
             });
         }
 
-        function addNewLogItemRow(itemValue = '', floorValue = '', peopleValue = '', autoFocus = false) {
+        function addNewLogItemRow(itemValue = '', floorValue = '', peopleValue = '', autoFocus = false, contractorValue = '') {
             const container = document.getElementById('addLogItemsContainer');
             const itemNum = container.children.length + 1;
             const div = document.createElement('div');
@@ -3121,10 +3145,14 @@
                     <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeNewLogItemRow(this)">移除</button>
                 </div>
                 <textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:white;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
-                <div class="log-entry-row">
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
                         <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;">樓層/區域：</label>
                         <input type="text" class="log-floor-input" value="${floorValue}" placeholder="如：1F柱牆">
+                    </div>
+                    <div>
+                        <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;">施工廠商：</label>
+                        <input type="text" class="log-contractor-input" value="${contractorValue}" placeholder="廠商名稱" style="-webkit-user-select:text;user-select:text;">
                     </div>
                     <div>
                         <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;">人數：</label>
@@ -3161,12 +3189,19 @@
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
                 const floorVal = items[i].querySelector('.log-floor-input').value.trim();
+                const contractorEl = items[i].querySelector('.log-contractor-input');
+                const contractorVal = contractorEl ? contractorEl.value.trim() : '';
                 const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal) {
+                if (itemVal || floorVal || peopleVal || contractorVal) {
                     hasContent = true;
                     let line = `● ${itemVal || '無'}`;
                     if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
+                    if (peopleVal) {
+                        line += `\n↳ 人數：${peopleVal} 人`;
+                        if (contractorVal) line += `（${contractorVal}）`;
+                    } else if (contractorVal) {
+                        line += `\n↳ 人數：（${contractorVal}）`;
+                    }
                     projectLogText += line + '\n';
                 }
             }
@@ -3234,17 +3269,23 @@
             lines.forEach(line => {
                 const mItem = line.match(/^(?:項目 \d+：|● ?)(.*)$/);
                 const mFloor = line.match(/^↳ 區域：(.*)$/);
-                if (mItem) { if (cur) rows.push(cur); cur = { item: mItem[1] === '無' ? '' : mItem[1], floor: '', people: '' }; }
+                if (mItem) { if (cur) rows.push(cur); cur = { item: mItem[1] === '無' ? '' : mItem[1], floor: '', people: '', contractor: '' }; }
                 else if (mFloor && cur) { cur.floor = mFloor[1] === '無' ? '' : mFloor[1]; }
                 else if (cur) {
-                    const m2 = line.match(/^↳ 人數：(.+?) 人$/);
-                    if (m2) cur.people = m2[1];
+                    const m2 = line.match(/^↳ 人數：(\d*)\s*(?:人)?（([^）]*)）$|^↳ 人數：(\d+)\s*人$|^↳ 人數：（([^）]*)）$/);
+                    if (m2) {
+                        if (m2[1] !== undefined && m2[1] !== '') { cur.people = m2[1]; cur.contractor = m2[2] || ''; }
+                        else if (m2[3] !== undefined) { cur.people = m2[3]; cur.contractor = ''; }
+                        else if (m2[4] !== undefined) { cur.people = ''; cur.contractor = m2[4]; }
+                    }
                 }
             });
             if (cur) rows.push(cur);
-            if (rows.length === 0) rows.push({ item: '', floor: '', people: '' });
-            rows.forEach((r, ri) => addEditLogItemRow(r.item, r.floor, r.people, ri === 0));
-            document.getElementById('editLogModal').style.display = 'flex';
+            if (rows.length === 0) rows.push({ item: '', floor: '', people: '', contractor: '' });
+            rows.forEach((r, ri) => addEditLogItemRow(r.item, r.floor, r.people, ri === 0, r.contractor || ''));
+            _openModalAlignedToCalendar('editLogModal', 'editLogModalInner');
+            document.querySelector('#editLogModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
+            document.getElementById('editLogItemsContainer')?.scrollTo(0, 0);
         }
 
         function _updateEditLogItemLabels() {
@@ -3255,7 +3296,7 @@
             });
         }
 
-        function addEditLogItemRow(itemValue = '', floorValue = '', peopleValue = '', autoFocus = false) {
+        function addEditLogItemRow(itemValue = '', floorValue = '', peopleValue = '', autoFocus = false, contractorValue = '') {
             const container = document.getElementById('editLogItemsContainer');
             const itemNum = container.children.length + 1;
             const div = document.createElement('div');
@@ -3266,10 +3307,14 @@
                     <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeEditLogItemRow(this)">移除</button>
                 </div>
                 <textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:14px;background:white;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
-                <div class="log-entry-row">
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     <div>
                         <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;">樓層/區域：</label>
                         <input type="text" class="log-floor-input" value="${floorValue}" placeholder="如：1F柱牆">
+                    </div>
+                    <div>
+                        <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;">施工廠商：</label>
+                        <input type="text" class="log-contractor-input" value="${contractorValue}" placeholder="廠商名稱" style="-webkit-user-select:text;user-select:text;">
                     </div>
                     <div>
                         <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#4b5563;">人數：</label>
@@ -3302,12 +3347,19 @@
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
                 const floorVal = items[i].querySelector('.log-floor-input').value.trim();
+                const contractorEl = items[i].querySelector('.log-contractor-input');
+                const contractorVal = contractorEl ? contractorEl.value.trim() : '';
                 const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal) {
+                if (itemVal || floorVal || peopleVal || contractorVal) {
                     hasContent = true;
                     let line = `● ${itemVal || '無'}`;
                     if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
+                    if (peopleVal) {
+                        line += `\n↳ 人數：${peopleVal} 人`;
+                        if (contractorVal) line += `（${contractorVal}）`;
+                    } else if (contractorVal) {
+                        line += `\n↳ 人數：（${contractorVal}）`;
+                    }
                     projectLogText += line + '\n';
                 }
             }
@@ -3380,12 +3432,19 @@
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
                 const floorVal = items[i].querySelector('.log-floor-input').value.trim();
+                const contractorEl = items[i].querySelector('.log-contractor-input');
+                const contractorVal = contractorEl ? contractorEl.value.trim() : '';
                 const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal) {
+                if (itemVal || floorVal || peopleVal || contractorVal) {
                     hasContent = true;
                     let line = `● ${itemVal || '無'}`;
                     if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
+                    if (peopleVal) {
+                        line += `\n↳ 人數：${peopleVal} 人`;
+                        if (contractorVal) line += `（${contractorVal}）`;
+                    } else if (contractorVal) {
+                        line += `\n↳ 人數：（${contractorVal}）`;
+                    }
                     projectLogText += line + '\n';
                 }
             }
@@ -3459,6 +3518,7 @@
             });
             renderEditOrderList();
             document.getElementById('editOrderModal').style.display = 'flex';
+            document.getElementById('editOrderList')?.scrollTo(0, 0);
         }
 
         function renderEditOrderList() {
