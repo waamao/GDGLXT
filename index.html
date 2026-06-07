@@ -344,6 +344,16 @@
                 </div>
                 <!-- 計價表總價 + 列入總計價進度 -->
                 <div id="progressModalMetaRow" style="padding:8px 16px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px; flex-shrink:0; background:#f9fafb;">
+                    <div style="display:flex; flex-direction:column; gap:2px; flex-shrink:0;">
+                        <label style="font-size:11px; font-weight:bold; color:#9ca3af; letter-spacing:0.04em;">類型</label>
+                        <span id="progressModalBlockTypeView" style="font-size:13px; font-weight:600; color:#1f2937;">—</span>
+                        <select id="progressModalBlockTypeSelect" style="display:none; font-size:13px; padding:6px 4px; border:1px solid #d1d5db; border-radius:8px; background:white; height:36px;">
+                            <option value="">無</option>
+                            <option value="本工程">本工程</option>
+                            <option value="追加工程">追加工程</option>
+                            <option value="分包商">分包商</option>
+                        </select>
+                    </div>
                     <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
                         <label style="font-size:11px; font-weight:bold; color:#9ca3af; letter-spacing:0.04em;">計價表總價</label>
                         <span id="progressModalBlockTotalView" style="font-size:13px; font-weight:600; color:#1f2937;">—</span>
@@ -1852,7 +1862,7 @@
             if (isMainEditing) {
                 titleBar.innerHTML = `
                     <span class="progress-drag-handle" style="cursor:move; color:#9ca3af; font-size:16px; padding:4px 6px 4px 0; flex-shrink:0; touch-action:none;">☰</span>
-                    <span style="flex:1; min-width:0; font-size:13px; font-weight:bold; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${blk.title || '計價進度'}</span>
+                    <span style="flex:1; min-width:0; font-size:13px; font-weight:bold; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${_getBlockDisplayTitle(blk)}</span>
                     <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <button class="progress-rename-btn" data-bidx="${bIdx}" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 10px; border-radius:8px;">更名</button>
                         <button onclick="_deleteProgressBlock(${bIdx})" style="background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:6px 10px; border-radius:8px;">刪除</button>
@@ -1868,7 +1878,7 @@
                 const blkTotalLabel = blkTotal > 0 ? `<span style="font-size:11px; color:#9ca3af; font-weight:500;">${_fmtAmount(blkTotal)}</span>` : '';
                 titleBar.innerHTML = `
                     <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:1px;">
-                        <span style="font-size:13px; font-weight:bold; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${blk.title || '計價進度'}</span>
+                        <span style="font-size:13px; font-weight:bold; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${_getBlockDisplayTitle(blk)}</span>
                         ${blkTotalLabel}
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -1927,6 +1937,12 @@
             if (el) setTimeout(() => { el.scrollTop = el.scrollHeight; }, 30);
         }
 
+        function _getBlockDisplayTitle(blk) {
+            const type = blk.blockType || '';
+            const title = blk.title || '計價進度';
+            return type ? `[${type}] ${title}` : title;
+        }
+
         function _openProgressModal(bIdx) {
             _siEditingBlockIdx = bIdx;
             _progressModalIsEditing = false;
@@ -1936,12 +1952,15 @@
             const blkTotal = Number(blk.blockTotal) || 0;
             const useCt = blkTotal > 0 ? blkTotal : ct;
 
-            document.getElementById('progressModalTitleView').innerText = blk.title || '計價進度';
+            document.getElementById('progressModalTitleView').innerText = _getBlockDisplayTitle(blk);
             document.getElementById('btnProgressModalEdit').style.display = '';
             document.getElementById('btnProgressModalSave').style.display = 'none';
             document.getElementById('progressModalAddBtn').style.display = 'none';
 
             // Meta row — view mode
+            document.getElementById('progressModalBlockTypeView').style.display = '';
+            document.getElementById('progressModalBlockTypeView').innerText = blk.blockType || '無';
+            document.getElementById('progressModalBlockTypeSelect').style.display = 'none';
             document.getElementById('progressModalBlockTotalView').style.display = '';
             document.getElementById('progressModalBlockTotalView').innerText = blk.blockTotal ? _fmtAmount(blk.blockTotal) : '—';
             document.getElementById('progressModalBlockTotalInput').style.display = 'none';
@@ -1972,6 +1991,10 @@
             document.getElementById('progressModalAddBtn').style.display = '';
 
             // Meta row — edit mode
+            document.getElementById('progressModalBlockTypeView').style.display = 'none';
+            const typeSelect = document.getElementById('progressModalBlockTypeSelect');
+            typeSelect.style.display = '';
+            typeSelect.value = blk.blockType || '';
             document.getElementById('progressModalBlockTotalView').style.display = 'none';
             const btInp = document.getElementById('progressModalBlockTotalInput');
             btInp.style.display = '';
@@ -2099,10 +2122,12 @@
             });
             const btInp = document.getElementById('progressModalBlockTotalInput');
             const inclChk = document.getElementById('progressModalIncludeInput');
+            const typeSelect = document.getElementById('progressModalBlockTypeSelect');
             blocks[_siEditingBlockIdx].title = title;
             blocks[_siEditingBlockIdx].items = items;
             blocks[_siEditingBlockIdx].blockTotal = btInp ? btInp.value.trim() : '';
             blocks[_siEditingBlockIdx].includeInTotal = inclChk ? inclChk.checked : true;
+            blocks[_siEditingBlockIdx].blockType = typeSelect ? typeSelect.value : '';
             saveToLocalStorage();
             _progressModalIsEditing = false;
             _progressModalSnapshot = null;
@@ -2506,14 +2531,16 @@
         function _snapshotProgressModal() {
             const btInp = document.getElementById('progressModalBlockTotalInput');
             const inclChk = document.getElementById('progressModalIncludeInput');
+            const typeSelect = document.getElementById('progressModalBlockTypeSelect');
             const blockTotal = btInp ? btInp.value : '';
             const includeInTotal = inclChk ? inclChk.checked : true;
+            const blockType = typeSelect ? typeSelect.value : '';
             const rows = Array.from(document.querySelectorAll('#progressModalItems div[data-modal-row]')).map(row => {
                 const sel = row.querySelector('.modal-month-sel');
                 const inp = row.querySelector('.modal-amount-inp');
                 return { month: sel ? sel.value : '', amount: inp ? inp.value : '' };
             });
-            return JSON.stringify({ blockTotal, includeInTotal, rows });
+            return JSON.stringify({ blockTotal, includeInTotal, blockType, rows });
         }
 
         // 通用「離開確認」提示框
@@ -2696,11 +2723,13 @@
                 list.innerHTML = '';
                 list.scrollTop = 0;
                 // 分詞：以空白切分，每個 token 都必須出現在品項名稱中
+                // 正規化：移除斜線，使 38 可匹配 3/8
+                const normalize = s => s.replace(/[\/\-"xX×]/g, '');
                 const tokens = keyword.split(/\s+/).filter(t => t.length > 0);
                 const filteredItems = db.items
                     .filter(item => {
-                        const nameLow = item.name.toLowerCase();
-                        return tokens.every(token => nameLow.includes(token));
+                        const nameLow = normalize(item.name.toLowerCase());
+                        return tokens.every(token => nameLow.includes(normalize(token)));
                     })
                     .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'));
                 list.innerHTML = filteredItems.length === 0 ? '<p class="text-muted text-center">無符合的材料品項。</p>' : '';
