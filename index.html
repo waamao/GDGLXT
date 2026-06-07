@@ -3126,6 +3126,16 @@
             document.getElementById('addLogModal').style.display = 'none';
         }
 
+        function _tryCloseAddLogModal() {
+            if (_justBlurredKeyboard) return;
+            if (_blurActiveInput()) return;
+            if (confirm('是否儲存記錄？')) {
+                saveAddLogModal();
+            } else {
+                closeAddLogModal();
+            }
+        }
+
         function _updateNewLogItemLabels() {
             const container = document.getElementById('addLogItemsContainer');
             Array.from(container.children).forEach((div, i) => {
@@ -3227,8 +3237,7 @@
 
         document.getElementById('addLogModal').addEventListener('click', function(e) {
             if (e.target !== this) return;
-            if (_justBlurredKeyboard) return;
-            if (!_blurActiveInput()) closeAddLogModal();
+            _tryCloseAddLogModal();
         });
 
         // ================= 工程記錄 編輯彈窗 =================
@@ -3272,9 +3281,9 @@
                 if (mItem) { if (cur) rows.push(cur); cur = { item: mItem[1] === '無' ? '' : mItem[1], floor: '', people: '', contractor: '' }; }
                 else if (mFloor && cur) { cur.floor = mFloor[1] === '無' ? '' : mFloor[1]; }
                 else if (cur) {
-                    const m2 = line.match(/^↳ 人數：(\d*)\s*(?:人)?（([^）]*)）$|^↳ 人數：(\d+)\s*人$|^↳ 人數：（([^）]*)）$/);
+                    const m2 = line.match(/^↳ 人數：(\d+)\s*人（([^）]*)）$|^↳ 人數：(\d+)\s*人$|^↳ 人數：（([^）]*)）$/);
                     if (m2) {
-                        if (m2[1] !== undefined && m2[1] !== '') { cur.people = m2[1]; cur.contractor = m2[2] || ''; }
+                        if (m2[1] !== undefined) { cur.people = m2[1]; cur.contractor = m2[2] || ''; }
                         else if (m2[3] !== undefined) { cur.people = m2[3]; cur.contractor = ''; }
                         else if (m2[4] !== undefined) { cur.people = ''; cur.contractor = m2[4]; }
                     }
@@ -3475,10 +3484,19 @@
             _editCtx = null;
         }
 
+        function _tryCloseEditLogModal() {
+            if (_justBlurredKeyboard) return;
+            if (_blurActiveInput()) return;
+            if (confirm('是否儲存記錄？')) {
+                saveEditLogModal();
+            } else {
+                closeEditLogModal();
+            }
+        }
+
         document.getElementById('editLogModal').addEventListener('click', function(e) {
             if (e.target !== this) return;
-            if (_justBlurredKeyboard) return;
-            if (!_blurActiveInput()) closeEditLogModal();
+            _tryCloseEditLogModal();
         });
 
         // ================= 材料訂購 編輯彈窗 =================
