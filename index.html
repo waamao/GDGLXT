@@ -96,9 +96,15 @@
             background: none;
         }
         .home-seg.active-seg {
-            background-color: rgba(255,255,255,0.07);
-            margin: 8px 4px;
-            height: 36px;
+            position: relative;
+        }
+        .home-seg.active-seg::before {
+            content: '';
+            position: absolute;
+            top: 9px; bottom: 9px; left: 6px; right: 6px;
+            background-color: rgba(255,255,255,0.08);
+            border-radius: 33px;
+            pointer-events: none;
         }
 
         .log-entry-item { padding: 10px 0; border-bottom: 1px solid #444444; position: relative; display: flex; flex-direction: column; gap: 8px; background: none; }
