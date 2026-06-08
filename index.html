@@ -69,7 +69,7 @@
         
         .bottom-btn-group, .home-fixed-bottom { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 416px; display: flex; flex-direction: column; gap: 8px; z-index: 100; background-color: transparent; }
         .bottom-btn-group-inner { display: flex; gap: 8px; width: 100%; }
-        button.large-bottom-btn { height: 45px !important; font-size: 15px !important; font-weight: bold !important; border-radius: 33px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex: 1; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid #d1d5db !important; }
+        button.large-bottom-btn { height: 45px !important; font-size: 15px !important; font-weight: bold !important; border-radius: 33px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex: 1; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid #444444 !important; }
 
         .hidden { display: none !important; }
         .text-center { text-align: center; }
@@ -98,7 +98,7 @@
         .btn-delete-log-item { background: #D9006C; color: #ffffff; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 6px; position: absolute; top: 4px; right: 4px; }
 
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background-color: #2a2a2a; padding: 4px; border-radius: 8px; height: 254px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background-color: #111111; padding: 4px; border-radius: 8px; height: 254px; }
         .calendar-weekday { text-align: center; font-size: 11px; font-weight: bold; color: #aaaaaa; padding: 2px 0; }
         .calendar-day { background-color: #3d3d3d; border: 1px solid #555555; border-radius: 6px; min-height: 0; padding: 2px; padding-bottom: 9px; display: flex; flex-direction: column; justify-content: flex-start; position: relative; cursor: pointer; overflow: hidden; }
         .calendar-day:active { background-color: #555555; }
@@ -606,6 +606,7 @@
                         if (!db.punches) db.punches = {};
                         if (!db.dailyRecords) db.dailyRecords = {};
                         if (!db.siteInfo) db.siteInfo = {};
+                        if (!db.pinnedCards) db.pinnedCards = [];
                     }
                 }
             } catch (e) { console.error("讀取本機存檔失敗", e); }
@@ -944,6 +945,18 @@
         }
 
         // ================= 首頁內嵌單日記錄 =================
+        function togglePinInlineCard(pinKey, dateStr) {
+            if (!db.pinnedCards) db.pinnedCards = [];
+            const idx = db.pinnedCards.indexOf(pinKey);
+            if (idx === -1) {
+                db.pinnedCards.push(pinKey);
+            } else {
+                db.pinnedCards.splice(idx, 1);
+            }
+            saveToLocalStorage();
+            showInlineDayView(dateStr);
+        }
+
         function showInlineDayView(dateStr) {
             updateCalendarDateDisplay(dateStr);
             const inlineView = document.getElementById('inlineDayView');
@@ -970,7 +983,16 @@
                 cardQueue.push({ typeOrder: 2, type: 'order', item, idx });
             });
 
-            cardQueue.sort((a, b) => a.typeOrder - b.typeOrder);
+            if (!db.pinnedCards) db.pinnedCards = [];
+            cardQueue.sort((a, b) => {
+                const pMap = { log: 'inlineChkLog', order: 'inlineChkOrder' };
+                const kA = `${dateStr}__${pMap[a.type]}__${a.idx}`;
+                const kB = `${dateStr}__${pMap[b.type]}__${b.idx}`;
+                const pA = db.pinnedCards.includes(kA) ? 0 : 1;
+                const pB = db.pinnedCards.includes(kB) ? 0 : 1;
+                if (pA !== pB) return pA - pB;
+                return a.typeOrder - b.typeOrder;
+            });
 
             const prefixMap = { log: 'inlineChkLog', order: 'inlineChkOrder' };
             const baseTitleMap = { log: '工程記錄', order: '材料訂購' };
@@ -978,6 +1000,8 @@
             cardQueue.forEach(({ type, item, idx }) => {
                 hasAnyContent = true;
                 const prefix = prefixMap[type];
+                const pinKey = `${dateStr}__${prefix}__${idx}`;
+                const isPinned = db.pinnedCards.includes(pinKey);
                 let displayTitle = baseTitleMap[type];
                 if (item.siteId) {
                     const siteObj = db.sites.find(s => s.id === item.siteId);
@@ -988,7 +1012,10 @@
                 card.style.cursor = 'default';
                 card.innerHTML = `
                     <div class="view-box-title" style="justify-content:space-between;">
-                        <span>${displayTitle}</span>
+                        <span style="display:flex;align-items:center;gap:5px;">
+                            ${displayTitle}
+                            <button type="button" onclick="togglePinInlineCard('${pinKey}','${dateStr}')" title="${isPinned ? '取消置頂' : '置頂'}" style="background:transparent;border:none !important;padding:0 2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:18px;height:18px;"><svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="6" stroke="#e5e7eb" stroke-width="1.8" fill="${isPinned ? '#D9006C' : 'none'}"/></svg></button>
+                        </span>
                         <div style="display:flex;gap:4px;">
                             <button type="button" onclick="shareInlineCardToLine('${prefix}','${idx}','${dateStr}')" style="background:#06C755;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">LINE</button>
                             <button type="button" onclick="openInlineEdit('${prefix}','${idx}','${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">編輯</button>
