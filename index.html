@@ -2384,6 +2384,7 @@
                 document.getElementById('homeTitle').classList.add('hidden');
                 document.getElementById('appLogoIcon').classList.add('hidden');
                 document.getElementById('lawSearchBar').value = '';
+                _lawDefaultCollapsed = true;
                 _renderLawList();
                 document.getElementById('lawTocArea').scrollTop = 0;
             } else if (page === 'siteInfo') {
@@ -4128,7 +4129,7 @@
                     const searchText = (artLabel + ' ' + content).toLowerCase();
                     if (!tokens.every(t => searchText.includes(t))) return;
                     count++;
-                    _buildArticleRow(area, artId, content, true);
+                    _buildArticleRow(area, artId, content);
                 });
                 if (count === 0) {
                     area.innerHTML = '<p style="text-align:center; color:#888; padding:24px; font-size:13px;">無符合的條文。</p>';
@@ -4168,66 +4169,27 @@
                         area.appendChild(sec);
                         area.appendChild(artContainer);
                     } else if (entry[0] === 1 && currentArticles) {
-                        _buildArticleRow(currentArticles, entry[1], entry[2], false);
+                        _buildArticleRow(currentArticles, entry[1], entry[2]);
                     }
                 });
             }
         }
 
-        function _buildArticleRow(container, artId, content, showExpanded) {
+        function _buildArticleRow(container, artId, content) {
             const row = document.createElement('div');
-            row.style.cssText = 'border-bottom:1px solid #2a2a2a;';
+            row.style.cssText = 'border-bottom:1px solid #2a2a2a; padding:10px 14px;';
 
-            const header = document.createElement('div');
-            header.style.cssText = 'padding:11px 14px; cursor:pointer; display:flex; align-items:center; gap:10px;';
-
-            const arrow = document.createElement('span');
-            arrow.textContent = '▸';
-            arrow.style.cssText = 'color:#666; font-size:10px; flex-shrink:0; width:12px; text-align:center;';
-
-            const label = document.createElement('span');
-            label.style.cssText = 'font-size:14px; font-weight:600; color:#ffffff; flex-shrink:0;';
+            const label = document.createElement('div');
+            label.style.cssText = 'font-size:14px; font-weight:700; color:#ffffff; margin-bottom:6px;';
             label.textContent = '第 ' + artId + ' 條';
 
-            const preview = document.createElement('span');
-            preview.style.cssText = 'color:#777; font-size:12px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
-            const previewText = content.length > 40 ? content.substring(0, 40).replace(/\n/g, ' ') + '…' : content.replace(/\n/g, ' ');
-            preview.textContent = previewText;
-
-            header.appendChild(arrow);
-            header.appendChild(label);
-            header.appendChild(preview);
-
             const body = document.createElement('div');
-            body.style.cssText = 'display:none; padding:6px 14px 16px 36px; font-size:13px; color:#cccccc; line-height:1.9; white-space:pre-wrap; word-break:break-all; -webkit-user-select:text; user-select:text;';
+            body.style.cssText = 'font-size:13px; color:#cccccc; line-height:1.9; white-space:pre-wrap; word-break:break-all; -webkit-user-select:text; user-select:text;';
+            body.textContent = _formatLawContent(content);
 
-            let _formatted = false;
-            header.onclick = function() {
-                const isOpen = body.style.display !== 'none';
-                if (!isOpen && !_formatted) {
-                    body.textContent = _formatLawContent(content);
-                    _formatted = true;
-                }
-                body.style.display = isOpen ? 'none' : 'block';
-                arrow.textContent = isOpen ? '▸' : '▾';
-                arrow.style.color = isOpen ? '#666' : '#fff';
-                preview.style.display = isOpen ? '' : 'none';
-                row.style.backgroundColor = isOpen ? '' : '#1a1a1a';
-            };
-
-            row.appendChild(header);
+            row.appendChild(label);
             row.appendChild(body);
             container.appendChild(row);
-
-            if (showExpanded) {
-                body.textContent = _formatLawContent(content);
-                _formatted = true;
-                body.style.display = 'block';
-                arrow.textContent = '▾';
-                arrow.style.color = '#fff';
-                preview.style.display = 'none';
-                row.style.backgroundColor = '#1a1a1a';
-            }
         }
 
         function _escHtml(s) {
