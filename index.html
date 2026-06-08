@@ -96,7 +96,6 @@
             background: none;
         }
         .home-seg.active-seg {
-            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.65);
             background-color: rgba(255,255,255,0.07);
             margin: 8px 4px;
             height: 36px;
@@ -4024,6 +4023,44 @@
         let _lawExpandedArticle = null;
         let _lawDefaultCollapsed = false;
 
+        function _cnToNum(s) {
+            const m = {'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
+            if (s.includes('點')) {
+                const di = s.indexOf('點');
+                const intP = di > 0 ? _cnToNum(s.substring(0, di)) : 0;
+                let dec = '';
+                for (let i = di + 1; i < s.length; i++) { if (m[s[i]] !== undefined) dec += m[s[i]]; }
+                return dec ? parseFloat(intP + '.' + dec) : intP;
+            }
+            let r = 0;
+            if (s.includes('萬')) { const i = s.indexOf('萬'); r += (i > 0 ? _cnToNum(s.substring(0, i)) : 1) * 10000; s = s.substring(i + 1); }
+            if (s.includes('千')) { const i = s.indexOf('千'); r += (i > 0 ? _cnToNum(s.substring(0, i)) : 1) * 1000; s = s.substring(i + 1); }
+            if (s.includes('百')) { const i = s.indexOf('百'); const b = s.substring(0, i); r += (b && m[b] !== undefined ? m[b] : 1) * 100; s = s.substring(i + 1); }
+            if (s.includes('十')) { const i = s.indexOf('十'); const b = s.substring(0, i); r += (b && m[b] !== undefined ? m[b] : 1) * 10; s = s.substring(i + 1); }
+            for (let i = 0; i < s.length; i++) { if (m[s[i]] !== undefined) r += m[s[i]]; }
+            return r;
+        }
+
+        function _convertUnits(text) {
+            const unitMap = [
+                ['平方公尺', 'm²'], ['立方公尺', 'm³'], ['平方公分', 'cm²'],
+                ['公尺', 'm'], ['公分', 'cm'], ['毫米', 'mm'],
+                ['公斤', 'kg'], ['公升', 'L'], ['公里', 'km']
+            ];
+            const cnNum = '[零一二三四五六七八九十百千萬點]+';
+            for (const [cn, abbr] of unitMap) {
+                const re = new RegExp('(' + cnNum + ')' + cn, 'g');
+                text = text.replace(re, function(_, numStr) {
+                    try {
+                        const n = _cnToNum(numStr);
+                        const formatted = Number.isInteger(n) ? String(n) : String(parseFloat(n.toFixed(4)));
+                        return formatted + abbr;
+                    } catch(e) { return _; }
+                });
+            }
+            return text;
+        }
+
         function _formatLawContent(raw) {
             const listRe = /^[一二三四五六七八九十]+、/;
             const subRe = /^（[一二三四五六七八九十]+）/;
@@ -4046,7 +4083,7 @@
                 else merged[merged.length - 1] += '\n' + parts[i];
             }
             // Step 2: 段落內合併 PDF 斷行，保留列舉項目換行
-            return merged.map(para => {
+            const formatted = merged.map(para => {
                 const lines = para.split('\n');
                 if (lines.length <= 1) return para.trim();
                 let result = lines[0].trim();
@@ -4058,6 +4095,7 @@
                 }
                 return result;
             }).join('\n\n');
+            return _convertUnits(formatted);
         }
 
         function _resetLawView() {
