@@ -147,13 +147,13 @@
     <header>
         <div id="headerLeftZone" style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;">
             <img id="appLogoIcon" src="./favicon.png" alt="" style="width:28px; height:28px; border-radius:7px; flex-shrink:0; object-fit:cover;">
-            <button id="btnBack" class="hidden btn-blue">←</button>
-            <button id="btnHomeTop" class="hidden btn-slate" onclick="navigateTo('sites')">⌂ 首頁</button>
+            <button id="btnBack" class="hidden btn-blue" style="background-color:#000000;">←</button>
+            <button id="btnHomeTop" class="hidden btn-slate" onclick="navigateTo('sites')" style="background-color:#000000;">⌂ 首頁</button>
             <span id="homeTitle" style="font-size:14px; font-weight:bold; color:#ffffff; white-space:nowrap;">工程管理</span>
         </div>
         <h1 id="appTitle" class="header-title"></h1>
         <div style="display: flex; gap: 4px; flex-shrink: 0;">
-            <button id="btnHomeManage" onclick="navigateTo('manage')" class="btn-slate" style="position:relative;">設定<span id="manageRedDot" style="display:none; position:absolute; top:4px; right:4px; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px #000;"></span></button>
+            <button id="btnHomeManage" onclick="navigateTo('manage')" class="btn-slate" style="position:relative; background-color:#000000;">設定<span id="manageRedDot" style="display:none; position:absolute; top:4px; right:4px; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px #000;"></span></button>
         </div>
     </header>
 
@@ -369,7 +369,7 @@
 
         <section id="pageManage" class="page" style="overflow-y: auto;">
             <div class="card" style="background-color: #1e1e1e; border: 1px solid #555555;">
-                <h3 style="font-size: 14px; margin: 0; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #0f172a;">系統</h3>
+                <h3 style="font-size: 14px; margin: 0; border-bottom: 1px solid #444444; padding-bottom: 4px; color: #ffffff;">系統</h3>
                 <button onclick="document.getElementById('importFile').click()" class="btn-amber" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px;">📥 匯入系統備份檔(JSON)</button>
                 <button onclick="exportJSON()" class="btn-slate" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px;">📤 匯出系統備份</button>
                 <div id="backupWarningBanner" style="display:none; background:#fff7ed; border:1px solid #fb923c; border-radius:8px; padding:8px 12px; font-size:12px; color:#9a3412; font-weight:600;">⚠️ <span id="backupWarningText"></span></div>
@@ -391,8 +391,8 @@
                 <div id="siteInfoList" style="display: flex; flex-direction: column; gap: 4px;"></div>
             </div>
             <div class="card" style="background-color: #1e1e1e; border: 1px solid #555555; margin-bottom: 40px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #cbd5e1; padding-bottom:4px; margin-bottom:8px;">
-                    <h3 style="font-size: 14px; margin: 0; color: #0f172a;">Apps Script 連動網址設定</h3>
+                <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px; margin-bottom:8px;">
+                    <h3 style="font-size: 14px; margin: 0; color: #ffffff;">Apps Script 連動網址設定</h3>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button id="btnScriptUrlEdit" onclick="enterScriptUrlEdit()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">編輯</button>
                         <button id="btnScriptUrlSave" onclick="exitScriptUrlEdit()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">儲存</button>
@@ -470,6 +470,18 @@
     <div id="catPickBanner" style="display:none; position:fixed; top:0; left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:416px; z-index:350; background:#1f2937; color:white; padding:10px 16px; font-size:14px; font-weight:bold; text-align:center; border-radius:0 0 12px 12px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
         請點選要新增進的分類 ↓
         <button onclick="cancelCatPick()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; color:white; font-size:16px; font-weight:bold; padding:0 4px; border-radius:4px;">✕</button>
+    </div>
+
+    <!-- 新增品項名稱輸入框 -->
+    <div id="addItemNameModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center;">
+        <div style="background:#1e1e1e; border-radius:14px; padding:20px 16px 16px; width:calc(100% - 64px); max-width:320px; display:flex; flex-direction:column; gap:14px;">
+            <div style="font-size:15px; font-weight:bold; color:#ffffff; text-align:center;">輸入新增品項名稱</div>
+            <input type="text" id="addItemNameInput" placeholder="品項名稱..." onkeydown="if(event.key==='Enter'){event.preventDefault();confirmAddItemName();}" style="width:100%; border:1px solid #555555; border-radius:8px; padding:10px 12px; font-size:14px; background-color:#2a2a2a; color:#ffffff; outline:none; -webkit-user-select:text; user-select:text;">
+            <div style="display:flex; gap:8px;">
+                <button onclick="cancelAddItemName()" style="flex:1; height:40px; background:#D9006C; color:white; border-radius:8px; font-size:14px; font-weight:bold;">取消</button>
+                <button onclick="confirmAddItemName()" style="flex:1; height:40px; background:#000000; color:white; border-radius:8px; font-size:14px; font-weight:bold;">確定</button>
+            </div>
+        </div>
     </div>
 
     <!-- 工程記錄 新增彈窗 -->
@@ -2405,7 +2417,7 @@
         }
 
         function _isModalOpen() {
-            return ['punchModal','addLogModal','editLogModal','editOrderModal','siteInfoModal'].some(
+            return ['punchModal','addLogModal','editLogModal','editOrderModal','siteInfoModal','confirmAddModal','addItemNameModal'].some(
                 id => { const el = document.getElementById(id); return el && el.style.display === 'flex'; }
             );
         }
@@ -2912,6 +2924,26 @@
         let _catPickMode = false;
 
         function quickAddFromSearch() {
+            // 品項選擇模式：勾選一個品項時，跳出輸入框預填該品項名稱
+            if (_catPageMode === 'items' && !_itemInlineEditMode) {
+                const checkedItems = [];
+                const items = db.items.filter(i => i.catId === currentState.catId);
+                items.forEach(item => {
+                    const chk = document.getElementById('chk-' + item.id);
+                    if (chk && chk.checked) checkedItems.push(item);
+                });
+                if (checkedItems.length === 1) {
+                    document.getElementById('addItemNameInput').value = checkedItems[0].name;
+                    document.getElementById('addItemNameModal').style.display = 'flex';
+                    setTimeout(() => {
+                        const inp = document.getElementById('addItemNameInput');
+                        inp.focus();
+                        inp.select();
+                    }, 100);
+                    return;
+                }
+            }
+
             const name = document.getElementById('globalSearchBar').value.trim();
             if (!name) return alert('請先在搜尋框輸入品項名稱！');
             const dup = db.items.find(i => i.name === name);
@@ -2927,6 +2959,28 @@
             _catPageMode = 'catPick';
             currentState.catId = null;
             renderCategories();
+        }
+
+        function confirmAddItemName() {
+            const name = document.getElementById('addItemNameInput').value.trim();
+            if (!name) return alert('請輸入品項名稱！');
+            const dup = db.items.find(i => i.name === name);
+            if (dup) {
+                const dupCat = db.categories.find(c => c.id === dup.catId);
+                const dupCatName = dupCat ? dupCat.name : '未知分類';
+                return alert(`品項「${name}」已存在於「${dupCatName}」分類，請使用不同名稱。`);
+            }
+            document.getElementById('addItemNameModal').style.display = 'none';
+            _catPickPendingName = name;
+            _catPickMode = true;
+            document.getElementById('catPickBanner').style.display = '';
+            _catPageMode = 'catPick';
+            currentState.catId = null;
+            renderCategories();
+        }
+
+        function cancelAddItemName() {
+            document.getElementById('addItemNameModal').style.display = 'none';
         }
 
         function cancelCatPick() {
