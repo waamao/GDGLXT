@@ -35,14 +35,9 @@
         #pageSites.active { display: flex; }
         
         .card { background-color: #1e1e1e; padding: 14px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #444444; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
-        .alert-box { padding: 12px; border-radius: 12px; font-size: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); flex-shrink: 0; }
-        .alert-blue { background-color: #2a2a2a; border: 1px solid #555555; color: #ffffff; font-weight: 600; }
-        
         input[type="text"], input[type="number"], input[type="date"], input[type="month"], select, textarea { width: 100%; border: 1px solid #555555; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; background-color: #1e1e1e; color: #ffffff; -webkit-user-select: text; user-select: text; }
         input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus { border-color: #333333; }
         .flex-row { display: flex; gap: 8px; width: 100%; align-items: center; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .flex-col { display: flex; flex-direction: column; gap: 8px; }
         
         .list-container { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
         .scroll-list-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 70px; }
@@ -67,7 +62,7 @@
         .manage-btns .btn-rename { background-color: #111111; color: #ffffff; }
         .manage-btns .btn-del { background-color: #D9006C; color: #ffffff; }
         
-        .bottom-btn-group, .home-fixed-bottom { position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 448px; display: flex; flex-direction: column; z-index: 100; background-color: #111111; border-top: 1px solid #333333; }
+        .bottom-btn-group { position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 448px; display: flex; flex-direction: column; z-index: 100; background-color: #111111; border-top: 1px solid #333333; }
         .bottom-btn-group-inner { display: flex; width: 100%; }
         button.large-bottom-btn { height: 52px !important; font-size: 15px !important; font-weight: bold !important; border-radius: 0 !important; box-shadow: none; flex: 1; display: flex; align-items: center; justify-content: center; padding: 0; border: none !important; background-color: transparent; color: #ffffff; }
 
@@ -110,7 +105,6 @@
         .log-entry-item { padding: 10px 0; border-bottom: 1px solid #444444; position: relative; display: flex; flex-direction: column; gap: 8px; background: none; }
         .log-entry-item:last-child { border-bottom: none; padding-bottom: 4px; }
         .log-page-entry-item { padding: 12px; border: none; border-radius: 8px; background-color: #1e1e1e; position: relative; display: flex; flex-direction: column; gap: 8px; color: #ffffff; }
-        .log-entry-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .btn-delete-log-item { background: #D9006C; color: #ffffff; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 6px; position: absolute; top: 4px; right: 4px; }
 
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -126,7 +120,6 @@
         .day-dots { display: flex; gap: 2px; justify-content: flex-start; overflow: hidden; position: absolute; bottom: 2px; left: 2px; right: 2px; }
         .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
         .dot-log { background-color: #ef4444; }
-        .dot-notes { background-color: #aaaaaa; }
         .dot-punch { background-color: #f5c518; }
         .dot-order { background-color: #7ec8e3; }
         .dot-empty { background-color: transparent; }
@@ -143,8 +136,7 @@
         /* btn-red utility (used inline on delete buttons) */
         .btn-red { background-color: #D9006C !important; color: #ffffff !important; }
 
-        #listCategories .item-label span,
-        #manageListItems .manage-text {
+        #listCategories .item-label span {
             -webkit-user-select: text;
             user-select: text;
             -webkit-touch-callout: default;
@@ -196,31 +188,10 @@
                 </div>
 
                 <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;">
-                    <span id="inlineViewingDateText" class="hidden"></span>
                     <div id="inlineDayContent" style="max-height: calc(3 * 110px); overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-bottom: 63px;"></div>
                 </div>
             </div>
 
-        </section>
-
-        <section id="pageLog" class="page">
-            <div class="card" style="flex-shrink:0;">
-                <label style="font-size: 13px; font-weight: bold; color: #dddddd;">選擇日期：</label>
-                <input type="date" id="inputLogDate" style="width: 100%; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none;">
-            </div>
-            <div class="card" style="flex-shrink:0;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                    <label style="font-size: 13px; font-weight: bold; color: #dddddd;">選擇案場：</label>
-                    <button id="btnSaveLog" onclick="saveLogOrNotes()" class="btn-green" style="padding:6px 12px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0;">儲存</button>
-                </div>
-                <div id="logSiteGroup" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto;"></div>
-            </div>
-            <div class="scroll-list-body" style="flex: 1;">
-                <div id="logSection">
-                    <div id="logItemsContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
-                    <button onclick="addLogItemRow()" class="btn-slate" style="width: 100%; padding: 10px; margin-top: 4px;">➕新增項目</button>
-                </div>
-            </div>
         </section>
 
         <section id="pageCategories" class="page">
@@ -1010,20 +981,20 @@
         }
 
         // ================= 首頁記錄卡置頂 =================
-        function _getPinKey(type, siteId) {
-            return type + ':' + (siteId || '');
+        function _getPinKey(type, dateStr, idx) {
+            return type + ':' + dateStr + ':' + idx;
         }
 
-        function _isCardPinned(type, siteId) {
+        function _isCardPinned(type, dateStr, idx) {
             if (!db.pinnedCards) db.pinnedCards = [];
-            return db.pinnedCards.includes(_getPinKey(type, siteId));
+            return db.pinnedCards.includes(_getPinKey(type, dateStr, idx));
         }
 
-        function toggleCardPin(type, siteId) {
+        function toggleCardPin(type, dateStr, idx) {
             if (!db.pinnedCards) db.pinnedCards = [];
-            const key = _getPinKey(type, siteId);
-            const idx = db.pinnedCards.indexOf(key);
-            if (idx >= 0) db.pinnedCards.splice(idx, 1);
+            const key = _getPinKey(type, dateStr, idx);
+            const i = db.pinnedCards.indexOf(key);
+            if (i >= 0) db.pinnedCards.splice(i, 1);
             else db.pinnedCards.push(key);
             saveToLocalStorage();
             if (selectedHomeDateStr) showInlineDayView(selectedHomeDateStr);
@@ -1034,9 +1005,7 @@
             updateCalendarDateDisplay(dateStr);
             const inlineView = document.getElementById('inlineDayView');
             const inlineContent = document.getElementById('inlineDayContent');
-            const inlineDateText = document.getElementById('inlineViewingDateText');
 
-            inlineDateText.innerText = dateStr;
             inlineContent.innerHTML = '';
 
             const rec = db.dailyRecords[dateStr] || {};
@@ -1079,8 +1048,8 @@
             }
 
             cardQueue.sort((a, b) => {
-                const aPinned = _isCardPinned(a.type, a.item.siteId) ? 0 : 1;
-                const bPinned = _isCardPinned(b.type, b.item.siteId) ? 0 : 1;
+                const aPinned = _isCardPinned(a.type, dateStr, a.idx) ? 0 : 1;
+                const bPinned = _isCardPinned(b.type, dateStr, b.idx) ? 0 : 1;
                 if (aPinned !== bPinned) return aPinned - bPinned;
                 return a.typeOrder - b.typeOrder;
             });
@@ -1090,8 +1059,8 @@
 
             cardQueue.forEach(({ type, item, idx }) => {
                 hasAnyContent = true;
-                const pinned = _isCardPinned(type, item.siteId);
-                const pinBtnHtml = `<button type="button" onclick="toggleCardPin('${type}','${item.siteId||''}')" title="${pinned?'取消置頂':'置頂'}" style="background:none;border:none;padding:0 2px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:20px;height:20px;"><svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" fill="none" stroke="${pinned?'#ef4444':'#666666'}" stroke-width="1.5"/>${pinned ? '<circle cx="8" cy="8" r="4" fill="#ef4444"/>' : ''}</svg></button>`;
+                const pinned = _isCardPinned(type, dateStr, idx);
+                const pinBtnHtml = `<button type="button" onclick="toggleCardPin('${type}','${dateStr}',${idx})" title="${pinned?'取消置頂':'置頂'}" style="background:none;border:none;padding:0 2px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:20px;height:20px;"><svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" fill="none" stroke="${pinned?'#ef4444':'#666666'}" stroke-width="1.5"/>${pinned ? '<circle cx="8" cy="8" r="4" fill="#ef4444"/>' : ''}</svg></button>`;
                 const card = document.createElement('div');
                 card.className = 'view-box-card';
                 card.style.cursor = 'default';
@@ -1496,48 +1465,6 @@
             }
             _afterShowCheckId = 'inlineChkPunch';
             navigateTo('sites');
-        }
-
-        // ================= 工程記錄模組 =================
-        function addLogItemRow(itemValue = '', floorValue = '', peopleValue = '', contractorValue = '') {
-            const container = document.getElementById('logItemsContainer');
-            const div = document.createElement('div');
-            div.className = 'log-page-entry-item';
-            div.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                    <label style="font-size:13px; font-weight:bold; color:#dddddd; margin:0; line-height:2;" class="log-item-label">輸入事項：</label>
-                    <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeLogItemRow(this)">移除</button>
-                </div>
-                <div>
-                    <textarea class="log-item-input" rows="2" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-                    <div>
-                        <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: #dddddd;">樓層/區域：</label>
-                        <input type="text" class="log-floor-input" value="${floorValue}" placeholder="如：1F柱牆">
-                    </div>
-                    <div>
-                        <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: #dddddd;">施工廠商：</label>
-                        <input type="text" class="log-contractor-input" value="${contractorValue}" placeholder="廠商名稱" style="-webkit-user-select:text;user-select:text;">
-                    </div>
-                    <div>
-                        <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: #dddddd;">人數：</label>
-                        <input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="${peopleValue}">
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
-        }
-
-        function removeLogItemRow(button) {
-            const container = document.getElementById('logItemsContainer');
-            if (container.children.length <= 1) return alert('請至少保留一個項目！');
-            button.closest('.log-page-entry-item').remove();
-        }
-
-        function clearLogInputs() {
-            document.getElementById('logItemsContainer').innerHTML = '';
-            addLogItemRow();
         }
 
         // ================= 案場資訊模組 =================
@@ -2234,57 +2161,6 @@
             selectSiteInfoSite(newSite.id);
         }
 
-        // ================= 工程記錄 =================
-        function getLogRawText() {
-            const container = document.getElementById('logItemsContainer');
-            const items = container.getElementsByClassName('log-page-entry-item');
-            let projectLogText = '';
-            let hasContent = false;
-            for (let i = 0; i < items.length; i++) {
-                const itemVal = items[i].querySelector('.log-item-input').value.trim();
-                const floorVal = items[i].querySelector('.log-floor-input').value.trim();
-                const contractorEl = items[i].querySelector('.log-contractor-input');
-                const contractorVal = contractorEl ? contractorEl.value.trim() : '';
-                const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal || contractorVal) {
-                    hasContent = true;
-                    let line = `● ${itemVal || '無'}`;
-                    if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) {
-                        line += `\n↳ 人數：${peopleVal} 人`;
-                        if (contractorVal) line += `（${contractorVal}）`;
-                    } else if (contractorVal) {
-                        line += `\n↳ 人數：（${contractorVal}）`;
-                    }
-                    projectLogText += line + '\n';
-                }
-            }
-            if (!hasContent) return null;
-            return `案場名稱：${currentState.siteName}\n${projectLogText}`;
-        }
-
-        function saveLogOrNotes() {
-            if (!currentState.siteId) return alert('⚠️ 請先在上方選擇案場！');
-            const dateStr = document.getElementById('inputLogDate').value || getTargetDateStr();
-            const logBody = getLogRawText();
-            if (!logBody) return alert('請至少填寫一項項目內容！');
-            const logText = `${dateStr}\n${logBody}`;
-            if (!db.dailyRecords[dateStr]) db.dailyRecords[dateStr] = {};
-            if (!Array.isArray(db.dailyRecords[dateStr].log)) {
-                db.dailyRecords[dateStr].log = db.dailyRecords[dateStr].log ? [db.dailyRecords[dateStr].log] : [];
-            }
-            db.dailyRecords[dateStr].log.push({ siteId: currentState.siteId, text: logText });
-            const newIdx = db.dailyRecords[dateStr].log.length - 1;
-            saveToLocalStorage();
-            showToast('儲存成功');
-            const [y, m] = dateStr.split('-').map(Number);
-            homeCalYear = y;
-            homeCalMonth = m - 1;
-            selectedHomeDateStr = dateStr;
-            _afterShowCheckId = `inlineChkLog_${newIdx}`;
-            navigateTo('sites');
-        }
-
         // ================= 頁面切換 =================
         function navigateTo(page) {
             const prevPage = currentState.page;
@@ -2318,16 +2194,6 @@
                     });
                     showInlineDayView(selectedHomeDateStr);
                 }
-            } else if (page === 'log') {
-                document.getElementById('pageLog').classList.add('active');
-                document.getElementById('appTitle').innerText = '';
-                document.getElementById('homeTitle').classList.add('hidden');
-                document.getElementById('appLogoIcon').classList.add('hidden');
-                document.getElementById('inputLogDate').value = selectedHomeDateStr || getTargetDateStr();
-                renderPageSiteSelector('logSiteGroup');
-                clearLogInputs();
-                document.querySelector('#pageLog .scroll-list-body')?.scrollTo(0, 0);
-                document.getElementById('logItemsContainer')?.scrollTo(0, 0);
             } else if (page === 'categories') {
                 document.getElementById('pageCategories').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
@@ -2552,7 +2418,7 @@
             if (_justBlurredKeyboard) { _blurActiveInput(); return; }
             document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
             const p = currentState.page;
-            if (p === 'manage' || p === 'log' || p === 'punch' || p === 'lawref') navigateTo('sites');
+            if (p === 'manage' || p === 'lawref') navigateTo('sites');
             else if (p === 'categories') {
                 if (_catPageMode === 'catPick') {
                     cancelCatPick();
@@ -2605,7 +2471,7 @@
                 if (dx < THRESHOLD || dy > MAX_Y) return;
                 // 觸發返回
                 const p = currentState.page;
-                if (p === 'manage' || p === 'log' || p === 'punch' || p === 'lawref') navigateTo('sites');
+                if (p === 'manage' || p === 'lawref') navigateTo('sites');
                 else if (p === 'categories') {
                     if (_catPageMode === 'catPick') cancelCatPick();
                     else if (_catPageMode === 'items') backToCategories();
@@ -2808,17 +2674,6 @@
                     div.className = "list-item";
                     div.style.cursor = "pointer";
                     div.onclick = function() {
-                        if (_catPickMode) {
-                            // 分類選擇模式：選完後顯示確認框
-                            const name = _catPickPendingName;
-                            cancelCatPick();
-                            _confirmAddName = name;
-                            _confirmAddCatId = cat.id;
-                            _confirmAddCatName = cat.name;
-                            document.getElementById('confirmAddMsg').innerText = '是否新增「' + name + '」至「' + cat.name + '」分類？';
-                            document.getElementById('confirmAddModal').style.display = 'flex';
-                            return;
-                        }
                         currentState.catId = cat.id;
                         currentState.catName = cat.name;
                         _catPageMode = 'items';
@@ -2921,7 +2776,6 @@
         }
 
         function backToCategories() {
-            if (_catPickMode) cancelCatPick();
             _catPageMode = 'categories';
             _itemInlineEditMode = false;
             document.getElementById('itemEditBtnGroup').style.display = 'none';
@@ -2953,7 +2807,6 @@
         }
 
         let _catPickPendingName = '';
-        let _catPickMode = false;
 
         function quickAddFromSearch() {
             // 品項選擇模式：勾選一個品項時，跳出輸入框預填該品項名稱
@@ -2986,7 +2839,6 @@
             }
             // 無論在分類頁或品項頁，一律切到分類清單讓使用者點選
             _catPickPendingName = name;
-            _catPickMode = true;
             document.getElementById('catPickBanner').style.display = '';
             _catPageMode = 'catPick';
             currentState.catId = null;
@@ -3004,7 +2856,6 @@
             }
             document.getElementById('addItemNameModal').style.display = 'none';
             _catPickPendingName = name;
-            _catPickMode = true;
             document.getElementById('catPickBanner').style.display = '';
             _catPageMode = 'catPick';
             currentState.catId = null;
@@ -3016,7 +2867,6 @@
         }
 
         function cancelCatPick() {
-            _catPickMode = false;
             _catPickPendingName = '';
             document.getElementById('catPickBanner').style.display = 'none';
             if (_catPageMode === 'catPick') {
@@ -4229,7 +4079,7 @@
                 }
             } catch(e) {}
 
-            ['inputPunchDate', 'inputLogDate', 'inputOrderDate', 'addLogDate', 'editLogDate'].forEach(id => {
+            ['inputPunchDate', 'inputOrderDate', 'addLogDate', 'editLogDate'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.addEventListener('change', function() {
