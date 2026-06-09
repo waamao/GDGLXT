@@ -175,12 +175,18 @@
                 
                 <div class="card" style="padding: 8px; flex-shrink: 0; background-color: #1e1e1e; border-color: #444444;">
                     <div class="calendar-header">
-                        <button onclick="changeHomeMonth(-1)" style="background:none; color:#fff; font-size:14px; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">←</button>
-                        <div style="display:flex; align-items:center; gap:0; background:rgba(255,255,255,0.08); border-radius:33px; padding:3px 6px; justify-content:center;">
-                            <button onclick="goToToday()" style="background:none; color:#fff; padding:4px 8px; font-size:12px; font-weight:bold; border-radius:18px; white-space:nowrap;">今天</button>
-                            <span id="homeCalendarDateDisplay" onclick="openNativeDatePicker()" style="font-size:12px; color:#ffffff; font-weight:500; padding:4px 8px; border-radius:18px; white-space:nowrap; cursor:pointer;"></span>
+                        <button onclick="changeHomeMonth(-1)" class="btn-slate" style="padding: 0; font-size:12px; width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">←</button>
+                        <div style="display:flex; flex-direction:row; align-items:center; gap:6px; flex:1; justify-content:center; position:relative;">
+                            <div id="calendarCapsule" style="display:inline-flex; align-items:center; gap:0; background-color:#111111; border-radius:18px; cursor:pointer; position:relative; overflow:hidden; user-select:none; -webkit-user-select:none;">
+                                <span id="btnTodaySpan" onclick="goToToday();" style="padding:6px 12px; font-size:12px; font-weight:bold; color:#ffffff; white-space:nowrap; position:relative; z-index:4; pointer-events:auto; cursor:pointer;">今天</span>
+                                <span style="color:#555555; font-size:11px; position:relative; z-index:3; pointer-events:none;">|</span>
+                                <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; z-index:3;">
+                                    <input type="date" id="homeCalendarDateInput" style="position:absolute; opacity:0; width:100%; height:100%; top:0; left:0; cursor:pointer; z-index:2;" onchange="onCalendarDateInputChange(this.value)">
+                                    <span id="homeCalendarDateDisplay" style="padding:6px 12px; font-size:12px; color:#ffffff; font-weight:500; white-space:nowrap; position:relative; z-index:3; pointer-events:none;"></span>
+                                </label>
+                            </div>
                         </div>
-                        <button onclick="changeHomeMonth(1)" style="background:none; color:#fff; font-size:14px; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">→</button>
+                        <button onclick="changeHomeMonth(1)" class="btn-slate" style="padding: 0; font-size:12px; width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">→</button>
                     </div>
                     <div class="calendar-grid" id="homeCalendarGrid"></div>
                 </div>
@@ -519,7 +525,7 @@
                     <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">選擇案場：</label>
                     <div id="addLogSiteGroup" style="display:flex; flex-direction:column; gap:6px; max-height:100px; overflow-y:auto;"></div>
                 </div>
-                <div style="border-top:1px solid #444444; margin:0 -16px; padding:0;"></div>
+                <hr style="border:none; border-top:1px solid #444444; margin:0;">
                 <div id="addLogItemsWrap">
                     <div id="addLogItemsContainer" style="display:flex; flex-direction:column; max-height:calc(2 * 130px + 2 * 12px); overflow-y:auto;"></div>
                     <button onclick="addNewLogItemRow('','','',true)" class="btn-slate" style="width:100%; padding:10px; margin-top:8px;">➕新增項目</button>
@@ -546,7 +552,7 @@
                     <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">選擇案場：</label>
                     <div id="editLogSiteGroup" style="display:flex; flex-direction:column; gap:6px; max-height:100px; overflow-y:auto;"></div>
                 </div>
-                <div style="border-top:1px solid #444444; margin:0 -16px; padding:0;"></div>
+                <hr style="border:none; border-top:1px solid #444444; margin:0;">
                 <div id="editLogItemsWrap">
                     <div id="editLogItemsContainer" style="display:flex; flex-direction:column; max-height:calc(2 * 130px + 2 * 12px); overflow-y:auto;"></div>
                     <button onclick="addEditLogItemRow('','','',true)" class="btn-slate" style="width:100%; padding:10px; margin-top:8px;">➕新增項目</button>
@@ -625,7 +631,7 @@
             config: { scriptUrl: '' },
             siteInfo: {},
             dailyRecords: {},
-            pinnedCards: {}
+            pinnedCards: []
         };
         let currentState = { page: 'sites', siteId: null, siteName: '', catId: null, catName: '' };
         let cart = {};
@@ -645,7 +651,7 @@
                         if (!db.punches) db.punches = {};
                         if (!db.dailyRecords) db.dailyRecords = {};
                         if (!db.siteInfo) db.siteInfo = {};
-                        if (!db.pinnedCards) db.pinnedCards = {};
+                        if (!db.pinnedCards) db.pinnedCards = [];
                     }
                 }
             } catch (e) { console.error("讀取本機存檔失敗", e); }
@@ -974,12 +980,53 @@
             showInlineDayView(todayStr);
         }
 
+        function onCalendarDateInputChange(val) {
+            if (!val) return;
+            const [y, m, dayNum] = val.split('-').map(Number);
+            homeCalYear = y;
+            homeCalMonth = m - 1;
+            initHomeCalendar();
+            const dateStr = val;
+            document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.calendar-day:not(.empty)').forEach(el => {
+                const numEl = el.querySelector('.day-num');
+                if (numEl && parseInt(numEl.innerText) === dayNum) el.classList.add('selected');
+            });
+            selectedHomeDateStr = dateStr;
+            updateCalendarDateDisplay(dateStr);
+            showInlineDayView(dateStr);
+        }
+
         function updateCalendarDateDisplay(dateStr) {
             const el = document.getElementById('homeCalendarDateDisplay');
             if (!el || !dateStr) return;
             const d = new Date(dateStr + 'T00:00:00');
-            const weekdays = ['日','一','二','三','四','五','六'];
-            el.innerText = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}(${weekdays[d.getDay()]})`;
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const wd = weekdays[d.getDay()];
+            el.innerText = `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月${String(d.getDate()).padStart(2,'0')}日 (${wd})`;
+            // Sync the hidden date input
+            const inp = document.getElementById('homeCalendarDateInput');
+            if (inp) inp.value = dateStr;
+        }
+
+        // ================= 首頁記錄卡置頂 =================
+        function _getPinKey(type, siteId) {
+            return type + ':' + (siteId || '');
+        }
+
+        function _isCardPinned(type, siteId) {
+            if (!db.pinnedCards) db.pinnedCards = [];
+            return db.pinnedCards.includes(_getPinKey(type, siteId));
+        }
+
+        function toggleCardPin(type, siteId) {
+            if (!db.pinnedCards) db.pinnedCards = [];
+            const key = _getPinKey(type, siteId);
+            const idx = db.pinnedCards.indexOf(key);
+            if (idx >= 0) db.pinnedCards.splice(idx, 1);
+            else db.pinnedCards.push(key);
+            saveToLocalStorage();
+            if (selectedHomeDateStr) showInlineDayView(selectedHomeDateStr);
         }
 
         // ================= 首頁內嵌單日記錄 =================
@@ -1009,48 +1056,7 @@
                 cardQueue.push({ typeOrder: 2, type: 'order', item, idx });
             });
 
-            cardQueue.sort((a, b) => {
-                const aKey = `${dateStr}_${a.type}_${a.idx}`;
-                const bKey = `${dateStr}_${b.type}_${b.idx}`;
-                const aPinned = db.pinnedCards[aKey] ? 1 : 0;
-                const bPinned = db.pinnedCards[bKey] ? 1 : 0;
-                if (aPinned !== bPinned) return bPinned - aPinned;
-                return a.typeOrder - b.typeOrder;
-            });
-
-            const prefixMap = { log: 'inlineChkLog', order: 'inlineChkOrder' };
-            const baseTitleMap = { log: '工程記錄', order: '材料訂購' };
-
-            cardQueue.forEach(({ type, item, idx }) => {
-                hasAnyContent = true;
-                const prefix = prefixMap[type];
-                let displayTitle = baseTitleMap[type];
-                if (item.siteId) {
-                    const siteObj = db.sites.find(s => s.id === item.siteId);
-                    if (siteObj && siteObj.name) displayTitle += `・${siteObj.name}`;
-                }
-                const pinKey = `${dateStr}_${type}_${idx}`;
-                const isPinned = !!db.pinnedCards[pinKey];
-                const card = document.createElement('div');
-                card.className = 'view-box-card';
-                card.style.cursor = 'default';
-                card.innerHTML = `
-                    <div class="view-box-title" style="justify-content:space-between;">
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <span>${displayTitle}</span>
-                            <span onclick="togglePinCard('${pinKey}','${dateStr}')" style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; border:2px solid #888; flex-shrink:0;"><span style="width:8px; height:8px; border-radius:50%; background:${isPinned ? '#ef4444' : 'transparent'};"></span></span>
-                        </div>
-                        <div style="display:flex;gap:4px;">
-                            <button type="button" onclick="shareInlineCardToLine('${prefix}','${idx}','${dateStr}')" style="background:#06C755;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">LINE</button>
-                            <button type="button" onclick="openInlineEdit('${prefix}','${idx}','${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">編輯</button>
-                        </div>
-                    </div>
-                    <div class="view-box-content" id="${prefix}_content_${idx}">${item.text}</div>
-                `;
-                inlineContent.appendChild(card);
-            });
-
-            // 出勤卡
+            // 出勤卡資料收集
             let punchLines = [];
             let punchNote = '';
             if (db.punches) {
@@ -1068,23 +1074,65 @@
                 }
             }
             if (punchLines.length) {
+                const punchDisplayText = `${dateStr} 出勤：${punchLines.join('、')}${punchNote ? `（${punchNote}）` : ''}`;
+                cardQueue.push({ typeOrder: 3, type: 'punch', item: { siteId: '', text: punchDisplayText }, idx: 0 });
+            }
+
+            cardQueue.sort((a, b) => {
+                const aPinned = _isCardPinned(a.type, a.item.siteId) ? 0 : 1;
+                const bPinned = _isCardPinned(b.type, b.item.siteId) ? 0 : 1;
+                if (aPinned !== bPinned) return aPinned - bPinned;
+                return a.typeOrder - b.typeOrder;
+            });
+
+            const prefixMap = { log: 'inlineChkLog', order: 'inlineChkOrder' };
+            const baseTitleMap = { log: '工程記錄', order: '材料訂購' };
+
+            cardQueue.forEach(({ type, item, idx }) => {
                 hasAnyContent = true;
+                const pinned = _isCardPinned(type, item.siteId);
+                const pinBtnHtml = `<button type="button" onclick="toggleCardPin('${type}','${item.siteId||''}')" title="${pinned?'取消置頂':'置頂'}" style="background:none;border:none;padding:0 2px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:20px;height:20px;"><svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" fill="none" stroke="${pinned?'#ef4444':'#666666'}" stroke-width="1.5"/>${pinned ? '<circle cx="8" cy="8" r="4" fill="#ef4444"/>' : ''}</svg></button>`;
                 const card = document.createElement('div');
                 card.className = 'view-box-card';
                 card.style.cursor = 'default';
-                const punchDisplayText = `${dateStr} 出勤：${punchLines.join('、')}${punchNote ? `（${punchNote}）` : ''}`;
-                card.innerHTML = `
-                    <div class="view-box-title" style="justify-content:space-between;">
-                        <span>出勤</span>
-                        <div style="display:flex;gap:4px;">
-                            <button type="button" onclick="shareInlinePunchToLine('${dateStr}')" style="background:#06C755;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">LINE</button>
-                            <button type="button" onclick="openInlineEditPunch('${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">編輯</button>
+
+                if (type === 'punch') {
+                    card.innerHTML = `
+                        <div class="view-box-title" style="justify-content:space-between;">
+                            <div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;">
+                                <span>出勤</span>
+                                ${pinBtnHtml}
+                            </div>
+                            <div style="display:flex;gap:4px;">
+                                <button type="button" onclick="shareInlinePunchToLine('${dateStr}')" style="background:#06C755;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">LINE</button>
+                                <button type="button" onclick="openInlineEditPunch('${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">編輯</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="view-box-content" id="inlineChkPunch_content">${punchDisplayText}</div>
-                `;
+                        <div class="view-box-content" id="inlineChkPunch_content">${item.text}</div>
+                    `;
+                } else {
+                    const prefix = prefixMap[type];
+                    let displayTitle = baseTitleMap[type];
+                    if (item.siteId) {
+                        const siteObj = db.sites.find(s => s.id === item.siteId);
+                        if (siteObj && siteObj.name) displayTitle += `・${siteObj.name}`;
+                    }
+                    card.innerHTML = `
+                        <div class="view-box-title" style="justify-content:space-between;">
+                            <div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;">
+                                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${displayTitle}</span>
+                                ${pinBtnHtml}
+                            </div>
+                            <div style="display:flex;gap:4px;flex-shrink:0;">
+                                <button type="button" onclick="shareInlineCardToLine('${prefix}','${idx}','${dateStr}')" style="background:#06C755;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">LINE</button>
+                                <button type="button" onclick="openInlineEdit('${prefix}','${idx}','${dateStr}')" style="background:#111111;color:white;font-size:11px;padding:3px 9px;border-radius:6px;flex-shrink:0;">編輯</button>
+                            </div>
+                        </div>
+                        <div class="view-box-content" id="${prefix}_content_${idx}">${item.text}</div>
+                    `;
+                }
                 inlineContent.appendChild(card);
-            }
+            });
 
             if (!hasAnyContent) {
                 inlineContent.innerHTML = '<p class="text-muted text-center" style="padding:12px;">本日無任何填報紀錄。</p>';
@@ -1231,17 +1279,6 @@
                 changeHomeMonth(dx > 0 ? -1 : 1);
             }, { passive: true });
         })();
-
-        // ================= 置頂功能 =================
-        function togglePinCard(pinKey, dateStr) {
-            if (db.pinnedCards[pinKey]) {
-                delete db.pinnedCards[pinKey];
-            } else {
-                db.pinnedCards[pinKey] = true;
-            }
-            saveToLocalStorage();
-            showInlineDayView(dateStr);
-        }
 
         // ================= 單張記錄卡傳送LINE =================
         function shareInlineCardToLine(prefix, idx, dateStr) {
@@ -1525,61 +1562,6 @@
             return html;
         }
 
-        function openNativeDatePicker() {
-            // 移除舊的（若存在）
-            const old = document.getElementById('nativeCalDatePicker');
-            if (old) old.remove();
-
-            const picker = document.createElement('input');
-            picker.type = 'date';
-            picker.id = 'nativeCalDatePicker';
-            picker.style.cssText = 'position:fixed; top:-100px; left:-100px; opacity:0; width:1px; height:1px;';
-            picker.value = selectedHomeDateStr || getTargetDateStr();
-            document.body.appendChild(picker);
-
-            function handlePick() {
-                const val = picker.value;
-                picker.removeEventListener('change', handlePick);
-                picker.removeEventListener('blur', handleBlur);
-                picker.remove();
-                if (!val) return;
-                const [y, m, d] = val.split('-').map(Number);
-                homeCalYear = y;
-                homeCalMonth = m - 1;
-                initHomeCalendar();
-                document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
-                document.querySelectorAll('.calendar-day:not(.empty)').forEach(dayEl => {
-                    if (dayEl.querySelector('.day-num') && dayEl.querySelector('.day-num').innerText == String(d)) {
-                        dayEl.classList.add('selected');
-                    }
-                });
-                selectedHomeDateStr = val;
-                updateCalendarDateDisplay(val);
-                showInlineDayView(val);
-            }
-
-            function handleBlur() {
-                setTimeout(() => {
-                    const el = document.getElementById('nativeCalDatePicker');
-                    if (el) { el.removeEventListener('change', handlePick); el.removeEventListener('blur', handleBlur); el.remove(); }
-                }, 300);
-            }
-
-            picker.addEventListener('change', handlePick);
-            picker.addEventListener('blur', handleBlur);
-
-            setTimeout(() => {
-                if (picker.showPicker) {
-                    try { picker.showPicker(); } catch(e) { picker.focus(); picker.click(); }
-                } else {
-                    picker.focus();
-                    picker.click();
-                }
-            }, 50);
-        }
-
-        // (月曆已改用原生日期選擇器)
-        // (原月曆下拉選擇器事件已移除)
 
         function _populateExportMonthSelect() {
             const sel = document.getElementById('inputExportOrderMonth');
@@ -2308,7 +2290,6 @@
             const prevPage = currentState.page;
             currentState.page = page;
 
-            document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('btnBack').classList.remove('hidden');
             document.getElementById('btnHomeTop').classList.add('hidden');
@@ -2320,6 +2301,7 @@
             document.getElementById('cartSubmitBtns').style.display = _isCartPage ? '' : 'none';
 
             if (page === 'sites') {
+                document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
                 document.getElementById('pageSites').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
                 document.getElementById('btnBack').classList.add('hidden');
