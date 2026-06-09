@@ -150,12 +150,12 @@
             <img id="appLogoIcon" src="./favicon.png" alt="" style="width:28px; height:28px; border-radius:7px; flex-shrink:0; object-fit:cover;">
             <button id="btnBack" class="hidden btn-blue" style="background-color:#000000;">←</button>
             <button id="btnHomeTop" class="hidden btn-slate" onclick="navigateTo('sites')" style="background-color:#000000;">⌂ 首頁</button>
-            <span id="homeTitle" style="font-size:14px; font-weight:bold; color:#ffffff; white-space:nowrap;">工程管理</span>
+            <span id="homeTitle" onclick="navigateTo('manage')" style="font-size:14px; font-weight:bold; color:#ffffff; white-space:nowrap; cursor:pointer; position:relative;">工程管理<span id="manageRedDot" style="display:none; position:absolute; top:-2px; right:-10px; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px #111;"></span></span>
         </div>
         <h1 id="appTitle" class="header-title"></h1>
         <div style="display: flex; gap: 4px; flex-shrink: 0;">
             <button id="btnLawRef" onclick="navigateTo('lawref')" class="btn-slate" style="background-color:#000000;">設置標準</button>
-            <button id="btnHomeManage" onclick="navigateTo('manage')" class="btn-slate" style="position:relative; background-color:#000000;">設定<span id="manageRedDot" style="display:none; position:absolute; top:4px; right:4px; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px #000;"></span></button>
+            <button id="btnPunchTop" onclick="openPunchModal()" class="btn-slate" style="background-color:#000000;">出勤</button>
         </div>
     </header>
 
@@ -309,6 +309,77 @@
         </div>
     </div>
 
+    <!-- 工程進度 彈窗 -->
+    <div id="workProgressModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;" onclick="if(event.target===this)closeWorkProgressModal()">
+        <div id="workProgressModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden;">
+            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">工程進度</span>
+                <button onclick="openAddWorkProgressForm()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px; flex-shrink:0;">＋ 新增</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">選擇案場：</label>
+                    <select id="wpSiteSelect" onchange="renderWorkProgressList()" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 10px; font-size:14px; background:#1e1e1e; color:#ffffff;"></select>
+                </div>
+                <div id="wpOverallWrap" style="display:none; background:#2a2a2a; border:1px solid #444; border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;">總進度</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span id="wpOverallPeople" style="display:none; font-size:12px; color:#aaaaaa;"></span>
+                            <span id="wpOverallLabel" style="font-size:13px; font-weight:700; color:#ff4d4d;">0%</span>
+                        </div>
+                    </div>
+                    <div style="position:relative; height:10px; background:#1e1e1e; border-radius:5px; overflow:hidden;">
+                        <div id="wpOverallFill" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#ff4d4d); border-radius:5px; transition:width 0.3s;"></div>
+                    </div>
+                </div>
+                <div id="wpList" style="display:flex; flex-direction:column; gap:0;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 工程進度 新增/編輯 表單彈窗 -->
+    <div id="wpFormModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="_wpFormModalBgClick(event)">
+        <div style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
+            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <span id="wpFormTitle" style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">新增工項進度</span>
+                <button id="btnWpFormDelete" onclick="deleteWorkProgressItem()" style="display:none; background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px; flex-shrink:0;">刪除</button>
+                <button id="btnWpFormEdit" onclick="_wpEnterEditMode()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 14px; border-radius:8px; flex-shrink:0;">編輯</button>
+                <button id="btnWpFormSave" onclick="saveWorkProgressItem()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">儲存</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:14px;">
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">工項</label>
+                    <input type="text" id="wpInputTask" placeholder="請輸入工項名稱..." style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none; -webkit-user-select:text; user-select:text;">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1; min-width:0;">
+                        <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">樓層／區域</label>
+                        <input type="text" id="wpInputFloor" placeholder="例：B1、1F、2F..." style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none; -webkit-user-select:text; user-select:text;">
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">施工廠商</label>
+                        <select id="wpVendorSelect" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none;"></select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:6px;">施工進度：<span id="wpProgressLabel" style="color:#ffffff; font-weight:700;">0%</span></label>
+                    <div style="position:relative; height:44px; display:flex; align-items:center;">
+                        <div id="wpProgressTrack" style="position:relative; width:100%; height:28px; background:#2a2a2a; border-radius:14px; border:1px solid #555555; overflow:hidden; cursor:pointer;">
+                            <div id="wpProgressFill" style="height:100%; width:0%; background:linear-gradient(90deg,#3a7bd5,#6ec6ff); border-radius:14px; transition:width 0.15s; pointer-events:none;"></div>
+                            <div id="wpProgressTicks" style="position:absolute; inset:0; display:flex; pointer-events:none;"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:4px; padding:0 2px;">
+                        <span style="font-size:10px; color:#666;">0%</span>
+                        <span style="font-size:10px; color:#666;">50%</span>
+                        <span style="font-size:10px; color:#666;">100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
         <!-- 計價進度 彈窗 -->
         <div id="progressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
             <div style="background:#1e1e1e; border-radius:14px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
@@ -376,6 +447,17 @@
                 </div>
                 <div id="siteInfoList" style="display: flex; flex-direction: column; gap: 4px;"></div>
             </div>
+            <div class="card">
+                <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px; margin-bottom:8px;">
+                    <h3 style="font-size: 14px; margin: 0; color: #ffffff;">廠商維護</h3>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button id="btnVendorAdd" onclick="addVendor()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">新增廠商</button>
+                        <button id="btnVendorEdit" onclick="enterVendorEditMode()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">編輯</button>
+                        <button id="btnVendorSave" onclick="exitVendorEditMode()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">儲存</button>
+                    </div>
+                </div>
+                <div id="vendorList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </div>
             <div class="card" style="background-color: #1e1e1e; border: 1px solid #555555; margin-bottom: 40px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px; margin-bottom:8px;">
                     <h3 style="font-size: 14px; margin: 0; color: #ffffff;">Apps Script 連動網址設定</h3>
@@ -405,9 +487,9 @@
     <!-- 固定底部導航按鈕（除設定頁外每頁顯示） -->
     <div class="bottom-btn-group" id="homeMainBtns" style="display:none;">
         <div class="bottom-btn-group-inner">
-                <span class="home-seg" onclick="openPunchModal()">出勤</span>
                 <span class="home-seg" onclick="openSiteInfoModal()">案場資訊</span>
                 <span class="home-seg" onclick="openAddLogModal()">工程記錄</span>
+                <span class="home-seg" onclick="openWorkProgressModal()">工程進度</span>
                 <span class="home-seg" onclick="navigateTo('categories')">材料訂購</span>
         </div>
     </div>
@@ -602,7 +684,10 @@
             config: { scriptUrl: '' },
             siteInfo: {},
             dailyRecords: {},
-            pinnedCards: []
+            pinnedCards: [],
+            workProgress: {},
+            constructionItems: ['模板工程','鋼筋工程','混凝土工程','砌磚工程','防水工程','泥作工程','石材工程','鋁窗工程','玻璃工程','鐵工工程','木作工程','油漆工程','水電工程','空調工程','消防工程','弱電工程','電梯工程','景觀工程','雜項工程'],
+            vendors: []
         };
         let currentState = { page: 'sites', siteId: null, siteName: '', catId: null, catName: '' };
         let cart = {};
@@ -623,6 +708,9 @@
                         if (!db.dailyRecords) db.dailyRecords = {};
                         if (!db.siteInfo) db.siteInfo = {};
                         if (!db.pinnedCards) db.pinnedCards = [];
+                        if (!db.workProgress) db.workProgress = {};
+                        if (!db.constructionItems) db.constructionItems = ['模板工程','鋼筋工程','混凝土工程','砌磚工程','防水工程','泥作工程','石材工程','鋁窗工程','玻璃工程','鐵工工程','木作工程','油漆工程','水電工程','空調工程','消防工程','弱電工程','電梯工程','景觀工程','雜項工程'];
+                        if (!db.vendors) db.vendors = [];
                     }
                 }
             } catch (e) { console.error("讀取本機存檔失敗", e); }
@@ -699,6 +787,7 @@
                         db.sites = db.sites.map(s => ({ ...s, id: String(s.id) }));
                         db.categories = db.categories.map(c => ({ ...c, id: String(c.id) }));
                         db.items = db.items.map(i => ({ ...i, id: String(i.id), catId: String(i.catId) }));
+                        if (!db.constructionItems) db.constructionItems = ['模板工程','鋼筋工程','混凝土工程','砌磚工程','防水工程','泥作工程','石材工程','鋁窗工程','玻璃工程','鐵工工程','木作工程','油漆工程','水電工程','空調工程','消防工程','弱電工程','電梯工程','景觀工程','雜項工程'];
                         saveToLocalStorage();
                         try {
                             const now = new Date();
@@ -1526,6 +1615,107 @@
             });
         }
 
+        // ================= 廠商維護 =================
+        let _vendorEditMode = false;
+        let _vendorSortable = null;
+
+        function renderVendorList(editMode) {
+            if (editMode === undefined) editMode = _vendorEditMode;
+            const box = document.getElementById('vendorList');
+            if (!box) return;
+            box.innerHTML = '';
+            if (!db.vendors || db.vendors.length === 0) {
+                box.innerHTML = '<p style="color:#888888; font-size:13px; text-align:center; padding:8px 0;">尚無廠商，請按新增。</p>';
+                return;
+            }
+            db.vendors.forEach(function(vendor, i) {
+                const div = document.createElement('div');
+                div.className = 'manage-item';
+                div.setAttribute('data-idx', i);
+                if (editMode) {
+                    div.innerHTML =
+                        '<span class="drag-handle" style="flex-shrink:0; color:#888888; font-size:16px; padding:4px 8px 4px 0; cursor:move;">☰</span>' +
+                        '<span class="manage-text">' + vendor + '</span>' +
+                        '<div class="manage-btns">' +
+                            '<button class="btn-rename" onclick="renameVendor(' + i + ')">更名</button>' +
+                            '<button class="btn-del" onclick="deleteVendor(' + i + ')">刪除</button>' +
+                        '</div>';
+                } else {
+                    div.innerHTML = '<span class="manage-text">' + vendor + '</span>';
+                }
+                box.appendChild(div);
+            });
+        }
+
+        function enterVendorEditMode() {
+            _vendorEditMode = true;
+            document.getElementById('btnVendorEdit').style.display = 'none';
+            document.getElementById('btnVendorSave').style.display = '';
+            document.getElementById('btnVendorAdd').style.display = '';
+            renderVendorList(true);
+            const box = document.getElementById('vendorList');
+            if (_vendorSortable) { _vendorSortable.destroy(); _vendorSortable = null; }
+            _vendorSortable = new Sortable(box, {
+                animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost', threshold: 5,
+                onEnd: function() {
+                    const sorted = [];
+                    box.querySelectorAll('.manage-item').forEach(function(el) {
+                        const idx = parseInt(el.getAttribute('data-idx'));
+                        if (!isNaN(idx) && db.vendors[idx] !== undefined) sorted.push(db.vendors[idx]);
+                    });
+                    db.vendors = sorted;
+                    saveToLocalStorage();
+                    renderVendorList(true);
+                }
+            });
+        }
+
+        function exitVendorEditMode() {
+            _vendorEditMode = false;
+            document.getElementById('btnVendorEdit').style.display = '';
+            document.getElementById('btnVendorSave').style.display = 'none';
+            document.getElementById('btnVendorAdd').style.display = 'none';
+            if (_vendorSortable) { _vendorSortable.destroy(); _vendorSortable = null; }
+            renderVendorList(false);
+        }
+
+        function addVendor() {
+            const name = prompt('請輸入廠商名稱：');
+            if (!name || !name.trim()) return;
+            const trimmed = name.trim();
+            if ((db.vendors || []).includes(trimmed)) return alert('廠商「' + trimmed + '」已存在。');
+            if (!db.vendors) db.vendors = [];
+            db.vendors.push(trimmed);
+            saveToLocalStorage();
+            renderVendorList(true);
+        }
+
+        function renameVendor(idx) {
+            const old = (db.vendors || [])[idx];
+            if (old === undefined) return;
+            const newName = prompt('請輸入廠商新名稱：', old);
+            if (!newName || !newName.trim()) return;
+            const trimmed = newName.trim();
+            if (trimmed === old) return;
+            if ((db.vendors || []).some(function(v, i) { return i !== idx && v === trimmed; })) return alert('廠商「' + trimmed + '」已存在。');
+            // 同步更新 workProgress 中的廠商名稱
+            Object.keys(db.workProgress || {}).forEach(function(siteId) {
+                (db.workProgress[siteId] || []).forEach(function(wp) { if (wp.vendor === old) wp.vendor = trimmed; });
+            });
+            db.vendors[idx] = trimmed;
+            saveToLocalStorage();
+            renderVendorList(true);
+        }
+
+        function deleteVendor(idx) {
+            const name = (db.vendors || [])[idx];
+            if (name === undefined) return;
+            if (!confirm('確定要刪除廠商「' + name + '」嗎？')) return;
+            db.vendors.splice(idx, 1);
+            saveToLocalStorage();
+            renderVendorList(true);
+        }
+
         function renameSiteFromManage(siteId) {
             const site = db.sites.find(s => s.id === siteId);
             if (!site) return;
@@ -2252,6 +2442,12 @@
                 document.getElementById('btnSiteInfoAdd').style.display = 'none';
                 if (_siteInfoSortable) { _siteInfoSortable.destroy(); _siteInfoSortable = null; }
                 renderSiteInfoList(false);
+                _vendorEditMode = false;
+                document.getElementById('btnVendorEdit').style.display = '';
+                document.getElementById('btnVendorSave').style.display = 'none';
+                document.getElementById('btnVendorAdd').style.display = 'none';
+                if (_vendorSortable) { _vendorSortable.destroy(); _vendorSortable = null; }
+                renderVendorList(false);
                 document.getElementById('pageManage').scrollTop = 0;
             } else if (page === 'lawref') {
                 document.getElementById('pageLawRef').classList.add('active');
@@ -3127,6 +3323,12 @@
                 opt.value = site.id; opt.textContent = site.name;
                 siteSel.appendChild(opt);
             });
+            // When site changes, rebuild item rows so dropdown options update
+            siteSel.addEventListener('change', function() {
+                const container = document.getElementById('addLogItemsContainer');
+                container.innerHTML = '';
+                addNewLogItemRow('', '', '', false);
+            });
             siteGroup.appendChild(siteSel);
             // Reset items
             const container = document.getElementById('addLogItemsContainer');
@@ -3152,37 +3354,86 @@
             });
         }
 
-        function addNewLogItemRow(itemValue = '', floorValue = '', peopleValue = '', autoFocus = false, contractorValue = '') {
+        function _buildWpOptions(siteId, selectedValue) {
+            const wpItems = (siteId && db.workProgress[siteId]) ? db.workProgress[siteId] : [];
+            let opts = '<option value="">\u2014 \u9078\u64c7\u65bd\u5de5\u9805\u76ee \u2014</option>';
+            wpItems.forEach(function(wp) {
+                const label = ((wp.floor || '') + (wp.task || '')).trim() || wp.task || '';
+                if (!label) return;
+                opts += '<option value="' + label + '"' + (label === selectedValue ? ' selected' : '') + '>' + label + '</option>';
+            });
+            return opts;
+        }
+
+        function _getWpProgress(siteId, label) {
+            if (!siteId || !label) return null;
+            const items = db.workProgress[siteId] || [];
+            const found = items.find(function(wp) {
+                return ((wp.floor || '') + (wp.task || '')).trim() === label || wp.task === label;
+            });
+            return found ? (found.progress || 0) : null;
+        }
+
+        function _onLogCiChange(sel) {
+            const row = sel.closest('.log-entry-item');
+            if (!row) return;
+            const badge = row.querySelector('.log-ci-pct');
+            if (!badge) return;
+            const label = sel.value;
+            // Get siteId from whichever modal is open
+            const addSiteSel = document.getElementById('addLogSiteSelect');
+            const editSiteSel = document.getElementById('editLogSiteSelect');
+            const siteId = (addSiteSel && addSiteSel.value) || (_editCtx && _editCtx.siteId) || (editSiteSel && editSiteSel.value) || '';
+            const pct = _getWpProgress(siteId, label);
+            if (label && pct !== null) {
+                badge.textContent = pct + '%';
+                badge.style.display = 'inline';
+            } else {
+                badge.textContent = '';
+                badge.style.display = 'none';
+            }
+        }
+
+        function addNewLogItemRow(itemValue, floorValue, peopleValue, autoFocus, contractorValue, constructionItemValue) {
+            itemValue = itemValue || ''; peopleValue = peopleValue || ''; constructionItemValue = constructionItemValue || '';
+            autoFocus = autoFocus !== false && autoFocus !== undefined ? !!autoFocus : false;
             const container = document.getElementById('addLogItemsContainer');
             const itemNum = container.children.length + 1;
             const div = document.createElement('div');
             div.className = 'log-entry-item';
-            div.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                    <label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">項目${itemNum}：</label>
-                    <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeNewLogItemRow(this)">移除</button>
-                </div>
-                <textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-                    <div>
-                        <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">樓層/區域：</label>
-                        <input type="text" class="log-floor-input" value="${floorValue}" placeholder="如：1F柱牆">
-                    </div>
-                    <div>
-                        <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">施工廠商：</label>
-                        <input type="text" class="log-contractor-input" value="${contractorValue}" placeholder="廠商名稱" style="-webkit-user-select:text;user-select:text;">
-                    </div>
-                    <div>
-                        <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">人數：</label>
-                        <input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="${peopleValue}">
-                    </div>
-                </div>
-            `;
+            const siteSel = document.getElementById('addLogSiteSelect');
+            const siteId = siteSel ? siteSel.value : '';
+            const ciOptions = _buildWpOptions(siteId, constructionItemValue);
+            // Compute initial pct badge
+            const initPct = _getWpProgress(siteId, constructionItemValue);
+            const pctDisplay = (constructionItemValue && initPct !== null) ? initPct + '%' : '';
+            const pctVisible = pctDisplay ? 'inline' : 'none';
+            div.innerHTML =
+                '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
+                    '<div style="display:flex; align-items:center; gap:6px;">' +
+                        '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">\u9805\u76ee' + itemNum + '\uff1a</label>' +
+                        '<span class="log-ci-pct" style="display:' + pctVisible + '; font-size:12px; font-weight:700; color:#06C755; background:rgba(6,199,85,0.12); border-radius:10px; padding:1px 7px; line-height:1.6;">' + pctDisplay + '</span>' +
+                    '</div>' +
+                    '<button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeNewLogItemRow(this)">\u79fb\u9664</button>' +
+                '</div>' +
+                '<div style="display:flex; gap:8px; align-items:flex-end;">' +
+                    '<div style="flex:1; min-width:0;">' +
+                        '<label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">\u65bd\u5de5\u9805\u76ee\uff1a</label>' +
+                        '<select class="log-construction-input" onchange="_onLogCiChange(this)" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;">' +
+                            ciOptions +
+                        '</select>' +
+                    '</div>' +
+                    '<div style="flex-shrink:0; width:72px;">' +
+                        '<label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">\u4eba\u6578\uff1a</label>' +
+                        '<input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="' + peopleValue + '" style="width:100%;text-align:center;">' +
+                    '</div>' +
+                '</div>' +
+                '<textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" placeholder="\u65bd\u5de5\u5099\u8a3b\uff08\u9078\u586b\uff09" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'">' + itemValue + '</textarea>';
             container.appendChild(div);
             if (autoFocus) {
-                setTimeout(() => {
-                    const ta = div.querySelector('.log-item-input');
-                    if (ta) { ta.focus(); container.scrollTop = container.scrollHeight; }
+                setTimeout(function() {
+                    const sel = div.querySelector('.log-construction-input');
+                    if (sel) { sel.focus(); container.scrollTop = container.scrollHeight; }
                 }, 30);
             }
         }
@@ -3206,20 +3457,14 @@
             let projectLogText = '', hasContent = false;
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
-                const floorVal = items[i].querySelector('.log-floor-input').value.trim();
-                const contractorEl = items[i].querySelector('.log-contractor-input');
-                const contractorVal = contractorEl ? contractorEl.value.trim() : '';
+                const constructionEl = items[i].querySelector('.log-construction-input');
+                const constructionVal = constructionEl ? constructionEl.value.trim() : '';
                 const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal || contractorVal) {
+                if (itemVal || constructionVal || peopleVal) {
                     hasContent = true;
-                    let line = `● ${itemVal || '無'}`;
-                    if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) {
-                        line += `\n↳ 人數：${peopleVal} 人`;
-                        if (contractorVal) line += `（${contractorVal}）`;
-                    } else if (contractorVal) {
-                        line += `\n↳ 人數：（${contractorVal}）`;
-                    }
+                    let line = `● ${constructionVal || itemVal || '無'}`;
+                    if (constructionVal && itemVal) line += `\n↳ 備註：${itemVal}`;
+                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
                     projectLogText += line + '\n';
                 }
             }
@@ -3279,6 +3524,20 @@
             siteSel.addEventListener('change', () => {
                 const s = db.sites.find(x => x.id === siteSel.value);
                 if (s) { _editCtx.siteId = s.id; _editCtx.siteName = s.name; }
+                // Rebuild construction item dropdowns for new site
+                const cont = document.getElementById('editLogItemsContainer');
+                cont.querySelectorAll('.log-entry-item').forEach(function(row) {
+                    const sel = row.querySelector('.log-construction-input');
+                    const badge = row.querySelector('.log-ci-pct');
+                    if (!sel) return;
+                    const curVal = sel.value;
+                    sel.innerHTML = _buildWpOptions(_editCtx.siteId, curVal);
+                    if (badge) {
+                        const pct = _getWpProgress(_editCtx.siteId, curVal);
+                        if (curVal && pct !== null) { badge.textContent = pct + '%'; badge.style.display = 'inline'; }
+                        else { badge.textContent = ''; badge.style.display = 'none'; }
+                    }
+                });
             });
             siteGroup.style.display = 'block';
             siteGroup.appendChild(siteSel);
@@ -3290,23 +3549,33 @@
             container.innerHTML = '';
             const lines = item.text.split('\n');
             let rows = [], cur = null;
+            // Build a set of known wp labels for this site for matching
+            const wpLabels = new Set((db.workProgress[item.siteId] || []).map(wp => ((wp.floor || '') + (wp.task || '')).trim()).filter(Boolean));
             lines.forEach(line => {
                 const mItem = line.match(/^(?:項目 \d+：|● ?)(.*)$/);
-                const mFloor = line.match(/^↳ 區域：(.*)$/);
-                if (mItem) { if (cur) rows.push(cur); cur = { item: mItem[1] === '無' ? '' : mItem[1], floor: '', people: '', contractor: '' }; }
-                else if (mFloor && cur) { cur.floor = mFloor[1] === '無' ? '' : mFloor[1]; }
-                else if (cur) {
-                    const m2 = line.match(/^↳ 人數：(\d+)\s*人（([^）]*)）$|^↳ 人數：(\d+)\s*人$|^↳ 人數：（([^）]*)）$/);
-                    if (m2) {
-                        if (m2[1] !== undefined) { cur.people = m2[1]; cur.contractor = m2[2] || ''; }
-                        else if (m2[3] !== undefined) { cur.people = m2[3]; cur.contractor = ''; }
-                        else if (m2[4] !== undefined) { cur.people = ''; cur.contractor = m2[4]; }
-                    }
+                const mNote = line.match(/^↳ 備註：(.*)$/);
+                const mPeople = line.match(/^↳ 人數：(\d+)\s*人$/);
+                if (mItem) {
+                    if (cur) rows.push(cur);
+                    const val = mItem[1] === '無' ? '' : mItem[1];
+                    const isKnownItem = wpLabels.has(val) || (db.constructionItems || []).includes(val);
+                    cur = { constructionItem: isKnownItem ? val : '', item: isKnownItem ? '' : val, people: '' };
+                } else if (mNote && cur) {
+                    cur.item = mNote[1];
+                } else if (mPeople && cur) {
+                    cur.people = mPeople[1];
+                } else if (cur) {
+                    // Legacy format: ↳ 人數：X 人（contractor）
+                    const mLegacy = line.match(/^↳ 人數：(\d+)\s*人(?:（[^）]*）)?$|^↳ 人數：（[^）]*）$/);
+                    if (mLegacy) { const m2 = line.match(/^↳ 人數：(\d+)/); if (m2) cur.people = m2[1]; }
+                    // Legacy floor line
+                    const mFloor = line.match(/^↳ 區域：(.*)$/);
+                    if (mFloor) { /* ignore legacy floor */ }
                 }
             });
             if (cur) rows.push(cur);
-            if (rows.length === 0) rows.push({ item: '', floor: '', people: '', contractor: '' });
-            rows.forEach((r, ri) => addEditLogItemRow(r.item, r.floor, r.people, ri === 0, r.contractor || ''));
+            if (rows.length === 0) rows.push({ constructionItem: '', item: '', people: '' });
+            rows.forEach((r, ri) => addEditLogItemRow(r.item, '', r.people, ri === 0, '', r.constructionItem || ''));
             _openModalAlignedToCalendar('editLogModal', 'editLogModalInner');
             document.querySelector('#editLogModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
             document.getElementById('editLogItemsContainer')?.scrollTo(0, 0);
@@ -3321,37 +3590,45 @@
             });
         }
 
-        function addEditLogItemRow(itemValue = '', floorValue = '', peopleValue = '', autoFocus = false, contractorValue = '') {
+        function addEditLogItemRow(itemValue, floorValue, peopleValue, autoFocus, contractorValue, constructionItemValue) {
+            itemValue = itemValue || ''; peopleValue = peopleValue || ''; constructionItemValue = constructionItemValue || '';
+            autoFocus = autoFocus !== false && autoFocus !== undefined ? !!autoFocus : false;
             const container = document.getElementById('editLogItemsContainer');
             const itemNum = container.children.length + 1;
             const div = document.createElement('div');
             div.className = 'log-entry-item';
-            div.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                    <label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">項目${itemNum}：</label>
-                    <button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeEditLogItemRow(this)">移除</button>
-                </div>
-                <textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${itemValue}</textarea>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-                    <div>
-                        <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">樓層/區域：</label>
-                        <input type="text" class="log-floor-input" value="${floorValue}" placeholder="如：1F柱牆">
-                    </div>
-                    <div>
-                        <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">施工廠商：</label>
-                        <input type="text" class="log-contractor-input" value="${contractorValue}" placeholder="廠商名稱" style="-webkit-user-select:text;user-select:text;">
-                    </div>
-                    <div>
-                        <label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">人數：</label>
-                        <input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="${peopleValue}">
-                    </div>
-                </div>
-            `;
+            const siteSel = document.getElementById('editLogSiteSelect');
+            const siteId = siteSel ? siteSel.value : (_editCtx ? _editCtx.siteId : '');
+            const ciOptions = _buildWpOptions(siteId, constructionItemValue);
+            const initPct = _getWpProgress(siteId, constructionItemValue);
+            const pctDisplay = (constructionItemValue && initPct !== null) ? initPct + '%' : '';
+            const pctVisible = pctDisplay ? 'inline' : 'none';
+            div.innerHTML =
+                '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
+                    '<div style="display:flex; align-items:center; gap:6px;">' +
+                        '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">\u9805\u76ee' + itemNum + '\uff1a</label>' +
+                        '<span class="log-ci-pct" style="display:' + pctVisible + '; font-size:12px; font-weight:700; color:#06C755; background:rgba(6,199,85,0.12); border-radius:10px; padding:1px 7px; line-height:1.6;">' + pctDisplay + '</span>' +
+                    '</div>' +
+                    '<button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeEditLogItemRow(this)">\u79fb\u9664</button>' +
+                '</div>' +
+                '<div style="display:flex; gap:8px; align-items:flex-end;">' +
+                    '<div style="flex:1; min-width:0;">' +
+                        '<label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">\u65bd\u5de5\u9805\u76ee\uff1a</label>' +
+                        '<select class="log-construction-input" onchange="_onLogCiChange(this)" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;">' +
+                            ciOptions +
+                        '</select>' +
+                    '</div>' +
+                    '<div style="flex-shrink:0; width:72px;">' +
+                        '<label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">\u4eba\u6578\uff1a</label>' +
+                        '<input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="' + peopleValue + '" style="width:100%;text-align:center;">' +
+                    '</div>' +
+                '</div>' +
+                '<textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" placeholder="\u65bd\u5de5\u5099\u8a3b\uff08\u9078\u586b\uff09" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'">' + itemValue + '</textarea>';
             container.appendChild(div);
             if (autoFocus) {
-                setTimeout(() => {
-                    const ta = div.querySelector('.log-item-input');
-                    if (ta) { ta.focus(); container.scrollTop = container.scrollHeight; }
+                setTimeout(function() {
+                    const sel = div.querySelector('.log-construction-input');
+                    if (sel) { sel.focus(); container.scrollTop = container.scrollHeight; }
                 }, 30);
             }
         }
@@ -3371,20 +3648,14 @@
             let projectLogText = '', hasContent = false;
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
-                const floorVal = items[i].querySelector('.log-floor-input').value.trim();
-                const contractorEl = items[i].querySelector('.log-contractor-input');
-                const contractorVal = contractorEl ? contractorEl.value.trim() : '';
+                const constructionEl = items[i].querySelector('.log-construction-input');
+                const constructionVal = constructionEl ? constructionEl.value.trim() : '';
                 const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal || contractorVal) {
+                if (itemVal || constructionVal || peopleVal) {
                     hasContent = true;
-                    let line = `● ${itemVal || '無'}`;
-                    if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) {
-                        line += `\n↳ 人數：${peopleVal} 人`;
-                        if (contractorVal) line += `（${contractorVal}）`;
-                    } else if (contractorVal) {
-                        line += `\n↳ 人數：（${contractorVal}）`;
-                    }
+                    let line = `● ${constructionVal || itemVal || '無'}`;
+                    if (constructionVal && itemVal) line += `\n↳ 備註：${itemVal}`;
+                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
                     projectLogText += line + '\n';
                 }
             }
@@ -3456,20 +3727,14 @@
             let projectLogText = '', hasContent = false;
             for (let i = 0; i < items.length; i++) {
                 const itemVal = items[i].querySelector('.log-item-input').value.trim();
-                const floorVal = items[i].querySelector('.log-floor-input').value.trim();
-                const contractorEl = items[i].querySelector('.log-contractor-input');
-                const contractorVal = contractorEl ? contractorEl.value.trim() : '';
+                const constructionEl = items[i].querySelector('.log-construction-input');
+                const constructionVal = constructionEl ? constructionEl.value.trim() : '';
                 const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (itemVal || floorVal || peopleVal || contractorVal) {
+                if (itemVal || constructionVal || peopleVal) {
                     hasContent = true;
-                    let line = `● ${itemVal || '無'}`;
-                    if (floorVal) line += `\n↳ 區域：${floorVal}`;
-                    if (peopleVal) {
-                        line += `\n↳ 人數：${peopleVal} 人`;
-                        if (contractorVal) line += `（${contractorVal}）`;
-                    } else if (contractorVal) {
-                        line += `\n↳ 人數：（${contractorVal}）`;
-                    }
+                    let line = `● ${constructionVal || itemVal || '無'}`;
+                    if (constructionVal && itemVal) line += `\n↳ 備註：${itemVal}`;
+                    if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
                     projectLogText += line + '\n';
                 }
             }
@@ -4056,6 +4321,422 @@
             return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         }
 
+        // ================= 工程進度 =================
+        let _wpEditingId = null;
+        let _wpCurrentSiteId = null;
+
+        function openWorkProgressModal() {
+            _openModalAlignedToCalendar('workProgressModal', 'workProgressModalInner');
+            const sel = document.getElementById('wpSiteSelect');
+            sel.innerHTML = '<option value="">— 選擇案場 —</option>';
+            db.sites.forEach(site => {
+                const opt = document.createElement('option');
+                opt.value = site.id;
+                opt.textContent = site.name;
+                sel.appendChild(opt);
+            });
+            if (db.sites.length > 0) {
+                sel.value = db.sites[0].id;
+            }
+            renderWorkProgressList();
+        }
+
+        function closeWorkProgressModal() {
+            document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
+            document.getElementById('workProgressModal').style.display = 'none';
+        }
+
+        function renderWorkProgressList() {
+            const siteId = document.getElementById('wpSiteSelect').value;
+            _wpCurrentSiteId = siteId;
+            const container = document.getElementById('wpList');
+            container.innerHTML = '';
+            const overallWrap = document.getElementById('wpOverallWrap');
+
+            if (!siteId) { overallWrap.style.display = 'none'; return; }
+
+            const rawItems = (db.workProgress[siteId] || []);
+
+            if (rawItems.length === 0) {
+                overallWrap.style.display = 'none';
+                container.innerHTML = '<div style="text-align:center; color:#888; font-size:13px; padding:16px 0;">尚無工項，請點上方「＋ 新增」</div>';
+                return;
+            }
+
+            // 計算某工項的總施工人數
+            function calcTotalPeople(wpLabel) {
+                let total = 0;
+                for (const dateStr in db.dailyRecords) {
+                    const rec = db.dailyRecords[dateStr];
+                    if (!rec || !rec.log) continue;
+                    const arr = Array.isArray(rec.log) ? rec.log : [rec.log];
+                    arr.forEach(function(logEntry) {
+                        if (!logEntry || logEntry.siteId !== siteId || !logEntry.text) return;
+                        const lines = logEntry.text.split('\n');
+                        let inBlock = false;
+                        lines.forEach(function(line) {
+                            const mItem = line.match(/^● (.+)$/);
+                            if (mItem) { inBlock = (mItem[1].trim() === wpLabel); return; }
+                            if (inBlock) {
+                                const mPeople = line.match(/^↳ 人數：(\d+)\s*人/);
+                                if (mPeople) total += parseInt(mPeople[1], 10);
+                            }
+                        });
+                    });
+                }
+                return total;
+            }
+
+            // 總進度 & 總人數
+            const totalPct = Math.round(rawItems.reduce((sum, it) => sum + (it.progress || 0), 0) / rawItems.length);
+            let grandTotalPeople = 0;
+            rawItems.forEach(function(item) {
+                grandTotalPeople += calcTotalPeople(((item.floor || '') + (item.task || '')).trim());
+            });
+
+            overallWrap.style.display = 'flex';
+            document.getElementById('wpOverallLabel').textContent = totalPct + '%';
+            document.getElementById('wpOverallFill').style.width = totalPct + '%';
+            const overallPeopleEl = document.getElementById('wpOverallPeople');
+            if (grandTotalPeople > 0) {
+                overallPeopleEl.textContent = grandTotalPeople + ' 人';
+                overallPeopleEl.style.display = 'inline';
+            } else {
+                overallPeopleEl.style.display = 'none';
+            }
+
+            // 排序：按樓層分組，組內 100% 沉底，其餘保持原序
+            const indexed = rawItems.map((item, idx) => ({ item, idx }));
+            indexed.sort((a, b) => {
+                const aFloor = a.item.floor || '';
+                const bFloor = b.item.floor || '';
+                if (aFloor !== bFloor) return aFloor < bFloor ? -1 : 1;
+                const aDone = (a.item.progress || 0) >= 100 ? 1 : 0;
+                const bDone = (b.item.progress || 0) >= 100 ? 1 : 0;
+                return aDone - bDone || a.idx - b.idx;
+            });
+
+            // 外層貼合容器（仿計價進度表樣式）
+            const listCard = document.createElement('div');
+            listCard.style.cssText = 'background:#1e1e1e; border:1px solid #444; border-radius:12px; overflow:hidden; display:flex; flex-direction:column;';
+
+            // 維護各 floor 的收起狀態（跨 render 保留）
+            if (!window._wpFloorCollapsed) window._wpFloorCollapsed = {};
+
+            // ── 第一遍：把排序後的項目分成群組 ──
+            const groups = [];
+            indexed.forEach(function(entry) {
+                const fk = entry.item.floor || '';
+                if (!groups.length || groups[groups.length - 1].floorKey !== fk) {
+                    groups.push({ floorKey: fk, items: [] });
+                }
+                groups[groups.length - 1].items.push(entry);
+            });
+
+            // ── 第二遍：建 DOM ──
+            let domRowCount = 0;
+
+            groups.forEach(function(group) {
+                const floorKey = group.floorKey;
+                const collapseKey = siteId + '|' + floorKey;
+                const collapsed = !!window._wpFloorCollapsed[collapseKey];
+
+                // 樓層平均進度
+                const floorAvgPct = Math.round(
+                    group.items.reduce(function(s, e) { return s + (e.item.progress || 0); }, 0) / group.items.length
+                );
+
+                // ── floor header（只有有 floor 的群組才顯示）──
+                if (floorKey) {
+                    const header = document.createElement('div');
+                    let hCss = 'padding:6px 14px 6px; display:flex; align-items:center; gap:6px; background:#252525; cursor:pointer;';
+                    if (domRowCount > 0) hCss += ' border-top:1px solid #444;';
+                    header.style.cssText = hCss;
+
+                    const hSpan = document.createElement('span');
+                    hSpan.style.cssText = 'font-size:12px; font-weight:700; color:#06C755; letter-spacing:0.04em; flex:1; min-width:0;';
+                    hSpan.textContent = floorKey;
+                    header.appendChild(hSpan);
+
+                    // 樓層平均進度%
+                    const pctSpan = document.createElement('span');
+                    pctSpan.style.cssText = 'font-size:12px; font-weight:700; color:#7ec8e3; white-space:nowrap;';
+                    pctSpan.textContent = floorAvgPct + '%';
+                    header.appendChild(pctSpan);
+
+                    // 收起/展開按鈕（IIFE capture collapseKey）
+                    const btn = document.createElement('button');
+                    btn.style.cssText = 'background:none; border:none; color:#888; font-size:12px; padding:2px 6px; cursor:pointer; flex-shrink:0; line-height:1;';
+                    btn.textContent = collapsed ? '\u25b6' : '\u25bc';
+                    (function(key) {
+                        var toggle = function(e) {
+                            e.stopPropagation();
+                            window._wpFloorCollapsed[key] = !window._wpFloorCollapsed[key];
+                            renderWorkProgressList();
+                        };
+                        btn.addEventListener('click', toggle);
+                        header.addEventListener('click', function(e) {
+                            if (e.target === btn) return;
+                            window._wpFloorCollapsed[key] = !window._wpFloorCollapsed[key];
+                            renderWorkProgressList();
+                        });
+                    }(collapseKey));
+
+                    header.appendChild(btn);
+                    listCard.appendChild(header);
+                    domRowCount++;
+                }
+
+                // ── 各工項卡片 ──
+                group.items.forEach(function(entry) {
+                    var item = entry.item;
+                    var idx = entry.idx;
+                    var pct = item.progress || 0;
+                    var isDone = pct >= 100;
+                    var wpLabel = ((item.floor || '') + (item.task || '')).trim();
+                    var totalPeople = calcTotalPeople(wpLabel);
+
+                    var card = document.createElement('div');
+                    var cardCss = 'padding:11px 14px; display:flex; flex-direction:column; gap:7px; cursor:pointer;';
+                    if (domRowCount > 0) cardCss += ' border-top:1px solid #333;';
+                    if (isDone) cardCss += ' opacity:0.55; background:#1a1a1a;';
+                    if (floorKey && collapsed) card.style.display = 'none';
+                    card.style.cssText = cardCss;
+                    if (floorKey && collapsed) card.style.display = 'none';
+                    (function(i) { card.addEventListener('click', function() { openEditWorkProgressForm(siteId, i); }); }(idx));
+
+                    var topRow = document.createElement('div');
+                    topRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:8px;';
+
+                    var titleWrap = document.createElement('div');
+                    titleWrap.style.cssText = 'display:flex; align-items:baseline; gap:5px; flex:1; min-width:0; overflow:hidden;';
+
+                    var taskSpan = document.createElement('span');
+                    taskSpan.style.cssText = 'font-size:15px; font-weight:700; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                    taskSpan.textContent = item.task || '\u2014';
+                    titleWrap.appendChild(taskSpan);
+
+                    var metaWrap = document.createElement('div');
+                    metaWrap.style.cssText = 'display:flex; align-items:center; gap:6px; flex-shrink:0;';
+
+                    var metaParts = [];
+                    if (item.vendor) {
+                        var sv = document.createElement('span');
+                        sv.style.cssText = 'font-size:12px; color:#888888; white-space:nowrap;';
+                        sv.textContent = item.vendor;
+                        metaParts.push(sv);
+                    }
+                    if (totalPeople > 0) {
+                        var sp = document.createElement('span');
+                        sp.style.cssText = 'font-size:12px; color:#aaaaaa; white-space:nowrap;';
+                        sp.textContent = totalPeople + ' \u4eba';
+                        metaParts.push(sp);
+                    }
+                    metaParts.forEach(function(part, pi) {
+                        if (pi > 0) {
+                            var dot = document.createElement('span');
+                            dot.style.cssText = 'font-size:11px; color:#555;';
+                            dot.textContent = '\u00b7';
+                            metaWrap.appendChild(dot);
+                        }
+                        metaWrap.appendChild(part);
+                    });
+                    if (metaParts.length > 0) {
+                        var dot2 = document.createElement('span');
+                        dot2.style.cssText = 'font-size:11px; color:#555;';
+                        dot2.textContent = '\u00b7';
+                        metaWrap.appendChild(dot2);
+                    }
+                    var pctLabel = document.createElement('span');
+                    pctLabel.style.cssText = 'font-size:14px; font-weight:700; color:' + (isDone ? '#888' : '#7ec8e3') + '; white-space:nowrap;';
+                    pctLabel.textContent = pct + '%';
+                    metaWrap.appendChild(pctLabel);
+
+                    topRow.appendChild(titleWrap);
+                    topRow.appendChild(metaWrap);
+
+                    var barWrap = document.createElement('div');
+                    barWrap.style.cssText = 'position:relative; height:8px; background:#2a2a2a; border-radius:4px; overflow:hidden;';
+                    var fill = document.createElement('div');
+                    fill.style.cssText = 'height:100%; width:' + pct + '%; background:' + (isDone ? '#444' : 'linear-gradient(90deg,#4ab3d0,#7ec8e3)') + '; border-radius:4px; transition:width 0.3s;';
+                    barWrap.appendChild(fill);
+                    for (var t = 1; t < 10; t++) {
+                        var tick = document.createElement('div');
+                        tick.style.cssText = 'position:absolute; top:0; bottom:0; left:' + (t * 10) + '%; width:1px; background:rgba(0,0,0,0.18);';
+                        barWrap.appendChild(tick);
+                    }
+
+                    card.appendChild(topRow);
+                    card.appendChild(barWrap);
+                    listCard.appendChild(card);
+                    domRowCount++;
+                });
+            });
+
+            container.appendChild(listCard);
+        }
+
+        function _buildWpStepBtns(currentPct) {
+            _setWpProgressFill(currentPct);
+            document.getElementById('wpProgressLabel').textContent = currentPct + '%';
+        }
+
+        function _setWpProgress(val) {
+            document.getElementById('wpProgressLabel').textContent = val + '%';
+            _setWpProgressFill(val);
+        }
+
+        function _setWpProgressFill(pct) {
+            document.getElementById('wpProgressFill').style.width = pct + '%';
+        }
+
+        function _getWpProgressValue() {
+            const label = document.getElementById('wpProgressLabel').textContent;
+            return parseInt(label) || 0;
+        }
+
+        let _wpIsEditMode = false;
+
+        function _wpPopulateVendorSelect(selectedValue) {
+            const sel = document.getElementById('wpVendorSelect');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">\u2014 \u9078\u64c7\u65bd\u5de5\u5ee0\u5546 \u2014</option>';
+            (db.vendors || []).forEach(function(v) {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = v;
+                if (v === selectedValue) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        function _wpSetInputsDisabled(disabled) {
+            ['wpInputTask','wpInputFloor'].forEach(function(id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.disabled = disabled;
+                el.style.color = disabled ? '#888888' : '#ffffff';
+                el.style.background = disabled ? '#1e1e1e' : '#2a2a2a';
+                el.style.borderColor = disabled ? '#333333' : '#555555';
+                el.style.webkitUserSelect = disabled ? 'none' : 'text';
+                el.style.userSelect = disabled ? 'none' : 'text';
+            });
+            const vsel = document.getElementById('wpVendorSelect');
+            if (vsel) {
+                vsel.disabled = disabled;
+                vsel.style.background = disabled ? '#1e1e1e' : '#2a2a2a';
+                vsel.style.color = disabled ? '#888888' : '#ffffff';
+                vsel.style.borderColor = disabled ? '#333333' : '#555555';
+            }
+        }
+
+        function _wpEnterEditMode() {
+            _wpIsEditMode = true;
+            _wpSetInputsDisabled(false);
+            document.getElementById('btnWpFormEdit').style.display = 'none';
+            document.getElementById('btnWpFormSave').style.display = '';
+            document.getElementById('btnWpFormDelete').style.display = _wpEditingId !== null ? '' : 'none';
+        }
+
+        function _wpEnterReadonlyMode() {
+            _wpIsEditMode = false;
+            _wpSetInputsDisabled(true);
+            document.getElementById('btnWpFormEdit').style.display = '';
+            document.getElementById('btnWpFormSave').style.display = 'none';
+            document.getElementById('btnWpFormDelete').style.display = 'none';
+        }
+
+        function _wpFormModalBgClick(e) {
+            if (e.target !== e.currentTarget) return;
+            // 唯讀模式：自動儲存進度後關閉
+            if (!_wpIsEditMode && _wpEditingId !== null) {
+                _wpSaveProgressOnly();
+            } else {
+                closeWpFormModal();
+            }
+        }
+
+        // 唯讀模式下只儲存進度條，不驗證文字欄
+        function _wpSaveProgressOnly() {
+            const siteId = _wpCurrentSiteId;
+            if (!siteId || _wpEditingId === null) { closeWpFormModal(); return; }
+            const progress = _getWpProgressValue();
+            if (!db.workProgress[siteId] || !db.workProgress[siteId][_wpEditingId]) { closeWpFormModal(); return; }
+            db.workProgress[siteId][_wpEditingId].progress = progress;
+            saveToLocalStorage();
+            closeWpFormModal();
+            renderWorkProgressList();
+            showToast('儲存成功');
+        }
+
+        function openAddWorkProgressForm() {
+            _wpEditingId = null;
+            _wpIsEditMode = true;
+            document.getElementById('wpFormTitle').textContent = '新增工項進度';
+            document.getElementById('wpInputTask').value = '';
+            document.getElementById('wpInputFloor').value = '';
+            _wpPopulateVendorSelect('');
+            _wpSetInputsDisabled(false);
+            document.getElementById('btnWpFormEdit').style.display = 'none';
+            document.getElementById('btnWpFormSave').style.display = '';
+            document.getElementById('btnWpFormDelete').style.display = 'none';
+            _buildWpStepBtns(0);
+            document.getElementById('wpFormModal').style.display = 'flex';
+        }
+
+        function openEditWorkProgressForm(siteId, idx) {
+            const item = (db.workProgress[siteId] || [])[idx];
+            if (!item) return;
+            _wpEditingId = idx;
+            _wpIsEditMode = false;
+            document.getElementById('wpFormTitle').textContent = (item.floor ? item.floor + ' ' : '') + (item.task || '工項進度');
+            document.getElementById('wpInputTask').value = item.task || '';
+            document.getElementById('wpInputFloor').value = item.floor || '';
+            _wpPopulateVendorSelect(item.vendor || '');
+            _wpSetInputsDisabled(true);
+            document.getElementById('btnWpFormEdit').style.display = '';
+            document.getElementById('btnWpFormSave').style.display = 'none';
+            document.getElementById('btnWpFormDelete').style.display = 'none';
+            _buildWpStepBtns(item.progress || 0);
+            document.getElementById('wpFormModal').style.display = 'flex';
+        }
+
+        function closeWpFormModal() {
+            document.getElementById('wpFormModal').style.display = 'none';
+        }
+
+        function saveWorkProgressItem() {
+            const siteId = _wpCurrentSiteId;
+            if (!siteId) { alert('請先選擇案場'); return; }
+            const task = document.getElementById('wpInputTask').value.trim();
+            if (!task) { alert('請輸入工項名稱'); return; }
+            const floor = document.getElementById('wpInputFloor').value.trim();
+            const vsel = document.getElementById('wpVendorSelect');
+            const vendor = vsel ? vsel.value : '';
+            const progress = _getWpProgressValue();
+            if (!db.workProgress[siteId]) db.workProgress[siteId] = [];
+            const entry = { task, floor, vendor, progress };
+            if (_wpEditingId === null) {
+                db.workProgress[siteId].push(entry);
+            } else {
+                db.workProgress[siteId][_wpEditingId] = entry;
+            }
+            saveToLocalStorage();
+            closeWpFormModal();
+            renderWorkProgressList();
+            showToast('儲存成功');
+        }
+
+        function deleteWorkProgressItem() {
+            const siteId = _wpCurrentSiteId;
+            if (!siteId || _wpEditingId === null) return;
+            if (!confirm('確定要刪除此工項進度？')) return;
+            db.workProgress[siteId].splice(_wpEditingId, 1);
+            saveToLocalStorage();
+            closeWpFormModal();
+            renderWorkProgressList();
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.home-seg').forEach(seg => {
                 seg.addEventListener('touchstart', () => {
@@ -4096,6 +4777,41 @@
             if (todayEl) todayEl.classList.add('selected');
             showInlineDayView(todayStr);
             updateHomeImportBtn();
+
+            // 工程進度滑桿：拖動並吸附至10格
+            (function() {
+                const track = document.getElementById('wpProgressTrack');
+                if (!track) return;
+                let dragging = false;
+                function _pctFromEvent(e) {
+                    const rect = track.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    let ratio = (clientX - rect.left) / rect.width;
+                    ratio = Math.max(0, Math.min(1, ratio));
+                    return Math.round(ratio * 10) * 10;
+                }
+                track.addEventListener('pointerdown', function(e) {
+                    dragging = true;
+                    if (track.setPointerCapture) track.setPointerCapture(e.pointerId);
+                    _setWpProgress(_pctFromEvent(e));
+                    e.preventDefault();
+                }, { passive: false });
+                track.addEventListener('pointermove', function(e) {
+                    if (!dragging) return;
+                    _setWpProgress(_pctFromEvent(e));
+                    e.preventDefault();
+                }, { passive: false });
+                track.addEventListener('pointerup', function() { dragging = false; });
+                track.addEventListener('pointercancel', function() { dragging = false; });
+                track.addEventListener('touchstart', function(e) {
+                    _setWpProgress(_pctFromEvent(e));
+                    e.preventDefault();
+                }, { passive: false });
+                track.addEventListener('touchmove', function(e) {
+                    _setWpProgress(_pctFromEvent(e));
+                    e.preventDefault();
+                }, { passive: false });
+            })();
         });
     </script>
 
