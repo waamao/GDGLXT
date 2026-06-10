@@ -287,6 +287,10 @@
                                 <input type="text" id="inputSiteInfoAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
                             </div>
                             <textarea id="inputSiteInfoNotes" rows="3" placeholder="" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; resize:none; line-height:1.6; -webkit-user-select:text; user-select:text;"></textarea>
+                            <div>
+                                <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:6px;">施工廠商</label>
+                                <div id="siteInfoVendorPills" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+                            </div>
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <div style="flex:1; min-width:0;">
                                     <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">承攬總價（自動計算）</label>
@@ -306,9 +310,10 @@
                     <!-- 施工廠商卡片 -->
                     <div style="background-color:#1e1e1e; border:1px solid #444444; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px; margin-top:8px;">
                         <div style="font-size:13px; font-weight:bold; color:#dddddd;">施工廠商：</div>
-                        <!-- view 模式 -->
-                        <div id="vendorCardViewArea" style="display:flex; flex-direction:column; gap:8px;">
-                            <select id="siteInfoVendorSelect" onchange="_saveSiteInfoVendor(this.value)" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none;"></select>
+                        <!-- 廠商切換膠囊 -->
+                        <div id="vendorCardViewPills" style="display:flex; flex-wrap:wrap; gap:6px; min-height:22px;"></div>
+                        <!-- 單一廠商 view 模式 -->
+                        <div id="vendorCardViewArea" style="display:none; flex-direction:column; gap:8px;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:6px; border-top:1px solid #444444;">
                                 <div>
                                     <div style="font-size:11px; font-weight:bold; color:#888888; margin-bottom:2px; letter-spacing:0.04em;">承攬總價</div>
@@ -320,9 +325,9 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- edit 模式 -->
+                        <!-- 單一廠商 edit 模式 -->
                         <div id="vendorCardEditArea" style="display:none; flex-direction:column; gap:10px;">
-                            <select id="siteInfoVendorSelectEdit" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none;"></select>
+                            <div style="font-size:13px; font-weight:bold; color:#ffffff;" id="vendorCardEditTitle"></div>
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <div style="flex:1; min-width:0;">
                                     <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">承攬總價（自動計算）</label>
@@ -1895,41 +1900,67 @@
             _renderVendorCard();
         }
 
-        // ---- 廠商下拉（view 模式，即時儲存）----
-        function _renderSiteInfoVendorSelect() {
+        // ---- 廠商膠囊（多選，編輯模式）----
+        let _activeVendorName = null;  // 目前 view 模式選中的廠商
+
+        function _getSelectedVendors() {
             const info = (db.siteInfo && db.siteInfo[_siSelectedSiteId]) || {};
-            const saved = info.vendor || '';
-            let opts = '<option value="">— 選擇廠商 —</option>';
+            const v = info.vendors;
+            if (Array.isArray(v)) return v;
+            if (info.vendor) return [info.vendor];
+            return [];
+        }
+
+        function _renderVendorEditPills() {
+            const container = document.getElementById('siteInfoVendorPills');
+            if (!container) return;
+            const selected = _getSelectedVendors();
+            container.innerHTML = '';
             (db.vendors || []).forEach(function(v) {
-                opts += '<option value="' + v + '"' + (v === saved ? ' selected' : '') + '>' + v + '</option>';
+                const on = selected.includes(v);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = v;
+                btn.style.cssText = 'padding:6px 14px; border-radius:33px; font-size:13px; font-weight:bold; border:1px solid ' + (on ? '#ffffff' : '#555555') + '; background:' + (on ? '#3d3d3d' : '#1e1e1e') + '; color:#ffffff; cursor:pointer; transition:all 0.15s;';
+                btn.addEventListener('click', function() {
+                    const cur = _getSelectedVendors();
+                    let next;
+                    if (cur.includes(v)) { next = cur.filter(function(x) { return x !== v; }); }
+                    else { next = cur.concat([v]); }
+                    if (!db.siteInfo) db.siteInfo = {};
+                    if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
+                    db.siteInfo[_siSelectedSiteId].vendors = next;
+                    _renderVendorEditPills();
+                });
+                container.appendChild(btn);
             });
-            const selView = document.getElementById('siteInfoVendorSelect');
-            if (selView) selView.innerHTML = opts;
-            const selEdit = document.getElementById('siteInfoVendorSelectEdit');
-            if (selEdit) selEdit.innerHTML = opts;
         }
 
-        function _saveSiteInfoVendor(val) {
-            if (!_siSelectedSiteId) return;
+        function _saveSiteInfoVendor(val) { /* 保留相容性 */ }
+
+        // ---- 廠商卡片 per-vendor blocks ----
+        function _getVendorBlocksFor(vendorName) {
             if (!db.siteInfo) db.siteInfo = {};
             if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
-            db.siteInfo[_siSelectedSiteId].vendor = val;
-            saveToLocalStorage();
+            const info = db.siteInfo[_siSelectedSiteId];
+            if (!info.vendorProgressBlocksMap) info.vendorProgressBlocksMap = {};
+            if (!info.vendorProgressBlocksMap[vendorName]) info.vendorProgressBlocksMap[vendorName] = [];
+            return info.vendorProgressBlocksMap[vendorName];
         }
 
-        // ---- 廠商卡片 blocks ----
         function _getVendorBlocks() {
-            if (!db.siteInfo) db.siteInfo = {};
-            if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
-            if (!db.siteInfo[_siSelectedSiteId].vendorProgressBlocks) db.siteInfo[_siSelectedSiteId].vendorProgressBlocks = [];
-            return db.siteInfo[_siSelectedSiteId].vendorProgressBlocks;
+            return _activeVendorName ? _getVendorBlocksFor(_activeVendorName) : [];
         }
 
-        function _computeVendorContractTotal() {
-            return _getVendorBlocks().reduce(function(sum, blk) {
+        function _computeVendorContractTotalFor(vendorName) {
+            return _getVendorBlocksFor(vendorName).reduce(function(sum, blk) {
                 if (blk.includeInTotal === false) return sum;
                 return sum + (Number(blk.blockTotal) || 0);
             }, 0);
+        }
+
+        function _computeVendorContractTotal() {
+            return _activeVendorName ? _computeVendorContractTotalFor(_activeVendorName) : 0;
         }
 
         function _updateVendorTotalDisplay() {
@@ -1938,23 +1969,84 @@
             if (el) el.innerText = total > 0 ? total.toLocaleString('zh-TW') : '—';
         }
 
-        function _updateVendorViewTotals() {
-            const total = _computeVendorContractTotal();
+        // ---- 廠商切換膠囊（view + edit 模式共用）----
+        function _renderVendorSwitchPills(isEditing) {
+            const container = document.getElementById('vendorCardViewPills');
+            if (!container) return;
+            const selected = _getSelectedVendors();
+            if (selected.length === 0) {
+                container.innerHTML = '<span style="font-size:13px; color:#888888;">—</span>';
+                document.getElementById('vendorCardViewArea').style.display = 'none';
+                document.getElementById('vendorCardEditArea').style.display = 'none';
+                document.getElementById('vendorProgressDetailWrap').style.display = 'none';
+                return;
+            }
+            // 若目前 active 廠商不在選單裡，預設選第一個
+            if (!_activeVendorName || !selected.includes(_activeVendorName)) {
+                _activeVendorName = selected[0];
+            }
+            container.innerHTML = '';
+            selected.forEach(function(v) {
+                const active = (v === _activeVendorName);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = v;
+                btn.style.cssText = 'padding:6px 14px; border-radius:33px; font-size:13px; font-weight:bold; border:1px solid ' + (active ? '#ffffff' : '#555555') + '; background:' + (active ? '#3d3d3d' : '#1e1e1e') + '; color:#ffffff; cursor:pointer; transition:all 0.15s;';
+                btn.addEventListener('click', function() {
+                    _activeVendorName = v;
+                    if (isEditing) { _renderVendorCardEdit(); }
+                    else { _renderVendorCardView(); }
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function _renderVendorCardView() {
+            _renderVendorSwitchPills(false);
+            if (!_activeVendorName) return;
             const blocks = _getVendorBlocks();
+            const total = _computeVendorContractTotal();
             const totalAmt = blocks.reduce(function(sum, blk) {
                 if (blk.includeInTotal === false) return sum;
                 return sum + (blk.items || []).reduce(function(s, r) { return s + (Number(r.amount) || 0); }, 0);
             }, 0);
-            const totalEl = document.getElementById('vendorCardViewTotal');
-            if (totalEl) totalEl.innerText = total > 0 ? _fmtAmount(total) : '—';
-            const pctEl = document.getElementById('vendorCardViewTotalPct');
-            if (pctEl) pctEl.innerText = total > 0 ? (totalAmt / total * 100).toFixed(1) + '%' : '—';
+            document.getElementById('vendorCardViewTotal').innerText = total > 0 ? _fmtAmount(total) : '—';
+            document.getElementById('vendorCardViewTotalPct').innerText = total > 0 ? (totalAmt / total * 100).toFixed(1) + '%' : '—';
+            document.getElementById('vendorCardViewArea').style.display = 'flex';
+            document.getElementById('vendorCardEditArea').style.display = 'none';
+            _renderVendorProgressBlocksFor(false);
+            const wrap = document.getElementById('vendorProgressDetailWrap');
+            if (wrap) wrap.style.display = blocks.length > 0 ? 'flex' : 'none';
         }
 
-        function _renderVendorProgressBlocks(isEditing) {
+        function _renderVendorCardEdit() {
+            _renderVendorSwitchPills(true);
+            if (!_activeVendorName) return;
+            const titleEl = document.getElementById('vendorCardEditTitle');
+            if (titleEl) titleEl.innerText = _activeVendorName;
+            _updateVendorTotalDisplay();
+            document.getElementById('vendorCardViewArea').style.display = 'none';
+            document.getElementById('vendorCardEditArea').style.display = 'flex';
+            _renderVendorProgressBlocksFor(true);
+            const blocks = _getVendorBlocks();
+            const wrap = document.getElementById('vendorProgressDetailWrap');
+            if (wrap) wrap.style.display = blocks.length > 0 ? 'flex' : 'none';
+        }
+
+        function _renderVendorCard() { _renderVendorCardView(); }
+        function enterVendorCardEdit() { _renderVendorCardEdit(); }
+        function saveVendorCard() {
+            if (!_siSelectedSiteId) return;
+            if (!db.siteInfo) db.siteInfo = {};
+            if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
+            saveToLocalStorage();
+        }
+
+        function _renderVendorProgressBlocksFor(isEditing) {
             const container = document.getElementById('vendorProgressBlocksContainer');
             if (!container) return;
             container.innerHTML = '';
+            if (!_activeVendorName) return;
             const blocks = _getVendorBlocks();
             const ct = _computeVendorContractTotal();
             blocks.forEach(function(blk, bIdx) {
@@ -1996,48 +2088,16 @@
             });
         }
 
-        function _renderVendorCard() {
-            _renderSiteInfoVendorSelect();
-            _updateVendorViewTotals();
-            const blocks = _getVendorBlocks();
-            const wrap = document.getElementById('vendorProgressDetailWrap');
-            if (wrap) wrap.style.display = blocks.length > 0 ? 'flex' : 'none';
-            _renderVendorProgressBlocks(false);
-            document.getElementById('vendorCardViewArea').style.display = 'flex';
-            document.getElementById('vendorCardEditArea').style.display = 'none';
-        }
-
-        function enterVendorCardEdit() {
-            _renderSiteInfoVendorSelect();
-            _updateVendorTotalDisplay();
-            _renderVendorProgressBlocks(true);
-            const wrap = document.getElementById('vendorProgressDetailWrap');
-            if (wrap) wrap.style.display = _getVendorBlocks().length > 0 ? 'flex' : 'none';
-            document.getElementById('vendorCardViewArea').style.display = 'none';
-            document.getElementById('vendorCardEditArea').style.display = 'flex';
-        }
-
-        function saveVendorCard() {
-            if (!_siSelectedSiteId) return;
-            if (!db.siteInfo) db.siteInfo = {};
-            if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
-            const selEdit = document.getElementById('siteInfoVendorSelectEdit');
-            if (selEdit) db.siteInfo[_siSelectedSiteId].vendor = selEdit.value;
-            const total = _computeVendorContractTotal();
-            db.siteInfo[_siSelectedSiteId].vendorContractTotal = total ? String(total) : '';
-            saveToLocalStorage();
-        }
-
         function addVendorProgressBlock() {
+            if (!_activeVendorName) return;
             const name = prompt('請輸入新計價表名稱（可留空白）：', '');
             if (name === null) return;
             const blocks = _getVendorBlocks();
             blocks.push({ id: Date.now().toString(), title: name, items: [], includeInTotal: false });
             saveToLocalStorage();
-            _updateVendorTotalDisplay();
-            _renderVendorProgressBlocks(true);
+            _renderVendorCardEdit();
             const wrap = document.getElementById('vendorProgressDetailWrap');
-            if (wrap) { wrap.style.display = 'flex'; wrap.scrollTop = wrap.scrollHeight; }
+            if (wrap) { wrap.style.display = 'flex'; setTimeout(function() { wrap.scrollTop = wrap.scrollHeight; }, 30); }
             showToast('儲存成功');
         }
 
@@ -2048,7 +2108,7 @@
             if (newTitle === null) return;
             blocks[bIdx].title = newTitle.trim();
             saveToLocalStorage();
-            _renderVendorProgressBlocks(true);
+            _renderVendorProgressBlocksFor(true);
             showToast('儲存成功');
         }
 
@@ -2057,14 +2117,10 @@
             if (!confirm('確定要刪除此計價表？')) return;
             blocks.splice(bIdx, 1);
             saveToLocalStorage();
-            _updateVendorTotalDisplay();
-            _renderVendorProgressBlocks(true);
-            const wrap = document.getElementById('vendorProgressDetailWrap');
-            if (wrap) wrap.style.display = blocks.length > 0 ? 'flex' : 'none';
+            _renderVendorCardEdit();
         }
 
         function _openVendorProgressModal(bIdx) {
-            // 沿用現有計價進度彈窗，但指向 vendorProgressBlocks
             _openProgressModal(bIdx, true);
         }
 
@@ -2112,6 +2168,7 @@
             _updateEditTotalDisplay();
             _renderAllProgressBlocks();
             enterVendorCardEdit();
+            _renderVendorEditPills();
             setTimeout(() => { _siteInfoModalSnapshot = _snapshotSiteInfoModal(); }, 30);
         }
 
@@ -4822,11 +4879,66 @@
             ].join('|');
         }
 
+        function _refreshWpHistoryDatalist() {
+            const siteId = _wpCurrentSiteId || '';
+            const tasks = new Set();
+            const floors = new Set();
+            ((db.workProgress || {})[siteId] || []).forEach(function(wp) {
+                if (wp.task && wp.task.trim()) tasks.add(wp.task.trim());
+                if (wp.floor && wp.floor.trim()) floors.add(wp.floor.trim());
+            });
+            _wpAttachSuggest('wpInputTask', Array.from(tasks));
+            _wpAttachSuggest('wpInputFloor', Array.from(floors));
+        }
+
+        function _wpAttachSuggest(inputId, items) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            // 移除舊的
+            const old = document.getElementById(inputId + '_suggest');
+            if (old) old.remove();
+            if (!items.length) return;
+            const box = document.createElement('div');
+            box.id = inputId + '_suggest';
+            box.style.cssText = 'position:absolute; left:0; right:0; top:100%; background:#2a2a2a; border:1px solid #555555; border-radius:8px; margin-top:2px; z-index:9999; overflow:hidden; display:none; flex-direction:column;';
+            // 包一層 relative 定位
+            let wrap = input.parentElement;
+            if (wrap.style.position !== 'relative') wrap.style.position = 'relative';
+            wrap.appendChild(box);
+
+            function showSuggest(kw) {
+                const kl = kw.trim().toLowerCase();
+                if (!kl) { box.style.display = 'none'; return; }
+                const matched = items.filter(function(v) { return v.toLowerCase().includes(kl) && v !== kw; });
+                if (!matched.length) { box.style.display = 'none'; return; }
+                box.innerHTML = '';
+                box.style.display = 'flex';
+                matched.forEach(function(v) {
+                    const row = document.createElement('div');
+                    row.textContent = v;
+                    row.style.cssText = 'padding:9px 12px; font-size:14px; color:#ffffff; cursor:pointer; border-bottom:1px solid #444444;';
+                    row.addEventListener('mousedown', function(e) { e.preventDefault(); input.value = v; box.style.display = 'none'; });
+                    row.addEventListener('touchstart', function(e) { e.preventDefault(); input.value = v; box.style.display = 'none'; }, { passive: false });
+                    box.appendChild(row);
+                });
+                // 移除最後一列 border
+                if (box.lastChild) box.lastChild.style.borderBottom = 'none';
+            }
+
+            input.addEventListener('input', function() { showSuggest(this.value); });
+            input.addEventListener('blur', function() { setTimeout(function() { box.style.display = 'none'; }, 150); });
+        }
+
         function _wpPopulateVendorSelect(selectedValue) {
             const sel = document.getElementById('wpVendorSelect');
             if (!sel) return;
+            // 只顯示案場資訊指定的施工廠商；若該案場無指定則顯示全部
+            const siteId = _wpCurrentSiteId || '';
+            const siteVendors = (db.siteInfo && db.siteInfo[siteId] && Array.isArray(db.siteInfo[siteId].vendors) && db.siteInfo[siteId].vendors.length > 0)
+                ? db.siteInfo[siteId].vendors
+                : (db.vendors || []);
             sel.innerHTML = '<option value="">\u2014 \u9078\u64c7\u65bd\u5de5\u5ee0\u5546 \u2014</option>';
-            (db.vendors || []).forEach(function(v) {
+            siteVendors.forEach(function(v) {
                 const opt = document.createElement('option');
                 opt.value = v;
                 opt.textContent = v;
@@ -4912,6 +5024,7 @@
             document.getElementById('wpInputTask').value = '';
             document.getElementById('wpInputFloor').value = '';
             _wpPopulateVendorSelect('');
+            _refreshWpHistoryDatalist();
             _wpSetInputsDisabled(false);
             document.getElementById('btnWpFormEdit').style.display = 'none';
             document.getElementById('btnWpFormSave').style.display = '';
