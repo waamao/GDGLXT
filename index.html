@@ -379,6 +379,30 @@
         </div>
     </div>
 
+    <!-- 進度調整彈窗 -->
+    <div id="wpProgressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)closeWpProgressEdit()">
+        <div style="background:#1e1e1e; border:1px solid #444; border-radius:14px; padding:16px; width:calc(100% - 64px); max-width:340px; display:flex; flex-direction:column; gap:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+                <span id="wpEditTitle" style="font-size:15px; font-weight:700; color:#ffffff; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+                <span id="wpProgressLabel" style="font-size:18px; font-weight:700; color:#7ec8e3; white-space:nowrap;">0%</span>
+            </div>
+            <div style="padding:6px 0;">
+                <div id="wpProgressTrack" style="position:relative; width:100%; height:16px; background:#2a2a2a; border-radius:8px; border:1px solid #555; overflow:hidden; cursor:pointer; touch-action:none;">
+                    <div id="wpProgressFill" style="height:100%; width:0%; background:linear-gradient(90deg,#4ab3d0,#7ec8e3); border-radius:8px; transition:width 0.05s; pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:10%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:20%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:30%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:40%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:50%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:60%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:70%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:80%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                    <div style="position:absolute; top:0; bottom:0; left:90%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
         <!-- 新增計價表彈窗 -->
@@ -4842,36 +4866,49 @@
                 return;
             }
 
-            // 計算某工項的總施工人數
-            function calcTotalPeople(wpLabel) {
-                let total = 0;
-                for (const dateStr in db.dailyRecords) {
-                    const rec = db.dailyRecords[dateStr];
-                    if (!rec || !rec.log) continue;
-                    const arr = Array.isArray(rec.log) ? rec.log : [rec.log];
-                    arr.forEach(function(logEntry) {
-                        if (!logEntry || logEntry.siteId !== siteId || !logEntry.text) return;
-                        const lines = logEntry.text.split('\n');
-                        let inBlock = false;
-                        lines.forEach(function(line) {
-                            const mItem = line.match(/^● (.+)$/);
-                            if (mItem) { inBlock = (mItem[1].trim() === wpLabel); return; }
-                            if (inBlock) {
-                                const mPeople = line.match(/^↳ 人數：(\d+)\s*人/);
-                                if (mPeople) total += parseInt(mPeople[1], 10);
-                            }
-                        });
+            // 解析所有工程記錄，建立 (工項|樓層) → 人數 對照表（新格式：● 工項 / ↳ 樓層 / ↳ 人數）
+            const peopleMap = {};
+            let grandTotalPeople = 0;
+            for (const dateStr in db.dailyRecords) {
+                const rec = db.dailyRecords[dateStr];
+                if (!rec || !rec.log) continue;
+                const arr = Array.isArray(rec.log) ? rec.log : [rec.log];
+                arr.forEach(function(logEntry) {
+                    if (!logEntry || logEntry.siteId !== siteId || !logEntry.text) return;
+                    const lines = logEntry.text.split('\n');
+                    let curTask = null, curFloor = '', curPeople = 0;
+                    function flush() {
+                        if (curTask === null || curPeople <= 0) return;
+                        const key = curTask + '|' + curFloor;
+                        peopleMap[key] = (peopleMap[key] || 0) + curPeople;
+                        grandTotalPeople += curPeople;
+                    }
+                    lines.forEach(function(line) {
+                        const mItem = line.match(/^●\s*(.*)$/);
+                        if (mItem) {
+                            flush();
+                            let t = mItem[1].trim();
+                            const mParen = t.match(/^(.+?)（.+）$/); // 舊格式：工項（備註）
+                            if (mParen) t = mParen[1].trim();
+                            curTask = (t === '無') ? '' : t;
+                            curFloor = ''; curPeople = 0;
+                            return;
+                        }
+                        if (curTask === null) return;
+                        const mFloor = line.match(/^↳ 樓層：(.*)$/);
+                        if (mFloor) { curFloor = mFloor[1].trim(); return; }
+                        const mPeople = line.match(/^↳ 人數：(\d+)/);
+                        if (mPeople) curPeople += parseInt(mPeople[1], 10);
                     });
-                }
-                return total;
+                    flush();
+                });
+            }
+            function calcTotalPeople(task, floor) {
+                return peopleMap[(task || '') + '|' + (floor || '')] || 0;
             }
 
             // 總進度 & 總人數
             const totalPct = Math.round(rawItems.reduce((sum, it) => sum + (it.progress || 0), 0) / rawItems.length);
-            let grandTotalPeople = 0;
-            rawItems.forEach(function(item) {
-                grandTotalPeople += calcTotalPeople(((item.floor || '') + (item.task || '')).trim());
-            });
 
             overallWrap.style.display = 'flex';
             document.getElementById('wpOverallLabel').textContent = totalPct + '%';
@@ -4884,121 +4921,120 @@
                 overallPeopleEl.style.display = 'none';
             }
 
-            // 排序：按樓層分組，組內 100% 沉底，其餘保持原序
+            // ── 以工項分組（保持原始出現順序），組內 100% 樓層沉底 ──
             const indexed = rawItems.map((item, idx) => ({ item, idx }));
-            indexed.sort((a, b) => {
-                const aFloor = a.item.floor || '';
-                const bFloor = b.item.floor || '';
-                if (aFloor !== bFloor) return aFloor < bFloor ? -1 : 1;
-                const aDone = (a.item.progress || 0) >= 100 ? 1 : 0;
-                const bDone = (b.item.progress || 0) >= 100 ? 1 : 0;
-                return aDone - bDone || a.idx - b.idx;
+            const groups = [];
+            const groupMap = {};
+            indexed.forEach(function(entry) {
+                const tk = entry.item.task || '';
+                if (!Object.prototype.hasOwnProperty.call(groupMap, tk)) {
+                    groupMap[tk] = { taskKey: tk, items: [] };
+                    groups.push(groupMap[tk]);
+                }
+                groupMap[tk].items.push(entry);
+            });
+            groups.forEach(function(g) {
+                g.items.sort(function(a, b) {
+                    const aDone = (a.item.progress || 0) >= 100 ? 1 : 0;
+                    const bDone = (b.item.progress || 0) >= 100 ? 1 : 0;
+                    return aDone - bDone || a.idx - b.idx;
+                });
             });
 
             // 外層貼合容器（仿計價進度表樣式）
             const listCard = document.createElement('div');
             listCard.style.cssText = 'background:#1e1e1e; border:1px solid #444; border-radius:12px; overflow:hidden; display:flex; flex-direction:column;';
 
-            // 維護各 floor 的收起狀態（跨 render 保留）
-            if (!window._wpFloorCollapsed) window._wpFloorCollapsed = {};
+            // 維護各工項群組的收起狀態 & 100% 樓層的暫時展開狀態（跨 render 保留）
+            if (!window._wpTaskCollapsed) window._wpTaskCollapsed = {};
 
-            // ── 第一遍：把排序後的項目分成群組 ──
-            const groups = [];
-            indexed.forEach(function(entry) {
-                const fk = entry.item.floor || '';
-                if (!groups.length || groups[groups.length - 1].floorKey !== fk) {
-                    groups.push({ floorKey: fk, items: [] });
-                }
-                groups[groups.length - 1].items.push(entry);
-            });
-
-            // ── 第二遍：建 DOM ──
             let domRowCount = 0;
 
             groups.forEach(function(group) {
-                const floorKey = group.floorKey;
-                const collapseKey = siteId + '|' + floorKey;
-                const collapsed = !!window._wpFloorCollapsed[collapseKey];
+                const taskKey = group.taskKey;
+                const collapseKey = siteId + '|' + taskKey;
+                const collapsed = !!window._wpTaskCollapsed[collapseKey];
 
-                // 樓層平均進度
-                const floorAvgPct = Math.round(
+                // 工項平均進度
+                const taskAvgPct = Math.round(
                     group.items.reduce(function(s, e) { return s + (e.item.progress || 0); }, 0) / group.items.length
                 );
 
-                // ── floor header（只有有 floor 的群組才顯示）──
-                if (floorKey) {
-                    const header = document.createElement('div');
-                    let hCss = 'padding:6px 14px 6px; display:flex; align-items:center; gap:6px; background:#252525; cursor:pointer;';
-                    if (domRowCount > 0) hCss += ' border-top:1px solid #444;';
-                    header.style.cssText = hCss;
+                // ── 工項 header ──
+                const header = document.createElement('div');
+                let hCss = 'padding:6px 14px 6px; display:flex; align-items:center; gap:6px; background:#252525; cursor:pointer;';
+                if (domRowCount > 0) hCss += ' border-top:1px solid #444;';
+                header.style.cssText = hCss;
 
-                    const hSpan = document.createElement('span');
-                    hSpan.style.cssText = 'font-size:12px; font-weight:700; color:#06C755; letter-spacing:0.04em; flex:1; min-width:0;';
-                    hSpan.textContent = floorKey;
-                    header.appendChild(hSpan);
+                const hSpan = document.createElement('span');
+                hSpan.style.cssText = 'font-size:13px; font-weight:700; color:#06C755; letter-spacing:0.04em; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                hSpan.textContent = taskKey || '\u2014';
+                header.appendChild(hSpan);
 
-                    // 樓層平均進度%
-                    const pctSpan = document.createElement('span');
-                    pctSpan.style.cssText = 'font-size:12px; font-weight:700; color:#06C755; white-space:nowrap;';
-                    pctSpan.textContent = floorAvgPct + '%';
-                    header.appendChild(pctSpan);
+                const pctSpan = document.createElement('span');
+                pctSpan.style.cssText = 'font-size:12px; font-weight:700; color:#06C755; white-space:nowrap;';
+                pctSpan.textContent = taskAvgPct + '%';
+                header.appendChild(pctSpan);
 
-                    // 收起/展開按鈕（IIFE capture collapseKey）
-                    const btn = document.createElement('button');
-                    btn.style.cssText = 'background:none; border:none; color:#888; font-size:12px; padding:2px 6px; cursor:pointer; flex-shrink:0; line-height:1;';
-                    btn.textContent = collapsed ? '\u25b6' : '\u25bc';
-                    (function(key) {
-                        var toggle = function(e) {
-                            e.stopPropagation();
-                            window._wpFloorCollapsed[key] = !window._wpFloorCollapsed[key];
-                            renderWorkProgressList();
-                        };
-                        btn.addEventListener('click', toggle);
-                        header.addEventListener('click', function(e) {
-                            if (e.target === btn) return;
-                            window._wpFloorCollapsed[key] = !window._wpFloorCollapsed[key];
-                            renderWorkProgressList();
-                        });
-                    }(collapseKey));
+                const btn = document.createElement('button');
+                btn.style.cssText = 'background:none; border:none; color:#888; font-size:12px; padding:2px 6px; cursor:pointer; flex-shrink:0; line-height:1;';
+                btn.textContent = collapsed ? '\u25b6' : '\u25bc';
+                (function(key) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        window._wpTaskCollapsed[key] = !window._wpTaskCollapsed[key];
+                        renderWorkProgressList();
+                    });
+                    header.addEventListener('click', function(e) {
+                        if (e.target === btn) return;
+                        window._wpTaskCollapsed[key] = !window._wpTaskCollapsed[key];
+                        renderWorkProgressList();
+                    });
+                }(collapseKey));
 
-                    header.appendChild(btn);
-                    listCard.appendChild(header);
-                    domRowCount++;
-                }
+                header.appendChild(btn);
+                listCard.appendChild(header);
+                domRowCount++;
 
-                // ── 各工項卡片 ──
+                if (collapsed) return;
+
+                // 分流：進行中 → 完整卡片；100% → 樓層標籤（點標籤開彈窗調整）
+                const activeEntries = [], doneEntries = [];
                 group.items.forEach(function(entry) {
+                    if ((entry.item.progress || 0) >= 100) doneEntries.push(entry); else activeEntries.push(entry);
+                });
+
+                // ── 進行中樓層：完整進度卡 ──
+                activeEntries.forEach(function(entry) {
                     var item = entry.item;
                     var idx = entry.idx;
                     var pct = item.progress || 0;
                     var isDone = pct >= 100;
-                    var wpLabel = ((item.floor || '') + (item.task || '')).trim();
-                    var totalPeople = calcTotalPeople(wpLabel);
+                    var totalPeople = calcTotalPeople(item.task, item.floor);
 
                     var card = document.createElement('div');
                     var cardCss = 'padding:11px 14px; display:flex; flex-direction:column; gap:8px;';
                     if (domRowCount > 0) cardCss += ' border-top:1px solid #333;';
                     if (isDone) cardCss += ' opacity:0.55; background:#1a1a1a;';
                     card.style.cssText = cardCss;
-                    if (floorKey && collapsed) card.style.display = 'none';
 
-                    // 頂列：工項名稱 + meta + 進度%
+                    // 頂列：樓層 + meta + 進度%
                     var topRow = document.createElement('div');
                     topRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:8px;';
 
                     var titleWrap = document.createElement('div');
-                    titleWrap.style.cssText = 'flex:1; min-width:0; overflow:hidden;';
-                    var taskSpan = document.createElement('span');
-                    taskSpan.style.cssText = 'font-size:15px; font-weight:700; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;';
-                    taskSpan.textContent = item.task || '\u2014';
-                    titleWrap.appendChild(taskSpan);
+                    titleWrap.style.cssText = 'flex:1; min-width:0; overflow:hidden; display:flex; align-items:baseline; gap:8px;';
+                    var floorSpan = document.createElement('span');
+                    floorSpan.style.cssText = 'font-size:15px; font-weight:700; color:#ffffff; white-space:nowrap; flex-shrink:0;';
+                    floorSpan.textContent = item.floor || '\u2014';
+                    titleWrap.appendChild(floorSpan);
                     if (item.vendor || totalPeople > 0) {
                         var metaSub = document.createElement('span');
-                        metaSub.style.cssText = 'font-size:12px; color:#888888;';
+                        metaSub.style.cssText = 'font-size:11px; color:#888888; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;';
                         var parts = [];
                         if (item.vendor) parts.push(item.vendor);
                         if (totalPeople > 0) parts.push(totalPeople + ' \u4eba');
-                        metaSub.textContent = parts.join(' · ');
+                        metaSub.textContent = parts.join(' \u00b7 ');
                         titleWrap.appendChild(metaSub);
                     }
 
@@ -5009,7 +5045,6 @@
                     pctLabel.textContent = pct + '%';
                     rightWrap.appendChild(pctLabel);
 
-                    // 編輯模式：刪除按鈕
                     if (window._wpIsEditMode) {
                         var delBtn = document.createElement('button');
                         delBtn.textContent = '\u522a\u9664';
@@ -5041,45 +5076,55 @@
                     }
                     trackWrap.appendChild(track);
 
-                    // 進度條拖動邏輯
-                    (function(si, ii, trackEl, fillEl2, pctLbl) {
-                        function setPct(e) {
-                            var rect2 = trackEl.getBoundingClientRect();
-                            var clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                            var ratio = Math.max(0, Math.min(1, (clientX - rect2.left) / rect2.width));
-                            var steps = [0,10,20,30,40,50,60,70,80,90,100];
-                            var snapped = steps.reduce(function(a,b){ return Math.abs(b-ratio*100) < Math.abs(a-ratio*100) ? b : a; });
-                            fillEl2.style.width = snapped + '%';
-                            pctLbl.textContent = snapped + '%';
-                            fillEl2.style.background = snapped >= 100 ? '#444' : 'linear-gradient(90deg,#4ab3d0,#7ec8e3)';
-                            pctLbl.style.color = snapped >= 100 ? '#888' : '#7ec8e3';
-                            return snapped;
-                        }
-                        var dragging = false;
-                        trackEl.addEventListener('mousedown', function(e) { dragging = true; setPct(e); });
-                        trackEl.addEventListener('touchstart', function(e) { dragging = true; setPct(e); }, { passive: true });
-                        document.addEventListener('mousemove', function(e) { if (dragging) setPct(e); });
-                        document.addEventListener('touchmove', function(e) { if (dragging) setPct(e); }, { passive: true });
-                        function endDrag(e) {
-                            if (!dragging) return;
-                            dragging = false;
-                            var newPct = parseInt(fillEl2.style.width);
-                            if (!db.workProgress[si]) return;
-                            if (db.workProgress[si][ii] && db.workProgress[si][ii].progress !== newPct) {
-                                db.workProgress[si][ii].progress = newPct;
-                                saveToLocalStorage();
-                                renderWorkProgressList();
-                            }
-                        }
-                        document.addEventListener('mouseup', endDrag);
-                        document.addEventListener('touchend', endDrag);
-                    }(siteId, idx, track, fillEl, pctLabel));
+                    // 點擊卡片開啟進度調整彈窗（進度條僅供顯示）
+                    track.style.cursor = 'default';
+                    card.style.cursor = 'pointer';
+                    (function(si, ii) {
+                        card.addEventListener('click', function() {
+                            if (window._wpIsEditMode) return;
+                            openWpProgressEdit(si, ii);
+                        });
+                    }(siteId, idx));
 
                     card.appendChild(topRow);
                     card.appendChild(trackWrap);
                     listCard.appendChild(card);
                     domRowCount++;
                 });
+
+                // ── 100% 樓層：收起進度條，只顯示樓層標籤（點標籤可暫時展開調整） ──
+                if (doneEntries.length > 0) {
+                    var chipsRow = document.createElement('div');
+                    var chipsCss = 'padding:9px 14px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:#1a1a1a;';
+                    if (domRowCount > 0) chipsCss += ' border-top:1px solid #333;';
+                    chipsRow.style.cssText = chipsCss;
+
+                    doneEntries.forEach(function(entry) {
+                        var chip = document.createElement('span');
+                        chip.style.cssText = 'display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#111111; color:#ffffff; border:1px solid #ffffff; cursor:pointer; white-space:nowrap;';
+                        chip.textContent = (entry.item.floor || '\u2014') + ' \u2713';
+                        (function(si, ii) {
+                            chip.addEventListener('click', function() {
+                                if (window._wpIsEditMode) return;
+                                openWpProgressEdit(si, ii);
+                            });
+                            if (window._wpIsEditMode) {
+                                var x = document.createElement('span');
+                                x.textContent = '\u00d7';
+                                x.style.cssText = 'color:#D9006C; font-weight:bold; margin-left:2px;';
+                                x.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    deleteWorkProgressItem(si, ii);
+                                });
+                                chip.appendChild(x);
+                            }
+                        }(siteId, entry.idx));
+                        chipsRow.appendChild(chip);
+                    });
+
+                    listCard.appendChild(chipsRow);
+                    domRowCount++;
+                }
             });
 
             container.appendChild(listCard);
@@ -5102,6 +5147,33 @@
         function _getWpProgressValue() {
             const label = document.getElementById('wpProgressLabel').textContent;
             return parseInt(label) || 0;
+        }
+
+        function openWpProgressEdit(siteId, idx) {
+            const item = (db.workProgress[siteId] || [])[idx];
+            if (!item) return;
+            _wpEditingId = { siteId: siteId, idx: idx };
+            const titleParts = [];
+            if (item.task) titleParts.push(item.task);
+            if (item.floor) titleParts.push(item.floor);
+            document.getElementById('wpEditTitle').textContent = titleParts.join('\u3000') || '\u2014';
+            _setWpProgress(item.progress || 0);
+            document.getElementById('wpProgressEditModal').style.display = 'flex';
+        }
+
+        function closeWpProgressEdit() {
+            // 關閉即套用目前進度（無確認按鈕）
+            if (_wpEditingId) {
+                const { siteId, idx } = _wpEditingId;
+                const newPct = _getWpProgressValue();
+                if (db.workProgress[siteId] && db.workProgress[siteId][idx] && db.workProgress[siteId][idx].progress !== newPct) {
+                    db.workProgress[siteId][idx].progress = newPct;
+                    saveToLocalStorage();
+                }
+            }
+            document.getElementById('wpProgressEditModal').style.display = 'none';
+            _wpEditingId = null;
+            renderWorkProgressList();
         }
 
 
