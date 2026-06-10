@@ -15,7 +15,7 @@
         
         html, body { height: 100%; margin: 0; padding: 0; background-color: #111111; color: #ffffff; -webkit-tap-highlight-color: transparent; overflow: hidden; }
         body { display: flex; flex-direction: column; }
-        main.max-w-md { max-width: 448px; width: 100%; margin: 0 auto; flex: 1; min-height: 0; padding: 16px; position: relative; display: flex; flex-direction: column; }
+        main.max-w-md { max-width: 448px; width: 100%; margin: 0 auto; flex: 1; min-height: 0; padding: 8px 16px 16px; position: relative; display: flex; flex-direction: column; }
         
         header { background-color: #111111; color: #ffffff; padding: 16px; display: flex; justify-content: space-between; align-items: center; z-index: 50; border-bottom: 1px solid #333333; flex-shrink: 0; }
         .header-title { font-size: 16px; font-weight: bold; margin: 0 8px; text-align: center; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: center; }
@@ -383,12 +383,15 @@
     <div id="wpProgressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)closeWpProgressEdit()">
         <div style="background:#1e1e1e; border:1px solid #444; border-radius:14px; padding:16px; width:calc(100% - 64px); max-width:340px; display:flex; flex-direction:column; gap:14px;">
             <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
-                <span id="wpEditTitle" style="font-size:15px; font-weight:700; color:#ffffff; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
-                <span id="wpProgressLabel" style="font-size:18px; font-weight:700; color:#7ec8e3; white-space:nowrap;">0%</span>
+                <span style="flex:1; min-width:0; display:flex; align-items:baseline; gap:8px; overflow:hidden;">
+                    <span id="wpEditTitle" style="font-size:15px; font-weight:700; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+                    <span id="wpEditPeople" style="display:none; font-size:11px; color:#888888; white-space:nowrap; flex-shrink:0;"></span>
+                </span>
+                <span id="wpProgressLabel" style="font-size:18px; font-weight:700; color:#ffffff; white-space:nowrap;">0%</span>
             </div>
             <div style="padding:6px 0;">
                 <div id="wpProgressTrack" style="position:relative; width:100%; height:16px; background:#2a2a2a; border-radius:8px; border:1px solid #555; overflow:hidden; cursor:pointer; touch-action:none;">
-                    <div id="wpProgressFill" style="height:100%; width:0%; background:linear-gradient(90deg,#4ab3d0,#7ec8e3); border-radius:8px; transition:width 0.05s; pointer-events:none;"></div>
+                    <div id="wpProgressFill" style="height:100%; width:0%; background:#ffffff; border-radius:8px; transition:width 0.05s; pointer-events:none;"></div>
                     <div style="position:absolute; top:0; bottom:0; left:10%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
                     <div style="position:absolute; top:0; bottom:0; left:20%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
                     <div style="position:absolute; top:0; bottom:0; left:30%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;"></div>
@@ -2940,7 +2943,7 @@
             const modal = document.getElementById(modalId);
             const inner = document.getElementById(innerId);
             const header = document.querySelector('header');
-            const topOffset = header ? header.getBoundingClientRect().bottom + 16 : 16;
+            const topOffset = header ? header.getBoundingClientRect().bottom + 8 : 8;
             inner.style.marginTop = topOffset + 'px';
             const maxByBottom = `calc(100vh - ${topOffset + 16}px)`;
             inner.style.maxHeight = `min(80vh, ${maxByBottom})`;
@@ -3859,6 +3862,12 @@
             _updateLogDatalists();
         }
 
+        // 輸入第一個字才掛上 datalist，空白時移除（避免點擊就彈出全部選項）
+        function _dlToggle(input, listId) {
+            if (input.value.trim()) input.setAttribute('list', listId);
+            else input.removeAttribute('list');
+        }
+
         // 原生記憶視窗（datalist）：填入工項與樓層歷史選項
         function _updateLogDatalists() {
             let dlTask = document.getElementById('logTaskDatalist');
@@ -3911,11 +3920,11 @@
                     '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">項目' + itemNum + '：</label>' +
                     '<button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeNewLogItemRow(this)">移除</button>' +
                 '</div>' +
-                '<input type="text" class="log-task-input" list="logTaskDatalist" autocomplete="off" value="' + taskValue.replace(/"/g, '&quot;') + '" placeholder="工項名稱" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
+                '<input type="text" class="log-task-input" autocomplete="off" oninput="_dlToggle(this,\'logTaskDatalist\')" value="' + taskValue.replace(/"/g, '&quot;') + '" placeholder="工項名稱" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
                 '<div style="display:flex; gap:8px;">' +
                     '<div style="flex:1; min-width:0;">' +
                         '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">樓層／區域</label>' +
-                        '<input type="text" class="log-floor-input" list="logFloorDatalist" autocomplete="off" value="' + floorValue.replace(/"/g, '&quot;') + '" placeholder="例：1F、2F..." style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 10px;font-size:13px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
+                        '<input type="text" class="log-floor-input" autocomplete="off" oninput="_dlToggle(this,\'logFloorDatalist\')" value="' + floorValue.replace(/"/g, '&quot;') + '" placeholder="例：1F、2F..." style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 10px;font-size:13px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
                     '</div>' +
                     '<div style="flex:1; min-width:0;">' +
                         '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">施工廠商</label>' +
@@ -3952,13 +3961,13 @@
                 const floor = item.floorVal || '';
                 const vendor = item.vendorVal || '';
                 if (!task) return;
+                if (!vendor) return; // 未選施工廠商 → 不同步到工程進度
                 // 比對 task + floor 都相同才視為同一條
                 const found = wpList.find(function(wp) {
                     return wp.task === task && (wp.floor || '') === floor;
                 });
                 if (found) {
-                    // 已存在：更新廠商（如有）
-                    if (vendor) found.vendor = vendor;
+                    found.vendor = vendor;
                 } else {
                     wpList.push({ task, floor, vendor, progress: 0 });
                 }
@@ -4115,11 +4124,11 @@
                     '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">項目' + itemNum + '：</label>' +
                     '<button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeEditLogItemRow(this)">移除</button>' +
                 '</div>' +
-                '<input type="text" class="log-task-input" list="logTaskDatalist" autocomplete="off" value="' + taskValue.replace(/"/g, '&quot;') + '" placeholder="工項名稱" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
+                '<input type="text" class="log-task-input" autocomplete="off" oninput="_dlToggle(this,\'logTaskDatalist\')" value="' + taskValue.replace(/"/g, '&quot;') + '" placeholder="工項名稱" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
                 '<div style="display:flex; gap:8px;">' +
                     '<div style="flex:1; min-width:0;">' +
                         '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">樓層／區域</label>' +
-                        '<input type="text" class="log-floor-input" list="logFloorDatalist" autocomplete="off" value="' + floorValue.replace(/"/g, '&quot;') + '" placeholder="例：1F、2F..." style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 10px;font-size:13px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
+                        '<input type="text" class="log-floor-input" autocomplete="off" oninput="_dlToggle(this,\'logFloorDatalist\')" value="' + floorValue.replace(/"/g, '&quot;') + '" placeholder="例：1F、2F..." style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 10px;font-size:13px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
                     '</div>' +
                     '<div style="flex:1; min-width:0;">' +
                         '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">施工廠商</label>' +
@@ -4849,26 +4858,10 @@
             document.getElementById('workProgressModal').style.display = 'none';
         }
 
-        function renderWorkProgressList() {
-            const siteId = (document.getElementById('wpSiteSelect') || {}).dataset?.siteId || '';
-            _wpCurrentSiteId = siteId;
-            const container = document.getElementById('wpList');
-            container.innerHTML = '';
-            const overallWrap = document.getElementById('wpOverallWrap');
-
-            if (!siteId) { overallWrap.style.display = 'none'; return; }
-
-            const rawItems = (db.workProgress[siteId] || []);
-
-            if (rawItems.length === 0) {
-                overallWrap.style.display = 'none';
-                container.innerHTML = '<div style="text-align:center; color:#888; font-size:13px; padding:16px 0;">尚無工項，請在工程記錄填寫施工項目</div>';
-                return;
-            }
-
-            // 解析所有工程記錄，建立 (工項|樓層) → 人數 對照表（新格式：● 工項 / ↳ 樓層 / ↳ 人數）
-            const peopleMap = {};
-            let grandTotalPeople = 0;
+        // 解析案場所有工程記錄，建立 (工項|樓層) → 人數 對照表（格式：● 工項 / ↳ 樓層 / ↳ 人數）
+        function _wpBuildPeopleMap(siteId) {
+            const map = {};
+            let grand = 0;
             for (const dateStr in db.dailyRecords) {
                 const rec = db.dailyRecords[dateStr];
                 if (!rec || !rec.log) continue;
@@ -4880,8 +4873,8 @@
                     function flush() {
                         if (curTask === null || curPeople <= 0) return;
                         const key = curTask + '|' + curFloor;
-                        peopleMap[key] = (peopleMap[key] || 0) + curPeople;
-                        grandTotalPeople += curPeople;
+                        map[key] = (map[key] || 0) + curPeople;
+                        grand += curPeople;
                     }
                     lines.forEach(function(line) {
                         const mItem = line.match(/^●\s*(.*)$/);
@@ -4903,8 +4896,35 @@
                     flush();
                 });
             }
+            return { map: map, grand: grand };
+        }
+
+        function renderWorkProgressList() {
+            const siteId = (document.getElementById('wpSiteSelect') || {}).dataset?.siteId || '';
+            _wpCurrentSiteId = siteId;
+            const container = document.getElementById('wpList');
+            container.innerHTML = '';
+            const overallWrap = document.getElementById('wpOverallWrap');
+
+            if (!siteId) { overallWrap.style.display = 'none'; return; }
+
+            const allItems = (db.workProgress[siteId] || []);
+            // 只顯示有施工廠商的項目（entry.idx 保留原始索引，刪除/更新不受影響）
+            const indexedAll = allItems.map((item, idx) => ({ item, idx }));
+            const visible = indexedAll.filter(e => (e.item.vendor || '').trim());
+            const rawItems = visible.map(e => e.item);
+
+            if (visible.length === 0) {
+                overallWrap.style.display = 'none';
+                container.innerHTML = '<div style="text-align:center; color:#888; font-size:13px; padding:16px 0;">尚無工項，請在工程記錄填寫施工項目（需選擇施工廠商）</div>';
+                return;
+            }
+
+            // (工項|樓層) → 人數 對照表
+            const _pm = _wpBuildPeopleMap(siteId);
+            const grandTotalPeople = _pm.grand;
             function calcTotalPeople(task, floor) {
-                return peopleMap[(task || '') + '|' + (floor || '')] || 0;
+                return _pm.map[(task || '') + '|' + (floor || '')] || 0;
             }
 
             // 總進度 & 總人數
@@ -4922,7 +4942,7 @@
             }
 
             // ── 以工項分組（保持原始出現順序），組內 100% 樓層沉底 ──
-            const indexed = rawItems.map((item, idx) => ({ item, idx }));
+            const indexed = visible;
             const groups = [];
             const groupMap = {};
             indexed.forEach(function(entry) {
@@ -4967,12 +4987,12 @@
                 header.style.cssText = hCss;
 
                 const hSpan = document.createElement('span');
-                hSpan.style.cssText = 'font-size:13px; font-weight:700; color:#06C755; letter-spacing:0.04em; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                hSpan.style.cssText = 'font-size:13px; font-weight:700; color:#7ec8e3; letter-spacing:0.04em; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
                 hSpan.textContent = taskKey || '\u2014';
                 header.appendChild(hSpan);
 
                 const pctSpan = document.createElement('span');
-                pctSpan.style.cssText = 'font-size:12px; font-weight:700; color:#06C755; white-space:nowrap;';
+                pctSpan.style.cssText = 'font-size:12px; font-weight:700; color:#7ec8e3; white-space:nowrap;';
                 pctSpan.textContent = taskAvgPct + '%';
                 header.appendChild(pctSpan);
 
@@ -5041,7 +5061,7 @@
                     var rightWrap = document.createElement('div');
                     rightWrap.style.cssText = 'display:flex; align-items:center; gap:8px; flex-shrink:0;';
                     var pctLabel = document.createElement('span');
-                    pctLabel.style.cssText = 'font-size:14px; font-weight:700; color:' + (isDone ? '#888' : '#7ec8e3') + '; white-space:nowrap; min-width:36px; text-align:right;';
+                    pctLabel.style.cssText = 'font-size:14px; font-weight:700; color:' + (isDone ? '#888' : '#ffffff') + '; white-space:nowrap; min-width:36px; text-align:right;';
                     pctLabel.textContent = pct + '%';
                     rightWrap.appendChild(pctLabel);
 
@@ -5067,7 +5087,7 @@
                     var track = document.createElement('div');
                     track.style.cssText = 'position:relative; width:100%; height:10px; background:#2a2a2a; border-radius:5px; border:1px solid #555; overflow:hidden; cursor:pointer;';
                     var fillEl = document.createElement('div');
-                    fillEl.style.cssText = 'height:100%; width:' + pct + '%; background:' + (isDone ? '#444' : 'linear-gradient(90deg,#4ab3d0,#7ec8e3)') + '; border-radius:5px; transition:width 0.1s; pointer-events:none;';
+                    fillEl.style.cssText = 'height:100%; width:' + pct + '%; background:' + (isDone ? '#444' : '#ffffff') + '; border-radius:5px; transition:width 0.1s; pointer-events:none;';
                     track.appendChild(fillEl);
                     for (var t = 1; t < 10; t++) {
                         var tick = document.createElement('div');
@@ -5157,6 +5177,14 @@
             if (item.task) titleParts.push(item.task);
             if (item.floor) titleParts.push(item.floor);
             document.getElementById('wpEditTitle').textContent = titleParts.join('\u3000') || '\u2014';
+            const people = _wpBuildPeopleMap(siteId).map[(item.task || '') + '|' + (item.floor || '')] || 0;
+            const peopleEl = document.getElementById('wpEditPeople');
+            if (people > 0) {
+                peopleEl.textContent = people + ' \u4eba';
+                peopleEl.style.display = 'inline';
+            } else {
+                peopleEl.style.display = 'none';
+            }
             _setWpProgress(item.progress || 0);
             document.getElementById('wpProgressEditModal').style.display = 'flex';
         }
