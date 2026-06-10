@@ -2107,7 +2107,7 @@
                 card.style.cssText = 'padding:10px 14px;' + (bIdx > 0 ? ' border-top:1px solid #444444;' : '') + ' display:flex; flex-direction:column; gap:6px; flex-shrink:0;';
                 const titleBar = document.createElement('div');
                 titleBar.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px;';
-                const displayTitle = blk.title || ('計價表 ' + (bIdx + 1));
+                const displayTitle = blk.title || '';
                 if (isEditing) {
                     titleBar.innerHTML =
                         '<span class="vendor-drag-handle" style="cursor:move; color:#888888; font-size:16px; padding:4px 6px 4px 0; flex-shrink:0; touch-action:none;">☰</span>' +
@@ -2394,7 +2394,6 @@
         function _getBlockDisplayTitle(blk) {
             const type = blk.blockType || '';
             const title = blk.title !== undefined && blk.title !== null ? String(blk.title) : '';
-            if (!type && !title) return '（未命名）';
             return type ? `[${type}] ${title}` : title;
         }
 
@@ -2639,7 +2638,7 @@
         function _deleteProgressBlockMain(bIdx) {
             const blocks = _getBlocks();
             if (!blocks[bIdx]) return;
-            const title = blocks[bIdx].title || '（未命名）';
+            const title = blocks[bIdx].title || '';
             if (!confirm(`確定要刪除「${title}」？`)) return;
             blocks.splice(bIdx, 1);
             saveToLocalStorage();
@@ -2651,7 +2650,7 @@
             const blocks = _modalBlocks();
             const idx = (bIdx !== undefined) ? bIdx : _siEditingBlockIdx;
             if (idx === null || idx === undefined) return;
-            const title = (blocks[idx] && blocks[idx].title) ? blocks[idx].title : '（未命名）';
+            const title = (blocks[idx] && blocks[idx].title) ? blocks[idx].title : '';
             if (!confirm(`確定要刪除「${title}」？`)) return;
             blocks.splice(idx, 1);
             saveToLocalStorage();
