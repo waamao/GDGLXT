@@ -2061,6 +2061,34 @@
             saveToLocalStorage();
         }
 
+        let _vendorProgressBlockSortable = null;
+
+        function _initVendorProgressBlockSortable() {
+            if (_vendorProgressBlockSortable) { _vendorProgressBlockSortable.destroy(); _vendorProgressBlockSortable = null; }
+            const container = document.getElementById('vendorProgressBlocksContainer');
+            if (!container) return;
+            _vendorProgressBlockSortable = new Sortable(container, {
+                animation: 150,
+                handle: '.vendor-drag-handle',
+                ghostClass: 'sortable-ghost',
+                onEnd: function() {
+                    const blocks = _getVendorBlocks();
+                    const newOrder = [];
+                    container.querySelectorAll('[data-vbidx]').forEach(function(el) {
+                        const idx = parseInt(el.getAttribute('data-vbidx'));
+                        if (!isNaN(idx) && blocks[idx]) newOrder.push(blocks[idx]);
+                    });
+                    const info = db.siteInfo[_siSelectedSiteId];
+                    if (info && info.vendorProgressBlocksMap) {
+                        info.vendorProgressBlocksMap[_activeVendorName] = newOrder;
+                    }
+                    saveToLocalStorage();
+                    _renderVendorProgressBlocksFor(true);
+                    _initVendorProgressBlockSortable();
+                }
+            });
+        }
+
         function _renderVendorProgressBlocksFor(isEditing) {
             const container = document.getElementById('vendorProgressBlocksContainer');
             if (!container) return;
@@ -2075,12 +2103,14 @@
                 const useCt = blkTotal > 0 ? blkTotal : ct;
                 const totalPct = useCt > 0 ? (totalAmt / useCt * 100).toFixed(1) + '%' : '';
                 const card = document.createElement('div');
+                card.setAttribute('data-vbidx', bIdx);
                 card.style.cssText = 'padding:10px 14px;' + (bIdx > 0 ? ' border-top:1px solid #444444;' : '') + ' display:flex; flex-direction:column; gap:6px; flex-shrink:0;';
                 const titleBar = document.createElement('div');
                 titleBar.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px;';
                 const displayTitle = blk.title || ('計價表 ' + (bIdx + 1));
                 if (isEditing) {
                     titleBar.innerHTML =
+                        '<span class="vendor-drag-handle" style="cursor:move; color:#888888; font-size:16px; padding:4px 6px 4px 0; flex-shrink:0; touch-action:none;">☰</span>' +
                         '<span style="flex:1; min-width:0; font-size:13px; font-weight:bold; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + displayTitle + '</span>' +
                         '<div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">' +
                             '<button onclick="_renameVendorBlock(' + bIdx + ')" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 10px; border-radius:8px;">更名</button>' +
@@ -2105,6 +2135,7 @@
                 card.appendChild(titleBar);
                 container.appendChild(card);
             });
+            if (isEditing) _initVendorProgressBlockSortable();
         }
 
         function addVendorProgressBlock() {
@@ -2276,7 +2307,7 @@
                     <span style="flex:1; min-width:0; font-size:13px; font-weight:bold; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${_getBlockDisplayTitle(blk)}</span>
                     <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <button class="progress-rename-btn" data-bidx="${bIdx}" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 10px; border-radius:8px;">更名</button>
-                        <button onclick="_deleteProgressBlock(${bIdx})" style="background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:6px 10px; border-radius:8px;">刪除</button>
+                        <button onclick="_deleteProgressBlockMain(${bIdx})" style="background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:6px 10px; border-radius:8px;">刪除</button>
                     </div>
                 `;
                 const renameBtn = titleBar.querySelector('.progress-rename-btn');
@@ -2604,6 +2635,17 @@
                 _closeProgressModal();
             }
         });
+
+        function _deleteProgressBlockMain(bIdx) {
+            const blocks = _getBlocks();
+            if (!blocks[bIdx]) return;
+            const title = blocks[bIdx].title || '（未命名）';
+            if (!confirm(`確定要刪除「${title}」？`)) return;
+            blocks.splice(bIdx, 1);
+            saveToLocalStorage();
+            _updateEditTotalDisplay();
+            _renderAllProgressBlocks();
+        }
 
         function _deleteProgressBlock(bIdx) {
             const blocks = _modalBlocks();
