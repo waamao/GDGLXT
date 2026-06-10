@@ -419,6 +419,41 @@
         </div>
     </div>
 
+        <!-- 新增計價表彈窗 -->
+        <div id="addBlockModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)_closeAddBlockModal()">
+            <div style="background:#1e1e1e; border-radius:14px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+                <div style="padding:14px 16px 10px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                    <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1;">新增計價表</span>
+                    <button onclick="_closeAddBlockModal()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">取消</button>
+                    <button onclick="_confirmAddBlock()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px;">新增</button>
+                </div>
+                <div style="padding:14px 16px; display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">名稱</label>
+                        <input type="text" id="addBlockName" placeholder="計價表名稱（可留空白）" style="-webkit-user-select:text; user-select:text;">
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1; min-width:0;">
+                            <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">類型</label>
+                            <select id="addBlockType" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none;">
+                                <option value="">無</option>
+                                <option value="本工程">本工程</option>
+                                <option value="追加工程">追加工程</option>
+                            </select>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">計價表總價</label>
+                            <input type="number" inputmode="numeric" id="addBlockTotal" placeholder="選填" style="-webkit-user-select:text; user-select:text;">
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <input type="checkbox" id="addBlockInclude" checked style="width:20px; height:20px; accent-color:#333; cursor:pointer; flex-shrink:0;">
+                        <label for="addBlockInclude" style="font-size:13px; font-weight:bold; color:#dddddd; cursor:pointer;">列入總計價進度</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 計價進度 彈窗 -->
         <div id="progressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
             <div style="background:#1e1e1e; border-radius:14px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
@@ -2138,18 +2173,6 @@
             if (isEditing) _initVendorProgressBlockSortable();
         }
 
-        function addVendorProgressBlock() {
-            if (!_activeVendorName) return;
-            const name = '';
-            const blocks = _getVendorBlocks();
-            blocks.push({ id: Date.now().toString(), title: name, items: [], includeInTotal: false });
-            saveToLocalStorage();
-            _renderVendorCardEdit();
-            const wrap = document.getElementById('vendorProgressDetailWrap');
-            if (wrap) { wrap.style.display = 'flex'; setTimeout(function() { wrap.scrollTop = wrap.scrollHeight; }, 30); }
-            showToast('儲存成功');
-        }
-
         function _renameVendorBlock(bIdx) {
             const blocks = _getVendorBlocks();
             if (!blocks[bIdx]) return;
@@ -2660,23 +2683,61 @@
             _renderAllProgressBlocks();
         }
 
-        function addProgressBlock() {
-            const name = '';
-            const blocks = _getBlocks();
-            blocks.push({ id: Date.now().toString(), title: name, items: [], includeInTotal: false });
-            saveToLocalStorage();
-            _updateEditTotalDisplay();
-            _renderAllProgressBlocks();
-            setTimeout(() => {
-                const wrap = document.getElementById('progressDetailWrap');
-                if (wrap) wrap.scrollTop = wrap.scrollHeight;
-            }, 50);
+        let _addBlockModalIsVendor = false;
+
+        function _closeAddBlockModal() {
+            document.getElementById('addBlockModal').style.display = 'none';
+        }
+
+        function _confirmAddBlock() {
+            const name = document.getElementById('addBlockName').value.trim();
+            const blockType = document.getElementById('addBlockType').value;
+            const blockTotal = document.getElementById('addBlockTotal').value.trim();
+            const includeInTotal = document.getElementById('addBlockInclude').checked;
+            const entry = { id: Date.now().toString(), title: name, items: [], blockType, blockTotal, includeInTotal };
+            _closeAddBlockModal();
+            if (_addBlockModalIsVendor) {
+                if (!_activeVendorName) return;
+                _getVendorBlocks().push(entry);
+                saveToLocalStorage();
+                _renderVendorCardEdit();
+                const wrap = document.getElementById('vendorProgressDetailWrap');
+                if (wrap) { wrap.style.display = 'flex'; setTimeout(function() { wrap.scrollTop = wrap.scrollHeight; }, 30); }
+            } else {
+                _getBlocks().push(entry);
+                saveToLocalStorage();
+                _updateEditTotalDisplay();
+                _renderAllProgressBlocks();
+                setTimeout(() => {
+                    const wrap = document.getElementById('progressDetailWrap');
+                    if (wrap) wrap.scrollTop = wrap.scrollHeight;
+                }, 50);
+            }
             showToast('儲存成功');
         }
 
+        function addProgressBlock() {
+            _addBlockModalIsVendor = false;
+            document.getElementById('addBlockName').value = '';
+            document.getElementById('addBlockType').value = '';
+            document.getElementById('addBlockTotal').value = '';
+            document.getElementById('addBlockInclude').checked = true;
+            document.getElementById('addBlockModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('addBlockName').focus(), 50);
+        }
+
+        function addVendorProgressBlock() {
+            if (!_activeVendorName) return;
+            _addBlockModalIsVendor = true;
+            document.getElementById('addBlockName').value = '';
+            document.getElementById('addBlockType').value = '';
+            document.getElementById('addBlockTotal').value = '';
+            document.getElementById('addBlockInclude').checked = true;
+            document.getElementById('addBlockModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('addBlockName').focus(), 50);
+        }
 
         function confirmAddSiteInfo() {
-            const name = prompt('請輸入案場名稱：');
             if (!name || !name.trim()) return;
             const trimmed = name.trim();
             if (db.sites.some(s => s.name === trimmed)) return alert(`案場「${trimmed}」已存在，請使用不同名稱。`);
