@@ -420,11 +420,11 @@
     </div>
 
         <!-- 新增計價表彈窗 -->
-        <div id="addBlockModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)_closeAddBlockModal()">
+        <div id="addBlockModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)_tryCloseAddBlockModal()">
             <div style="background:#1e1e1e; border-radius:14px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
                 <div style="padding:14px 16px 10px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                     <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1;">新增計價表</span>
-                    <button onclick="_closeAddBlockModal()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">取消</button>
+                    <button onclick="_tryCloseAddBlockModal()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">取消</button>
                     <button onclick="_confirmAddBlock()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px;">新增</button>
                 </div>
                 <div style="padding:14px 16px; display:flex; flex-direction:column; gap:12px;">
@@ -2684,6 +2684,19 @@
         }
 
         let _addBlockModalIsVendor = false;
+
+        function _addBlockModalHasContent() {
+            return !!(
+                document.getElementById('addBlockName').value.trim() ||
+                document.getElementById('addBlockType').value ||
+                document.getElementById('addBlockTotal').value.trim()
+            );
+        }
+
+        function _tryCloseAddBlockModal() {
+            if (_addBlockModalHasContent() && !confirm('尚未新增，確定要離開？')) return;
+            _closeAddBlockModal();
+        }
 
         function _closeAddBlockModal() {
             document.getElementById('addBlockModal').style.display = 'none';
