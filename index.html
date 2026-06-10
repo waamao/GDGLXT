@@ -470,6 +470,7 @@
                 <div id="backupWarningBanner" style="display:none; background:#fff7ed; border:1px solid #fb923c; border-radius:8px; padding:8px 12px; font-size:12px; color:#9a3412; font-weight:600;">⚠️ <span id="backupWarningText"></span></div>
                 <div id="lastExportTimeDisplay" style="display:none; font-size:12px; color:#64748b; text-align:right; margin-top:-4px;">上次備份：<span id="lastExportTimeText"></span></div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                    <select id="inputExportSite" style="flex:1; border: 1px solid #555555; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: #1e1e1e;"></select>
                     <select id="inputExportOrderMonth" style="flex:1; border: 1px solid #555555; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: #1e1e1e;"></select>
                     <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding: 10px 14px; font-size: 13px; border-radius: 8px;">📊 匯出Excel</button>
                 </div>
@@ -1617,7 +1618,15 @@
             if (!sel) return;
             const now = new Date();
             const curVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-            sel.innerHTML = _buildMonthOptions(curVal);
+            sel.innerHTML = '<option value="">— 所有月份 —</option>' + _buildMonthOptions(curVal);
+
+            const siteSel = document.getElementById('inputExportSite');
+            if (!siteSel) return;
+            let opts = '<option value="">— 所有案場 —</option>';
+            (db.sites || []).forEach(function(s) {
+                opts += '<option value="' + s.id + '">' + s.name + '</option>';
+            });
+            siteSel.innerHTML = opts;
         }
 
         function renderSiteInfoList(editMode) {
@@ -4330,19 +4339,35 @@
 
         function exportOrderExcel() {
             const monthVal = document.getElementById('inputExportOrderMonth').value;
-            if (!monthVal) return alert('請先選擇要匯出的年月！');
-            const [yyyy, mm] = monthVal.split('-');
-            const prefix = `${yyyy}-${mm}`;
+            const siteId = (document.getElementById('inputExportSite') || {}).value || '';
+
+            // 決定過濾條件
+            const filterBySite = !!siteId;
+            const filterByMonth = !!monthVal;
+            const [yyyy, mm] = monthVal ? monthVal.split('-') : [null, null];
+            const prefix = monthVal || '';
+            const siteObj = filterBySite ? db.sites.find(function(s) { return s.id === siteId; }) : null;
+            const siteName = siteObj ? siteObj.name : '';
+
+            function _dateOk(dateStr) {
+                if (!filterByMonth) return true;
+                return dateStr.startsWith(prefix);
+            }
+            function _siteOk(entSiteId) {
+                if (!filterBySite) return true;
+                return entSiteId === siteId;
+            }
 
             // ---- 第一張：工程記錄 ----
             const logRows = [];
             Object.keys(db.dailyRecords).sort().forEach(dateStr => {
-                if (!dateStr.startsWith(prefix)) return;
+                if (!_dateOk(dateStr)) return;
                 const rec = db.dailyRecords[dateStr];
                 if (!rec || !rec.log) return;
                 const logArr = Array.isArray(rec.log) ? rec.log : [rec.log];
                 logArr.forEach(entry => {
                     if (!entry || !entry.text) return;
+                    if (!_siteOk(entry.siteId)) return;
                     logRows.push({
                         date: dateStr,
                         site: _siteNameById(entry.siteId),
@@ -4354,12 +4379,13 @@
             // ---- 第二張：材料訂購（格式不變：日期/案場/分類/品項名稱/數量）----
             const orderRows = [];
             Object.keys(db.dailyRecords).sort().forEach(dateStr => {
-                if (!dateStr.startsWith(prefix)) return;
+                if (!_dateOk(dateStr)) return;
                 const rec = db.dailyRecords[dateStr];
                 if (!rec || !rec.order) return;
                 const orderArr = Array.isArray(rec.order) ? rec.order : [rec.order];
                 orderArr.forEach(orderEntry => {
                     if (!orderEntry || !orderEntry.text) return;
+                    if (!_siteOk(orderEntry.siteId)) return;
                     const siteName = _siteNameById(orderEntry.siteId);
                     const lines = orderEntry.text.split('\n');
                     let currentCat = '';
@@ -4382,7 +4408,8 @@
                     const dateMap = db.punches[sId];
                     if (!dateMap) continue;
                     for (const dateStr in dateMap) {
-                        if (!dateStr.startsWith(prefix)) continue;
+                        if (!_dateOk(dateStr)) continue;
+                        if (!_siteOk(sId)) continue;
                         const p = dateMap[dateStr];
                         if (!p) continue;
                         if (!punchByDate[dateStr]) punchByDate[dateStr] = [];
@@ -4407,7 +4434,8 @@
             }
 
             if (logRows.length === 0 && orderRows.length === 0 && punchRows.length === 0) {
-                return alert(`${yyyy}年${mm}月 無任何紀錄可匯出！`);
+                const label = (filterByMonth ? `${yyyy}年${mm}月` : '所選') + (filterBySite ? ` ${siteName}` : '');
+                return alert(label + ' 無任何紀錄可匯出！');
             }
 
             if (typeof XLSX === 'undefined') {
@@ -4437,7 +4465,9 @@
             wsPunch['!cols'] = [{ wch: 12 }, { wch: 16 }, { wch: 8 }, { wch: 10 }, { wch: 24 }];
             XLSX.utils.book_append_sheet(wb, wsPunch, '出勤');
 
-            XLSX.writeFile(wb, `工程管理${yyyy}-${mm}.xlsx`);
+            const fnMonth = filterByMonth ? `${yyyy}-${mm}` : '全期';
+            const fnSite = filterBySite ? `_${siteName}` : '';
+            XLSX.writeFile(wb, `工程管理${fnMonth}${fnSite}.xlsx`);
         }
 
 
