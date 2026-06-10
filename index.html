@@ -117,9 +117,8 @@
         .calendar-day.selected { background-color: #1e1e1e; border-color: #aaaaaa; }
         .calendar-day.selected .day-num { color: #ffffff; }
         .day-num { font-size: 11px; font-weight: bold; color: #dddddd; }
-        .day-dots { display: flex; flex-direction: row; gap: 2px; align-items: flex-start; overflow: hidden; position: absolute; top: 2px; left: 18px; bottom: 2px; }
-        .dot-log-group { display: flex; flex-direction: column; gap: 2px; }
-        .dot { width: 5px; height: 5px; border-radius: 50%; display: block; flex-shrink: 0; }
+        .day-dots { display: flex; gap: 2px; justify-content: flex-start; overflow: hidden; position: absolute; bottom: 2px; left: 2px; right: 2px; }
+        .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
         .dot-log { background-color: #ef4444; }
         .dot-punch { background-color: #f5c518; }
         .dot-order { background-color: #7ec8e3; }
@@ -351,15 +350,15 @@
     <!-- 工程進度 彈窗 -->
     <div id="workProgressModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;" onclick="if(event.target===this)closeWorkProgressModal()">
         <div id="workProgressModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden;">
-            <!-- 固定標題列 -->
-            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
+            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">工程進度</span>
-                <button id="btnWpEdit" onclick="_wpToggleEditMode()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px; flex-shrink:0;">編輯</button>
+                <button onclick="openAddWorkProgressForm()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px; flex-shrink:0;">＋ 新增</button>
             </div>
-            <!-- 固定：案場選擇 + 總進度 -->
-            <div style="padding:12px 16px 8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0; border-bottom:1px solid #333;">
-                <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-                <div id="wpOverallWrap" style="display:none; background:#2a2a2a; border:1px solid #444; border-radius:10px; padding:10px 12px; flex-direction:column; gap:6px;">
+            <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+                </div>
+                <div id="wpOverallWrap" style="display:none; background:#2a2a2a; border:1px solid #444; border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;">總進度</span>
                         <div style="display:flex; align-items:center; gap:8px;">
@@ -371,15 +370,54 @@
                         <div id="wpOverallFill" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#ff4d4d); border-radius:5px; transition:width 0.3s;"></div>
                     </div>
                 </div>
-            </div>
-            <!-- 可滾動：工項列表 -->
-            <div style="flex:1; overflow-y:auto; padding:12px 16px;">
                 <div id="wpList" style="display:flex; flex-direction:column; gap:0;"></div>
             </div>
         </div>
     </div>
 
-
+    <!-- 工程進度 新增/編輯 表單彈窗 -->
+    <div id="wpFormModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="_wpFormModalBgClick(event)">
+        <div style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
+            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <span id="wpFormTitle" style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">新增工項進度</span>
+                <button id="btnWpFormDelete" onclick="deleteWorkProgressItem()" style="display:none; background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px; flex-shrink:0;">刪除</button>
+                <button id="btnWpFormEdit" onclick="_wpEnterEditMode()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 14px; border-radius:8px; flex-shrink:0;">編輯</button>
+                <button id="btnWpFormSave" onclick="saveWorkProgressItem()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">儲存</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:14px;">
+                <datalist id="wpTaskHistory"></datalist>
+                <datalist id="wpFloorHistory"></datalist>
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">工項</label>
+                    <input type="text" id="wpInputTask" list="wpTaskHistory" placeholder="請輸入工項名稱..." style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none; -webkit-user-select:text; user-select:text;">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1; min-width:0;">
+                        <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">樓層／區域</label>
+                        <input type="text" id="wpInputFloor" list="wpFloorHistory" placeholder="例：B1、1F、2F..." style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none; -webkit-user-select:text; user-select:text;">
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">施工廠商</label>
+                        <select id="wpVendorSelect" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background:#2a2a2a; color:#ffffff; outline:none;"></select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:6px;">施工進度：<span id="wpProgressLabel" style="color:#ffffff; font-weight:700;">0%</span></label>
+                    <div style="position:relative; height:44px; display:flex; align-items:center;">
+                        <div id="wpProgressTrack" style="position:relative; width:100%; height:28px; background:#2a2a2a; border-radius:14px; border:1px solid #555555; overflow:hidden; cursor:pointer;">
+                            <div id="wpProgressFill" style="height:100%; width:0%; background:linear-gradient(90deg,#3a7bd5,#6ec6ff); border-radius:14px; transition:width 0.15s; pointer-events:none;"></div>
+                            <div id="wpProgressTicks" style="position:absolute; inset:0; display:flex; pointer-events:none;"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:4px; padding:0 2px;">
+                        <span style="font-size:10px; color:#666;">0%</span>
+                        <span style="font-size:10px; color:#666;">50%</span>
+                        <span style="font-size:10px; color:#666;">100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
         <!-- 新增計價表彈窗 -->
         <div id="addBlockModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)_tryCloseAddBlockModal()">
@@ -387,7 +425,7 @@
                 <div style="padding:14px 16px 10px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                     <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1;">新增計價表</span>
                     <button onclick="_tryCloseAddBlockModal()" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">取消</button>
-                    <button onclick="_confirmAddBlock()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:8px;">新增</button>
+                    <button onclick="_confirmAddBlock()" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px;">新增</button>
                 </div>
                 <div style="padding:14px 16px; display:flex; flex-direction:column; gap:12px;">
                     <div>
@@ -405,7 +443,7 @@
                         </div>
                         <div style="flex:1; min-width:0;">
                             <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">計價表總價</label>
-                            <input type="text" inputmode="numeric" id="addBlockTotal" placeholder="選填" oninput="_formatAmountInput(this)" style="-webkit-user-select:text; user-select:text;">
+                            <input type="number" inputmode="numeric" id="addBlockTotal" placeholder="選填" style="-webkit-user-select:text; user-select:text;">
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:10px;">
@@ -438,7 +476,7 @@
                     <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
                         <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">計價表總價</label>
                         <span id="progressModalBlockTotalView" style="font-size:13px; font-weight:600; color:#ffffff;">—</span>
-                        <input id="progressModalBlockTotalInput" type="text" inputmode="numeric" placeholder="輸入此計價表總價..." oninput="_formatAmountInput(this);_recalcModalSummary()" style="display:none; font-size:13px; padding:6px 10px; border:1px solid #555555; border-radius:8px; background:#1e1e1e; -webkit-user-select:text; user-select:text; width:100%;">
+                        <input id="progressModalBlockTotalInput" type="number" inputmode="numeric" placeholder="輸入此計價表總價..." style="display:none; font-size:13px; padding:6px 10px; border:1px solid #555555; border-radius:8px; background:#1e1e1e; -webkit-user-select:text; user-select:text; width:100%;">
                     </div>
                     <div style="display:flex; flex-direction:column; align-items:center; gap:2px; flex-shrink:0;">
                         <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em; white-space:nowrap;">列入總計價</label>
@@ -461,10 +499,7 @@
 
         <section id="pageManage" class="page" style="overflow-y: auto;">
             <div class="card" style="background-color: #1e1e1e; border: 1px solid #555555;">
-                <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px;">
-                    <h3 style="font-size:14px; margin:0; color:#ffffff;">系統</h3>
-                    <span id="importedFileName" style="display:none; font-size:12px; color:#aaaaaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60%;"></span>
-                </div>
+                <h3 style="font-size: 14px; margin: 0; border-bottom: 1px solid #444444; padding-bottom: 4px; color: #ffffff;">系統</h3>
                 <button onclick="document.getElementById('importFile').click()" class="btn-amber" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px;">📥 匯入系統備份檔(JSON)</button>
                 <button onclick="exportJSON()" class="btn-slate" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px;">📤 匯出系統備份</button>
                 <div id="backupWarningBanner" style="display:none; background:#fff7ed; border:1px solid #fb923c; border-radius:8px; padding:8px 12px; font-size:12px; color:#9a3412; font-weight:600;">⚠️ <span id="backupWarningText"></span></div>
@@ -836,8 +871,6 @@
                             document.getElementById('inputScriptUrl').value = db.config.scriptUrl || '';
                         }
                         alert('案場資料與歷史填報紀錄已成功同步匯入！');
-                    const fnEl = document.getElementById('importedFileName');
-                    if (fnEl) { fnEl.textContent = '✓ ' + file.name; fnEl.style.display = 'inline'; }
                         currentState.siteId = null;
                         currentState.siteName = '';
                         navigateTo('sites');
@@ -998,18 +1031,13 @@
                 const dotsEl = document.createElement('div');
                 dotsEl.className = 'day-dots';
 
-                let logCount = 0;
+                let hasLog = false;
                 const logRec = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].log;
                 if (logRec) {
                     const logArr = Array.isArray(logRec) ? logRec : [logRec];
-                    logArr.forEach(item => { if (item && item.text) logCount++; });
+                    logArr.forEach(item => { if (item && item.text) hasLog = true; });
                 }
-                let orderCount = 0;
-                const orderRec = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].order;
-                if (orderRec) {
-                    const orderArr = Array.isArray(orderRec) ? orderRec : [orderRec];
-                    orderArr.forEach(item => { if (item && item.text) orderCount++; });
-                }
+                const hasOrder = db.dailyRecords[dateStr] && db.dailyRecords[dateStr].order;
 
                 let hasPunch = false;
                 if (db.punches) {
@@ -1018,23 +1046,10 @@
                     }
                 }
 
-                let dotsHtml = '';
-                if (logCount > 0) {
-                    let logDots = '';
-                    for (let i = 0; i < logCount; i++) {
-                        logDots += '<span class="dot dot-log"></span>';
-                    }
-                    dotsHtml += '<div class="dot-log-group">' + logDots + '</div>';
-                }
-                if (orderCount > 0) {
-                    let orderDots = '';
-                    for (let i = 0; i < orderCount; i++) {
-                        orderDots += '<span class="dot dot-order"></span>';
-                    }
-                    dotsHtml += '<div class="dot-log-group">' + orderDots + '</div>';
-                }
-                if (hasPunch) dotsHtml += '<span class="dot dot-punch"></span>';
-                dotsEl.innerHTML = dotsHtml;
+                dotsEl.innerHTML =
+                    '<span class="dot ' + (hasLog   ? 'dot-log'   : 'dot-empty') + '"></span>' +
+                    '<span class="dot ' + (hasOrder ? 'dot-order' : 'dot-empty') + '"></span>' +
+                    '<span class="dot ' + (hasPunch ? 'dot-punch' : 'dot-empty') + '"></span>';
 
                 dayEl.appendChild(dotsEl);
                 gridEl.appendChild(dayEl);
@@ -1764,31 +1779,9 @@
             Object.keys(db.workProgress || {}).forEach(function(siteId) {
                 (db.workProgress[siteId] || []).forEach(function(wp) { if (wp.vendor === old) wp.vendor = trimmed; });
             });
-            // 同步更新 siteInfo 中所有廠商相關欄位
-            Object.keys(db.siteInfo || {}).forEach(function(siteId) {
-                const info = db.siteInfo[siteId];
-                if (!info) return;
-                // 舊單選欄位
-                if (info.vendor === old) info.vendor = trimmed;
-                // 已選廠商陣列
-                if (Array.isArray(info.vendors)) {
-                    info.vendors = info.vendors.map(function(v) { return v === old ? trimmed : v; });
-                }
-                // vendorProgressBlocksMap key
-                if (info.vendorProgressBlocksMap && info.vendorProgressBlocksMap[old] !== undefined) {
-                    info.vendorProgressBlocksMap[trimmed] = info.vendorProgressBlocksMap[old];
-                    delete info.vendorProgressBlocksMap[old];
-                }
-            });
             db.vendors[idx] = trimmed;
-            // 同步 _activeVendorName
-            if (_activeVendorName === old) _activeVendorName = trimmed;
             saveToLocalStorage();
             renderVendorList(true);
-            // 若案場資訊視窗開著，刷新廠商卡
-            if (document.getElementById('siteInfoModal').style.display !== 'none') {
-                _renderVendorCard();
-            }
         }
 
         function deleteVendor(idx) {
@@ -1937,18 +1930,6 @@
             renderSiteInfoList(false);
         }
 
-        function _formatAmountInput(el) {
-            const raw = el.value.replace(/,/g, '');
-            if (raw === '' || raw === '-') return;
-            const n = Number(raw);
-            if (isNaN(n)) { el.value = raw.replace(/[^0-9]/g, ''); return; }
-            el.value = n.toLocaleString('zh-TW');
-        }
-
-        function _amountInputValue(el) {
-            return Number((el.value || '').replace(/,/g, '')) || 0;
-        }
-
         function _fmtAmount(v) {
             if (v === null || v === undefined || v === '') return '—';
             const n = Number(v);
@@ -1972,12 +1953,9 @@
         function _getSelectedVendors() {
             const info = (db.siteInfo && db.siteInfo[_siSelectedSiteId]) || {};
             const v = info.vendors;
-            let selected = [];
-            if (Array.isArray(v)) selected = v;
-            else if (info.vendor) selected = [info.vendor];
-            const order = db.vendors || [];
-            return order.filter(function(x) { return selected.includes(x); })
-                        .concat(selected.filter(function(x) { return !order.includes(x); }));
+            if (Array.isArray(v)) return v;
+            if (info.vendor) return [info.vendor];
+            return [];
         }
 
         function _renderVendorEditPills() {
@@ -2498,7 +2476,7 @@
             document.getElementById('progressModalBlockTotalView').style.display = 'none';
             const btInp = document.getElementById('progressModalBlockTotalInput');
             btInp.style.display = '';
-            btInp.value = blk.blockTotal ? Number(blk.blockTotal).toLocaleString('zh-TW') : '';
+            btInp.value = blk.blockTotal || '';
             btInp.oninput = () => _recalcModalSummary();
             document.getElementById('progressModalIncludeView').style.display = 'none';
             const inclChk = document.getElementById('progressModalIncludeInput');
@@ -2583,7 +2561,7 @@
             const blk = blocks[_siEditingBlockIdx] || {};
             let blkTotal = 0;
             if (btInp && btInp.style.display !== 'none') {
-                blkTotal = _amountInputValue(btInp);
+                blkTotal = Number(btInp.value) || 0;
             } else {
                 blkTotal = Number(blk.blockTotal) || 0;
             }
@@ -2595,7 +2573,7 @@
                 const inp = row.querySelector('.modal-amount-inp');
                 const pctEl = row.querySelector('.modal-pct-cell');
                 if (inp) {
-                    const amt = _amountInputValue(inp);
+                    const amt = Number(inp.value)||0;
                     total += amt;
                     if (pctEl) pctEl.innerText = useCt > 0 ? (amt/useCt*100).toFixed(1)+'%' : '—';
                 } else {
@@ -2616,7 +2594,7 @@
                 const sel = row.querySelector('.modal-month-sel');
                 const inp = row.querySelector('.modal-amount-inp');
                 if (!sel || !inp) return;
-                const amount = String(_amountInputValue(inp));
+                const amount = inp.value.trim();
                 if (!amount || Number(amount) === 0) return;
                 items.push({ month: sel.value, amount });
             });
@@ -2627,25 +2605,18 @@
             const typeSelect = document.getElementById('progressModalBlockTypeSelect');
             blocks[_siEditingBlockIdx].title = title;
             blocks[_siEditingBlockIdx].items = items;
-            blocks[_siEditingBlockIdx].blockTotal = btInp ? String(_amountInputValue(btInp) || '') : '';
+            blocks[_siEditingBlockIdx].blockTotal = btInp ? btInp.value.trim() : '';
             blocks[_siEditingBlockIdx].includeInTotal = inclChk ? inclChk.checked : false;
             blocks[_siEditingBlockIdx].blockType = typeSelect ? typeSelect.value : '';
             saveToLocalStorage();
             _progressModalIsEditing = false;
             _progressModalSnapshot = null;
             if (_progressModalIsVendor) {
-                const _vendorIsEditing = document.getElementById('mainInfoEditArea').style.display !== 'none';
-                if (_vendorIsEditing) { _renderVendorCardEdit(); } else { _renderVendorCardView(); }
+                _updateVendorTotalDisplay();
+                _renderVendorProgressBlocksFor(false);
             } else {
                 _updateEditTotalDisplay();
                 _renderAllProgressBlocks();
-                // 更新主卡 view 的承攬總價與進度百分比
-                const ct = _computeContractTotalFromBlocks();
-                if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
-                db.siteInfo[_siSelectedSiteId].contractTotal = ct ? String(ct) : '';
-                saveToLocalStorage();
-                document.getElementById('siteInfoViewTotal').innerText = ct > 0 ? _fmtAmount(ct) : '—';
-                _updateTotalProgressPct();
             }
             _openProgressModal(_siEditingBlockIdx, _progressModalIsVendor);
             showToast('儲存成功');
@@ -2655,19 +2626,6 @@
             document.getElementById('progressEditModal').style.display = 'none';
             _progressModalSnapshot = null;
             _progressModalIsEditing = false;
-            // 關閉時刷新對應卡片
-            if (_progressModalIsVendor) {
-                const _vendorIsEditing = document.getElementById('mainInfoEditArea').style.display !== 'none';
-                if (_vendorIsEditing) { _renderVendorCardEdit(); } else { _renderVendorCardView(); }
-            } else {
-                const ct = _computeContractTotalFromBlocks();
-                if (db.siteInfo && db.siteInfo[_siSelectedSiteId]) {
-                    db.siteInfo[_siSelectedSiteId].contractTotal = ct ? String(ct) : '';
-                    saveToLocalStorage();
-                }
-                document.getElementById('siteInfoViewTotal').innerText = ct > 0 ? _fmtAmount(ct) : '—';
-                _updateTotalProgressPct();
-            }
         }
 
         function _exitProgressModalEdit() {
@@ -2734,7 +2692,7 @@
         function _confirmAddBlock() {
             const name = document.getElementById('addBlockName').value.trim();
             const blockType = document.getElementById('addBlockType').value;
-            const blockTotal = String(_amountInputValue(document.getElementById('addBlockTotal')) || '');
+            const blockTotal = document.getElementById('addBlockTotal').value.trim();
             const includeInTotal = document.getElementById('addBlockInclude').checked;
             const entry = { id: Date.now().toString(), title: name, items: [], blockType, blockTotal, includeInTotal };
             _closeAddBlockModal();
@@ -3003,7 +2961,7 @@
             const date = document.getElementById('addLogDate').value;
             const site = document.getElementById('addLogSiteSelect')?.dataset?.siteId || '';
             const items = Array.from(document.getElementById('addLogItemsContainer').getElementsByClassName('log-entry-item')).map(el => ({
-                item: el.querySelector('.log-floor-input')?.value || '',
+                item: el.querySelector('.log-item-input')?.value || '',
                 floor: el.querySelector('.log-floor-input')?.value || '',
                 contractor: el.querySelector('.log-contractor-input')?.value || '',
                 people: el.querySelector('.log-people-input')?.value || ''
@@ -3015,7 +2973,7 @@
             const date = document.getElementById('editLogDate').value;
             const site = document.getElementById('editLogSiteSelect')?.dataset?.siteId || '';
             const items = Array.from(document.getElementById('editLogItemsContainer').getElementsByClassName('log-entry-item')).map(el => ({
-                item: el.querySelector('.log-floor-input')?.value || '',
+                item: el.querySelector('.log-item-input')?.value || '',
                 floor: el.querySelector('.log-floor-input')?.value || '',
                 contractor: el.querySelector('.log-contractor-input')?.value || '',
                 people: el.querySelector('.log-people-input')?.value || ''
@@ -3036,13 +2994,13 @@
             const btInp = document.getElementById('progressModalBlockTotalInput');
             const inclChk = document.getElementById('progressModalIncludeInput');
             const typeSelect = document.getElementById('progressModalBlockTypeSelect');
-            const blockTotal = btInp ? btInp.value.replace(/,/g,'') : '';
+            const blockTotal = btInp ? btInp.value : '';
             const includeInTotal = inclChk ? inclChk.checked : true;
             const blockType = typeSelect ? typeSelect.value : '';
             const rows = Array.from(document.querySelectorAll('#progressModalItems div[data-modal-row]')).map(row => {
                 const sel = row.querySelector('.modal-month-sel');
                 const inp = row.querySelector('.modal-amount-inp');
-                return { month: sel ? sel.value : '', amount: inp ? inp.value.replace(/,/g,'') : '' };
+                return { month: sel ? sel.value : '', amount: inp ? inp.value : '' };
             });
             return JSON.stringify({ blockTotal, includeInTotal, blockType, rows });
         }
@@ -3753,15 +3711,14 @@
         function openAddLogModal() {
             const dateStr = selectedHomeDateStr || getTargetDateStr();
             document.getElementById('addLogDate').value = dateStr;
-            _renderSitePills('addLogSiteSelect', '', function(siteId) {
-                _refreshLogTaskHistory(siteId || '');
+            _renderSitePills('addLogSiteSelect', '', function() {
                 const container = document.getElementById('addLogItemsContainer');
                 container.innerHTML = '';
-                addNewLogItemRow('', '', '', '', '', false);
+                addNewLogItemRow('', '', false);
             });
             const container = document.getElementById('addLogItemsContainer');
             container.innerHTML = '';
-            addNewLogItemRow('', '', '', '', '', true);
+            addNewLogItemRow('', '', true);
             _openModalAlignedToCalendar('addLogModal', 'addLogModalInner');
             document.querySelector('#addLogModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
             document.getElementById('addLogItemsContainer')?.scrollTo(0, 0);
@@ -3782,6 +3739,16 @@
             });
         }
 
+        function _buildWpOptions(siteId, selectedValue) {
+            const wpItems = (siteId && db.workProgress[siteId]) ? db.workProgress[siteId] : [];
+            let opts = '<option value="">\u2014 \u9078\u64c7\u65bd\u5de5\u9805\u76ee \u2014</option>';
+            wpItems.forEach(function(wp) {
+                const label = ((wp.floor || '') + (wp.task || '')).trim() || wp.task || '';
+                if (!label) return;
+                opts += '<option value="' + label + '"' + (label === selectedValue ? ' selected' : '') + '>' + label + '</option>';
+            });
+            return opts;
+        }
 
         function _getWpProgress(siteId, label) {
             if (!siteId || !label) return null;
@@ -3792,181 +3759,85 @@
             return found ? (found.progress || 0) : null;
         }
 
+        function _onLogCiChange(sel) {
+            const row = sel.closest('.log-entry-item');
+            if (!row) return;
+            const badge = row.querySelector('.log-ci-pct');
+            if (!badge) return;
+            const label = sel.value;
+            // Get siteId from whichever modal is open
+            const addSiteSel = document.getElementById('addLogSiteSelect');
+            const editSiteSel = document.getElementById('editLogSiteSelect');
+            const siteId = (addSiteSel && addSiteSel.dataset.siteId) || (_editCtx && _editCtx.siteId) || (editSiteSel && editSiteSel.dataset.siteId) || '';
+            const pct = _getWpProgress(siteId, label);
+            if (label && pct !== null) {
+                badge.textContent = pct + '%';
+                badge.style.display = 'inline';
+            } else {
+                badge.textContent = '';
+                badge.style.display = 'none';
+            }
+        }
 
         function _addNewLogItemRowAuto() {
-            addNewLogItemRow('', '', '', '', true);
+            const container = document.getElementById('addLogItemsContainer');
+            const firstItem = container.querySelector('.log-entry-item');
+            const firstConst = firstItem ? firstItem.querySelector('.log-construction-input') : null;
+            const noConstruction = firstItem && (!firstConst || firstConst.value === '');
+            addNewLogItemRow('', '', true, '', noConstruction);
         }
 
-        let _logTaskHistory = [];
-
-        let _logFloorHistory = [];
-
-        function _refreshLogTaskHistory(siteId) {
-            const tasks = new Set();
-            const floors = new Set();
-            Object.keys(db.dailyRecords || {}).forEach(function(dateStr) {
-                const rec = db.dailyRecords[dateStr];
-                if (!rec || !rec.log) return;
-                const arr = Array.isArray(rec.log) ? rec.log : [rec.log];
-                arr.forEach(function(entry) {
-                    if (!entry || entry.siteId !== siteId || !entry.text) return;
-                    entry.text.split('\n').forEach(function(line) {
-                        const m = line.match(/^● (.+)$/);
-                        if (!m) return;
-                        const full = m[1];
-                        const mParen = full.match(/^(.+?)（(.+)）$/);
-                        if (mParen) {
-                            const task = mParen[1].trim();
-                            const floor = mParen[2].trim();
-                            if (task && task !== '無') tasks.add(task);
-                            if (floor) floors.add(floor);
-                        } else {
-                            const task = full.trim();
-                            if (task && task !== '無') tasks.add(task);
-                        }
-                    });
-                });
-            });
-            _logTaskHistory = Array.from(tasks);
-            _logFloorHistory = Array.from(floors);
-        }
-
-        function _logTaskSuggest(input) {
-            const boxId = input.dataset.suggestBox;
-            const box = document.getElementById(boxId);
-            if (!box || !_logTaskHistory.length) { if (box) box.style.display = 'none'; return; }
-            const kw = input.value.trim().toLowerCase();
-            const matched = kw ? _logTaskHistory.filter(function(v) { return v.toLowerCase().includes(kw); }) : _logTaskHistory;
-            if (!matched.length) { box.style.display = 'none'; return; }
-            box.innerHTML = '';
-            matched.forEach(function(v) {
-                const row = document.createElement('div');
-                row.textContent = v;
-                row.style.cssText = 'padding:9px 12px; font-size:14px; color:#ffffff; cursor:pointer; border-bottom:1px solid #444444; flex-shrink:0;';
-                row.addEventListener('mousedown', function(e) { e.preventDefault(); input.value = v; box.style.display = 'none'; });
-                row.addEventListener('touchstart', function(e) { e.preventDefault(); input.value = v; box.style.display = 'none'; }, { passive: false });
-                box.appendChild(row);
-            });
-            if (box.lastChild) box.lastChild.style.borderBottom = 'none';
-            box.style.display = 'flex';
-            const rect = input.getBoundingClientRect();
-            box.style.left = rect.left + 'px';
-            box.style.width = rect.width + 'px';
-            const spaceBelow = window.innerHeight - rect.bottom - 8;
-            const spaceAbove = rect.top - 8;
-            if (spaceBelow >= 80 || spaceBelow >= spaceAbove) {
-                box.style.top = (rect.bottom + 2) + 'px'; box.style.bottom = 'auto';
-                box.style.maxHeight = Math.max(spaceBelow, 80) + 'px';
-            } else {
-                box.style.bottom = (window.innerHeight - rect.top + 2) + 'px'; box.style.top = 'auto';
-                box.style.maxHeight = Math.max(spaceAbove, 80) + 'px';
-            }
-        }
-
-        function _logTaskHideSuggest(e, boxId) {
-            setTimeout(function() {
-                const box = document.getElementById(boxId);
-                if (box) box.style.display = 'none';
-            }, 150);
-        }
-
-        function _logFloorSuggest(input) {
-            const boxId = input.dataset.suggestBox;
-            const box = document.getElementById(boxId);
-            if (!box || !_logFloorHistory.length) { if (box) box.style.display = 'none'; return; }
-            const kw = input.value.trim().toLowerCase();
-            const matched = kw ? _logFloorHistory.filter(function(v) { return v.toLowerCase().includes(kw); }) : _logFloorHistory;
-            if (!matched.length) { box.style.display = 'none'; return; }
-            box.innerHTML = '';
-            matched.forEach(function(v) {
-                const row = document.createElement('div');
-                row.textContent = v;
-                row.style.cssText = 'padding:9px 12px; font-size:14px; color:#ffffff; cursor:pointer; border-bottom:1px solid #444444; flex-shrink:0;';
-                row.addEventListener('mousedown', function(e) { e.preventDefault(); input.value = v; box.style.display = 'none'; });
-                row.addEventListener('touchstart', function(e) { e.preventDefault(); input.value = v; box.style.display = 'none'; }, { passive: false });
-                box.appendChild(row);
-            });
-            if (box.lastChild) box.lastChild.style.borderBottom = 'none';
-            box.style.display = 'flex';
-            const rect = input.getBoundingClientRect();
-            box.style.left = rect.left + 'px';
-            box.style.width = rect.width + 'px';
-            const spaceBelow = window.innerHeight - rect.bottom - 8;
-            const spaceAbove = rect.top - 8;
-            if (spaceBelow >= 80 || spaceBelow >= spaceAbove) {
-                box.style.top = (rect.bottom + 2) + 'px'; box.style.bottom = 'auto';
-                box.style.maxHeight = Math.max(spaceBelow, 80) + 'px';
-            } else {
-                box.style.bottom = (window.innerHeight - rect.top + 2) + 'px'; box.style.top = 'auto';
-                box.style.maxHeight = Math.max(spaceAbove, 80) + 'px';
-            }
-        }
-
-        function _logFloorHideSuggest(e, boxId) {
-            setTimeout(function() {
-                const box = document.getElementById(boxId);
-                if (box) box.style.display = 'none';
-            }, 150);
-        }
-
-        function _buildLogVendorOptions(siteId, selectedValue) {
-            const rawV = (db.siteInfo && db.siteInfo[siteId] && Array.isArray(db.siteInfo[siteId].vendors) && db.siteInfo[siteId].vendors.length > 0)
-                ? db.siteInfo[siteId].vendors : (db.vendors || []);
-            const ord = db.vendors || [];
-            const vendors = ord.filter(function(v){return rawV.includes(v);}).concat(rawV.filter(function(v){return !ord.includes(v);}));
-            // 若無指定，預設第一個廠商
-            const defaultVal = selectedValue || (vendors[0] || '');
-            let opts = '<option value="">—</option>';
-            vendors.forEach(function(v) {
-                opts += '<option value="' + v + '"' + (v === defaultVal ? ' selected' : '') + '>' + v + '</option>';
-            });
-            return opts;
-        }
-
-        function addNewLogItemRow(taskValue, floorValue, itemValue, peopleValue, vendorValue, autoFocus) {
-            taskValue = taskValue || ''; floorValue = floorValue || ''; itemValue = itemValue || ''; peopleValue = peopleValue || ''; vendorValue = vendorValue || '';
+        function addNewLogItemRow(itemValue, peopleValue, autoFocus, constructionItemValue, noConstruction) {
+            itemValue = itemValue || ''; peopleValue = peopleValue || ''; constructionItemValue = constructionItemValue || '';
             autoFocus = autoFocus !== false && autoFocus !== undefined ? !!autoFocus : false;
+            noConstruction = !!noConstruction;
             const container = document.getElementById('addLogItemsContainer');
             const itemNum = container.children.length + 1;
             const div = document.createElement('div');
             div.className = 'log-entry-item';
             const siteSel = document.getElementById('addLogSiteSelect');
             const siteId = siteSel ? (siteSel.dataset.siteId || '') : '';
-            const vendorOpts = _buildLogVendorOptions(siteId, vendorValue);
+            let constructionBlock = '';
+            if (!noConstruction) {
+                const ciOptions = _buildWpOptions(siteId, constructionItemValue);
+                const initPct = _getWpProgress(siteId, constructionItemValue);
+                const pctDisplay = (constructionItemValue && initPct !== null) ? initPct + '%' : '';
+                const pctVisible = pctDisplay ? 'inline' : 'none';
+                constructionBlock =
+                    '<span class="log-ci-pct" style="display:' + pctVisible + '; font-size:12px; font-weight:700; color:#06C755; background:rgba(6,199,85,0.12); border-radius:10px; padding:1px 7px; line-height:1.6;">' + pctDisplay + '</span>';
+                var constructionRow =
+                    '<div style="display:flex; gap:8px; align-items:flex-end;">' +
+                        '<div style="flex:1; min-width:0;">' +
+                            '<label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">\u65bd\u5de5\u9805\u76ee\uff1a</label>' +
+                            '<select class="log-construction-input" onchange="_onLogCiChange(this)" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;">' +
+                                ciOptions +
+                            '</select>' +
+                        '</div>' +
+                        '<div style="flex-shrink:0; width:72px;">' +
+                            '<label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">\u4eba\u6578\uff1a</label>' +
+                            '<input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="' + peopleValue + '" style="width:100%;text-align:center;">' +
+                        '</div>' +
+                    '</div>';
+            } else {
+                constructionBlock = '';
+                var constructionRow = '';
+            }
             div.innerHTML =
                 '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
-                    '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">項目' + itemNum + '：</label>' +
-                    '<button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeNewLogItemRow(this)">移除</button>' +
+                    '<div style="display:flex; align-items:center; gap:6px;">' +
+                        '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">\u9805\u76ee' + itemNum + '\uff1a</label>' +
+                        constructionBlock +
+                    '</div>' +
+                    '<button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeNewLogItemRow(this)">\u79fb\u9664</button>' +
                 '</div>' +
-                (function(){
-                    const sid = 'lts_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-                    return '<div style="position:relative;">' +
-                        '<input type="text" class="log-task-input" value="' + taskValue + '" placeholder="工項名稱"' +
-                        ' data-suggest-box="' + sid + '"' +
-                        ' oninput="_logTaskSuggest(this)" onfocus="_logTaskSuggest(this)" onblur="_logTaskHideSuggest(event,\''+sid+'\')' +
-                        '" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
-                        '<div id="' + sid + '" style="display:none;position:fixed;background:#2a2a2a;border:1px solid #555555;border-radius:8px;z-index:9999;overflow-y:auto;flex-direction:column;"></div>' +
-                        '</div>';
-                })() +
-                '<div style="display:flex; gap:8px;">' +
-                    '<div style="flex:1; min-width:0;">' +
-                        '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">樓層／區域</label>' +
-                        (function(){ const fid='lfs_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); return '<div style="position:relative;"><input type="text" class="log-floor-input" value="' + floorValue + '" placeholder="例：1F、2F..." data-suggest-box="' + fid + '" oninput="_logFloorSuggest(this)" onfocus="_logFloorSuggest(this)" onblur="_logFloorHideSuggest(event,\''+fid+'\')' + '" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 10px;font-size:13px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;"><div id="'+fid+'" style="display:none;position:fixed;background:#2a2a2a;border:1px solid #555555;border-radius:8px;z-index:9999;overflow-y:auto;flex-direction:column;"></div></div>'; })() +
-                    '</div>' +
-                    '<div style="flex:1; min-width:0;">' +
-                        '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">施工廠商</label>' +
-                        '<select class="log-vendor-input" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 10px;font-size:13px;background:#1e1e1e;color:#ffffff;">' + vendorOpts + '</select>' +
-                    '</div>' +
-                    '<div style="flex-shrink:0; width:64px;">' +
-                        '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">人數</label>' +
-                        '<input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="' + peopleValue + '" style="width:100%;text-align:center;">' +
-                    '</div>' +
-                '</div>' +
-                '<textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" placeholder="施工備註（選填）" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'">' + itemValue + '</textarea>';
+                constructionRow +
+                '<textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" placeholder="\u65bd\u5de5\u5099\u8a3b" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'">' + itemValue + '</textarea>';
             container.appendChild(div);
             if (autoFocus) {
                 setTimeout(function() {
-                    const focusEl = div.querySelector('.log-task-input');
+                    const focusEl = noConstruction
+                        ? div.querySelector('.log-item-input')
+                        : div.querySelector('.log-construction-input');
                     if (focusEl) { focusEl.focus(); container.scrollTop = container.scrollHeight; }
                 }, 30);
             }
@@ -3979,30 +3850,6 @@
             _updateNewLogItemLabels();
         }
 
-        function _syncLogToWorkProgress(siteId, items) {
-            if (!siteId) return;
-            if (!db.workProgress) db.workProgress = {};
-            if (!db.workProgress[siteId]) db.workProgress[siteId] = [];
-            const wpList = db.workProgress[siteId];
-            items.forEach(function(item) {
-                const task = item.constructionVal;
-                const floor = item.floorVal || '';
-                const vendor = item.vendorVal || '';
-                if (!task) return;
-                // 比對 task + floor 都相同才視為同一條
-                const found = wpList.find(function(wp) {
-                    return wp.task === task && (wp.floor || '') === floor;
-                });
-                if (found) {
-                    // 已存在：更新廠商（如有）
-                    if (vendor) found.vendor = vendor;
-                } else {
-                    wpList.push({ task, floor, vendor, progress: 0 });
-                }
-            });
-            saveToLocalStorage();
-        }
-
         function saveAddLogModal() {
             const siteSel = document.getElementById('addLogSiteSelect');
             const siteId = siteSel ? (siteSel.dataset.siteId || '') : '';
@@ -4013,22 +3860,21 @@
             const container = document.getElementById('addLogItemsContainer');
             const items = container.getElementsByClassName('log-entry-item');
             let projectLogText = '', hasContent = false;
-            const syncItems = [];
             for (let i = 0; i < items.length; i++) {
-                const taskVal = items[i].querySelector('.log-task-input') ? items[i].querySelector('.log-task-input').value.trim() : '';
-                const floorVal = items[i].querySelector('.log-floor-input') ? items[i].querySelector('.log-floor-input').value.trim() : '';
-                const itemNote = items[i].querySelector('.log-item-input') ? items[i].querySelector('.log-item-input').value.trim() : '';
-                const vendorEl = items[i].querySelector('.log-vendor-input');
-                const vendorVal = vendorEl ? vendorEl.value.trim() : '';
-                const peopleVal = items[i].querySelector('.log-people-input') ? items[i].querySelector('.log-people-input').value.trim() : '';
-                if (taskVal || floorVal || itemNote || peopleVal) {
+                const itemVal = items[i].querySelector('.log-item-input').value.trim();
+                const constructionEl = items[i].querySelector('.log-construction-input');
+                const constructionVal = constructionEl ? constructionEl.value.trim() : '';
+                const peopleVal = items[i].querySelector('.log-people-input').value.trim();
+                if (itemVal || constructionVal || peopleVal) {
                     hasContent = true;
-                    let line = `● ${taskVal || '無'}`;
-                    if (itemNote) line += `（${itemNote}）`;
-                    if (floorVal) line += `\n↳ 樓層：${floorVal}`;
+                    let line;
+                    if (constructionVal && itemVal) {
+                        line = `● ${constructionVal}（${itemVal}）`;
+                    } else {
+                        line = `● ${constructionVal || itemVal || '無'}`;
+                    }
                     if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
                     projectLogText += line + '\n';
-                    if (taskVal) syncItems.push({ constructionVal: taskVal, floorVal, vendorVal, peopleVal });
                 }
             }
             if (!hasContent) return alert('請至少填寫一項項目內容！');
@@ -4039,7 +3885,6 @@
             }
             db.dailyRecords[dateStr].log.push({ siteId, text: logText });
             const newIdx = db.dailyRecords[dateStr].log.length - 1;
-            _syncLogToWorkProgress(siteId, syncItems);
             saveToLocalStorage();
             closeAddLogModal();
             showToast('儲存成功');
@@ -4074,17 +3919,20 @@
             _renderSitePills('editLogSiteSelect', item.siteId || '', function(siteId, siteName) {
                 _editCtx.siteId = siteId;
                 _editCtx.siteName = siteName;
-                _refreshLogTaskHistory(siteId || '');
-                // 切換案場時刷新各 row 的廠商下拉
                 const cont = document.getElementById('editLogItemsContainer');
                 cont.querySelectorAll('.log-entry-item').forEach(function(row) {
-                    const vsel = row.querySelector('.log-vendor-input');
-                    if (!vsel) return;
-                    const curVal = vsel.value;
-                    vsel.innerHTML = _buildLogVendorOptions(siteId, curVal);
+                    const sel = row.querySelector('.log-construction-input');
+                    const badge = row.querySelector('.log-ci-pct');
+                    if (!sel) return;
+                    const curVal = sel.value;
+                    sel.innerHTML = _buildWpOptions(_editCtx.siteId, curVal);
+                    if (badge) {
+                        const pct = _getWpProgress(_editCtx.siteId, curVal);
+                        if (curVal && pct !== null) { badge.textContent = pct + '%'; badge.style.display = 'inline'; }
+                        else { badge.textContent = ''; badge.style.display = 'none'; }
+                    }
                 });
             });
-            _refreshLogTaskHistory(item.siteId || '');
             const siteObj = db.sites.find(s => s.id === item.siteId);
             _editCtx.siteId = item.siteId;
             _editCtx.siteName = siteObj ? siteObj.name : '';
@@ -4093,32 +3941,33 @@
             container.innerHTML = '';
             const lines = item.text.split('\n');
             let rows = [], cur = null;
+            // Build a set of known wp labels for this site for matching
+            const wpLabels = new Set((db.workProgress[item.siteId] || []).map(wp => ((wp.floor || '') + (wp.task || '')).trim()).filter(Boolean));
             lines.forEach(line => {
-                const mItem = line.match(/^● (.+)$/);
-                const mVendor = line.match(/^↳ 廠商：(.*)$/);
-                const mPeople = line.match(/^↳ 人數：(\d+)\s*人/);
+                const mItem = line.match(/^(?:項目 \d+：|● ?)(.*)$/);
+                const mNote = line.match(/^↳ 備註：(.*)$/);
+                const mPeople = line.match(/^↳ 人數：(\d+)\s*人$/);
                 if (mItem) {
                     if (cur) rows.push(cur);
-                    const full = mItem[1];
-                    // 格式：工項（樓層）或 純工項
-                    const mParen = full.match(/^(.+?)（(.+)）$/);
-                    if (mParen) {
-                        cur = { task: mParen[1].trim(), item: mParen[2].trim(), floor: '', vendor: '', people: '' };
-                    } else {
-                        cur = { task: full === '無' ? '' : full, item: '', floor: '', vendor: '', people: '' };
-                    }
+                    const val = mItem[1] === '無' ? '' : mItem[1];
+                    const isKnownItem = wpLabels.has(val) || (db.constructionItems || []).includes(val);
+                    cur = { constructionItem: isKnownItem ? val : '', item: isKnownItem ? '' : val, people: '' };
+                } else if (mNote && cur) {
+                    cur.item = mNote[1];
+                } else if (mPeople && cur) {
+                    cur.people = mPeople[1];
                 } else if (cur) {
-                    const mFloor = line.match(/^↳ 樓層：(.*)$/);
-                    if (mFloor) cur.floor = mFloor[1];
-                    const mVend = line.match(/^↳ 廠商：(.*)$/);
-                    if (mVend) cur.vendor = mVend[1];
-                    const mPpl = line.match(/^↳ 人數：(\d+)/);
-                    if (mPpl) cur.people = mPpl[1];
+                    // Legacy format: ↳ 人數：X 人（contractor）
+                    const mLegacy = line.match(/^↳ 人數：(\d+)\s*人(?:（[^）]*）)?$|^↳ 人數：（[^）]*）$/);
+                    if (mLegacy) { const m2 = line.match(/^↳ 人數：(\d+)/); if (m2) cur.people = m2[1]; }
+                    // Legacy floor line
+                    const mFloor = line.match(/^↳ 區域：(.*)$/);
+                    if (mFloor) { /* ignore legacy floor */ }
                 }
             });
             if (cur) rows.push(cur);
-            if (rows.length === 0) rows.push({ task: '', floor: '', item: '', vendor: '', people: '' });
-            rows.forEach((r, ri) => addEditLogItemRow(r.task || '', r.floor || '', r.item || '', r.people || '', r.vendor || '', ri === 0));
+            if (rows.length === 0) rows.push({ constructionItem: '', item: '', people: '' });
+            rows.forEach((r, ri) => addEditLogItemRow(r.item, r.people, ri === 0, r.constructionItem || ''));
             _openModalAlignedToCalendar('editLogModal', 'editLogModalInner');
             document.querySelector('#editLogModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
             document.getElementById('editLogItemsContainer')?.scrollTo(0, 0);
@@ -4134,57 +3983,69 @@
         }
 
         function _addEditLogItemRowAuto() {
-            addEditLogItemRow('', '', '', '', true);
+            const container = document.getElementById('editLogItemsContainer');
+            const firstItem = container.querySelector('.log-entry-item');
+            const firstConst = firstItem ? firstItem.querySelector('.log-construction-input') : null;
+            const noConstruction = firstItem && (!firstConst || firstConst.value === '');
+            addEditLogItemRow('', '', true, '', noConstruction);
         }
 
-        function addEditLogItemRow(taskValue, floorValue, itemValue, peopleValue, vendorValue, autoFocus) {
-            taskValue = taskValue || ''; floorValue = floorValue || ''; itemValue = itemValue || ''; peopleValue = peopleValue || ''; vendorValue = vendorValue || '';
+        function addEditLogItemRow(itemValue, peopleValue, autoFocus, constructionItemValue, noConstruction) {
+            itemValue = itemValue || ''; peopleValue = peopleValue || ''; constructionItemValue = constructionItemValue || '';
             autoFocus = autoFocus !== false && autoFocus !== undefined ? !!autoFocus : false;
+            noConstruction = !!noConstruction;
             const container = document.getElementById('editLogItemsContainer');
             const itemNum = container.children.length + 1;
             const div = document.createElement('div');
             div.className = 'log-entry-item';
             const siteSel = document.getElementById('editLogSiteSelect');
             const siteId = siteSel ? (siteSel.dataset.siteId || '') : (_editCtx ? _editCtx.siteId : '');
-            const vendorOpts = _buildLogVendorOptions(siteId, vendorValue);
+            let constructionBlock = '';
+            if (!noConstruction) {
+                const ciOptions = _buildWpOptions(siteId, constructionItemValue);
+                const initPct = _getWpProgress(siteId, constructionItemValue);
+                const pctDisplay = (constructionItemValue && initPct !== null) ? initPct + '%' : '';
+                const pctVisible = pctDisplay ? 'inline' : 'none';
+                constructionBlock =
+                    '<span class="log-ci-pct" style="display:' + pctVisible + '; font-size:12px; font-weight:700; color:#06C755; background:rgba(6,199,85,0.12); border-radius:10px; padding:1px 7px; line-height:1.6;">' + pctDisplay + '</span>';
+                var constructionRow =
+                    '<div style="display:flex; gap:8px; align-items:flex-end;">' +
+                        '<div style="flex:1; min-width:0;">' +
+                            '<label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">\u65bd\u5de5\u9805\u76ee\uff1a</label>' +
+                            '<select class="log-construction-input" onchange="_onLogCiChange(this)" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;">' +
+                                ciOptions +
+                            '</select>' +
+                        '</div>' +
+                        '<div style="flex-shrink:0; width:72px;">' +
+                            '<label style="font-size:13px;font-weight:bold;display:block;margin-bottom:4px;color:#dddddd;">\u4eba\u6578\uff1a</label>' +
+                            '<input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="' + peopleValue + '" style="width:100%;text-align:center;">' +
+                        '</div>' +
+                    '</div>';
+            } else {
+                constructionBlock = '';
+                var constructionRow = '';
+            }
             div.innerHTML =
                 '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
-                    '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">項目' + itemNum + '：</label>' +
-                    '<button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeEditLogItemRow(this)">移除</button>' +
+                    '<div style="display:flex; align-items:center; gap:6px;">' +
+                        '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1;" class="log-item-label">\u9805\u76ee' + itemNum + '\uff1a</label>' +
+                        constructionBlock +
+                    '</div>' +
+                    '<button type="button" class="btn-delete-log-item" style="position:static;" onclick="removeEditLogItemRow(this)">\u79fb\u9664</button>' +
                 '</div>' +
-                (function(){
-                    const sid = 'lts_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-                    return '<div style="position:relative;">' +
-                        '<input type="text" class="log-task-input" value="' + taskValue + '" placeholder="工項名稱"' +
-                        ' data-suggest-box="' + sid + '"' +
-                        ' oninput="_logTaskSuggest(this)" onfocus="_logTaskSuggest(this)" onblur="_logTaskHideSuggest(event,\''+sid+'\')' +
-                        '" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;">' +
-                        '<div id="' + sid + '" style="display:none;position:fixed;background:#2a2a2a;border:1px solid #555555;border-radius:8px;z-index:9999;overflow-y:auto;flex-direction:column;"></div>' +
-                        '</div>';
-                })() +
-                '<div style="display:flex; gap:8px;">' +
-                    '<div style="flex:1; min-width:0;">' +
-                        '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">樓層／區域</label>' +
-                        (function(){ const fid='lfs_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); return '<div style="position:relative;"><input type="text" class="log-floor-input" value="' + floorValue + '" placeholder="例：1F、2F..." data-suggest-box="' + fid + '" oninput="_logFloorSuggest(this)" onfocus="_logFloorSuggest(this)" onblur="_logFloorHideSuggest(event,\''+fid+'\')' + '" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 10px;font-size:13px;background:#1e1e1e;color:#ffffff;-webkit-user-select:text;user-select:text;"><div id="'+fid+'" style="display:none;position:fixed;background:#2a2a2a;border:1px solid #555555;border-radius:8px;z-index:9999;overflow-y:auto;flex-direction:column;"></div></div>'; })() +
-                    '</div>' +
-                    '<div style="flex:1; min-width:0;">' +
-                        '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">施工廠商</label>' +
-                        '<select class="log-vendor-input" style="width:100%;border:1px solid #555555;border-radius:8px;padding:8px 10px;font-size:13px;background:#1e1e1e;color:#ffffff;">' + vendorOpts + '</select>' +
-                    '</div>' +
-                    '<div style="flex-shrink:0; width:64px;">' +
-                        '<label style="font-size:12px;font-weight:bold;color:#dddddd;display:block;margin-bottom:3px;">人數</label>' +
-                        '<input type="number" inputmode="numeric" pattern="[0-9]*" class="log-people-input" value="' + peopleValue + '" style="width:100%;text-align:center;">' +
-                    '</div>' +
-                '</div>' +
-                '<textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" placeholder="施工備註（選填）" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'">' + itemValue + '</textarea>';
+                constructionRow +
+                '<textarea class="log-item-input" rows="1" style="width:100%;resize:none;overflow:hidden;line-height:1.6;border:1px solid #555555;border-radius:8px;padding:8px 12px;font-size:14px;background:#1e1e1e;-webkit-user-select:text;user-select:text;" placeholder="\u65bd\u5de5\u5099\u8a3b" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'">' + itemValue + '</textarea>';
             container.appendChild(div);
             if (autoFocus) {
                 setTimeout(function() {
-                    const focusEl = div.querySelector('.log-task-input');
+                    const focusEl = noConstruction
+                        ? div.querySelector('.log-item-input')
+                        : div.querySelector('.log-construction-input');
                     if (focusEl) { focusEl.focus(); container.scrollTop = container.scrollHeight; }
                 }, 30);
             }
         }
+
         function removeEditLogItemRow(btn) {
             const container = document.getElementById('editLogItemsContainer');
             if (container.children.length <= 1) return alert('請至少保留一個項目！');
@@ -4199,17 +4060,18 @@
             const items = container.getElementsByClassName('log-entry-item');
             let projectLogText = '', hasContent = false;
             for (let i = 0; i < items.length; i++) {
-                const taskVal = items[i].querySelector('.log-task-input') ? items[i].querySelector('.log-task-input').value.trim() : '';
-                const floorVal = items[i].querySelector('.log-floor-input') ? items[i].querySelector('.log-floor-input').value.trim() : '';
-                const itemNote = items[i].querySelector('.log-item-input') ? items[i].querySelector('.log-item-input').value.trim() : '';
-                const vendorEl = items[i].querySelector('.log-vendor-input');
-                const vendorVal = vendorEl ? vendorEl.value.trim() : '';
+                const itemVal = items[i].querySelector('.log-item-input').value.trim();
+                const constructionEl = items[i].querySelector('.log-construction-input');
+                const constructionVal = constructionEl ? constructionEl.value.trim() : '';
                 const peopleVal = items[i].querySelector('.log-people-input').value.trim();
-                if (taskVal || floorVal || itemNote || peopleVal) {
+                if (itemVal || constructionVal || peopleVal) {
                     hasContent = true;
-                    let line = `● ${taskVal || '無'}`;
-                    if (itemNote) line += `（${itemNote}）`;
-                    if (floorVal) line += `\n↳ 樓層：${floorVal}`;
+                    let line;
+                    if (constructionVal && itemVal) {
+                        line = `● ${constructionVal}（${itemVal}）`;
+                    } else {
+                        line = `● ${constructionVal || itemVal || '無'}`;
+                    }
                     if (peopleVal) line += `\n↳ 人數：${peopleVal} 人`;
                     projectLogText += line + '\n';
                 }
@@ -4225,20 +4087,6 @@
             const { type, idx, dateStr: oldDateStr, siteId } = _editCtx;
             const newDateStr = document.getElementById('editLogDate').value || oldDateStr;
 
-            // 收集施工項目同步
-            const syncItems = [];
-            const container = document.getElementById('editLogItemsContainer');
-            const logItems = container.getElementsByClassName('log-entry-item');
-            for (let i = 0; i < logItems.length; i++) {
-                const taskEl = logItems[i].querySelector('.log-task-input');
-                const taskVal = taskEl ? taskEl.value.trim() : '';
-                const floorEl = logItems[i].querySelector('.log-floor-input');
-                const floorVal2 = floorEl ? floorEl.value.trim() : '';
-                const vendorEl2 = logItems[i].querySelector('.log-vendor-input');
-                const vendorVal2 = vendorEl2 ? vendorEl2.value.trim() : '';
-                if (taskVal) syncItems.push({ constructionVal: taskVal, floorVal: floorVal2, vendorVal: vendorVal2 });
-            }
-
             const oldRec = db.dailyRecords[oldDateStr];
             if (oldRec && oldRec[type]) {
                 const arr = Array.isArray(oldRec[type]) ? oldRec[type] : [oldRec[type]];
@@ -4251,7 +4099,7 @@
             const newRec = db.dailyRecords[newDateStr];
             if (!Array.isArray(newRec[type])) newRec[type] = newRec[type] ? [newRec[type]] : [];
             newRec[type].push({ siteId, text: newText });
-            _syncLogToWorkProgress(siteId, syncItems);
+
             saveToLocalStorage();
             closeEditLogModal();
             initHomeCalendar();
@@ -4932,7 +4780,7 @@
 
             if (rawItems.length === 0) {
                 overallWrap.style.display = 'none';
-                container.innerHTML = '<div style="text-align:center; color:#888; font-size:13px; padding:16px 0;">尚無工項，請在工程記錄填寫施工項目</div>';
+                container.innerHTML = '<div style="text-align:center; color:#888; font-size:13px; padding:16px 0;">尚無工項，請點上方「＋ 新增」</div>';
                 return;
             }
 
@@ -5070,107 +4918,77 @@
                     var totalPeople = calcTotalPeople(wpLabel);
 
                     var card = document.createElement('div');
-                    var cardCss = 'padding:11px 14px; display:flex; flex-direction:column; gap:8px;';
+                    var cardCss = 'padding:11px 14px; display:flex; flex-direction:column; gap:7px; cursor:pointer;';
                     if (domRowCount > 0) cardCss += ' border-top:1px solid #333;';
                     if (isDone) cardCss += ' opacity:0.55; background:#1a1a1a;';
+                    if (floorKey && collapsed) card.style.display = 'none';
                     card.style.cssText = cardCss;
                     if (floorKey && collapsed) card.style.display = 'none';
+                    (function(i) { card.addEventListener('click', function() { openEditWorkProgressForm(siteId, i); }); }(idx));
 
-                    // 頂列：工項名稱 + meta + 進度%
                     var topRow = document.createElement('div');
                     topRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:8px;';
 
                     var titleWrap = document.createElement('div');
-                    titleWrap.style.cssText = 'flex:1; min-width:0; overflow:hidden;';
+                    titleWrap.style.cssText = 'display:flex; align-items:baseline; gap:5px; flex:1; min-width:0; overflow:hidden;';
+
                     var taskSpan = document.createElement('span');
-                    taskSpan.style.cssText = 'font-size:15px; font-weight:700; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;';
+                    taskSpan.style.cssText = 'font-size:15px; font-weight:700; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
                     taskSpan.textContent = item.task || '\u2014';
                     titleWrap.appendChild(taskSpan);
-                    if (item.vendor || totalPeople > 0) {
-                        var metaSub = document.createElement('span');
-                        metaSub.style.cssText = 'font-size:12px; color:#888888;';
-                        var parts = [];
-                        if (item.vendor) parts.push(item.vendor);
-                        if (totalPeople > 0) parts.push(totalPeople + ' \u4eba');
-                        metaSub.textContent = parts.join(' · ');
-                        titleWrap.appendChild(metaSub);
-                    }
 
-                    var rightWrap = document.createElement('div');
-                    rightWrap.style.cssText = 'display:flex; align-items:center; gap:8px; flex-shrink:0;';
+                    var metaWrap = document.createElement('div');
+                    metaWrap.style.cssText = 'display:flex; align-items:center; gap:6px; flex-shrink:0;';
+
+                    var metaParts = [];
+                    if (item.vendor) {
+                        var sv = document.createElement('span');
+                        sv.style.cssText = 'font-size:12px; color:#888888; white-space:nowrap;';
+                        sv.textContent = item.vendor;
+                        metaParts.push(sv);
+                    }
+                    if (totalPeople > 0) {
+                        var sp = document.createElement('span');
+                        sp.style.cssText = 'font-size:12px; color:#aaaaaa; white-space:nowrap;';
+                        sp.textContent = totalPeople + ' \u4eba';
+                        metaParts.push(sp);
+                    }
+                    metaParts.forEach(function(part, pi) {
+                        if (pi > 0) {
+                            var dot = document.createElement('span');
+                            dot.style.cssText = 'font-size:11px; color:#555;';
+                            dot.textContent = '\u00b7';
+                            metaWrap.appendChild(dot);
+                        }
+                        metaWrap.appendChild(part);
+                    });
+                    if (metaParts.length > 0) {
+                        var dot2 = document.createElement('span');
+                        dot2.style.cssText = 'font-size:11px; color:#555;';
+                        dot2.textContent = '\u00b7';
+                        metaWrap.appendChild(dot2);
+                    }
                     var pctLabel = document.createElement('span');
-                    pctLabel.style.cssText = 'font-size:14px; font-weight:700; color:' + (isDone ? '#888' : '#7ec8e3') + '; white-space:nowrap; min-width:36px; text-align:right;';
+                    pctLabel.style.cssText = 'font-size:14px; font-weight:700; color:' + (isDone ? '#888' : '#7ec8e3') + '; white-space:nowrap;';
                     pctLabel.textContent = pct + '%';
-                    rightWrap.appendChild(pctLabel);
-
-                    // 編輯模式：刪除按鈕
-                    if (window._wpIsEditMode) {
-                        var delBtn = document.createElement('button');
-                        delBtn.textContent = '\u522a\u9664';
-                        delBtn.style.cssText = 'background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:5px 10px; border-radius:8px; flex-shrink:0;';
-                        (function(si, ii) {
-                            delBtn.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                deleteWorkProgressItem(si, ii);
-                            });
-                        }(siteId, idx));
-                        rightWrap.appendChild(delBtn);
-                    }
+                    metaWrap.appendChild(pctLabel);
 
                     topRow.appendChild(titleWrap);
-                    topRow.appendChild(rightWrap);
+                    topRow.appendChild(metaWrap);
 
-                    // 進度條（可拖動）
-                    var trackWrap = document.createElement('div');
-                    trackWrap.style.cssText = 'position:relative; height:20px; display:flex; align-items:center;';
-                    var track = document.createElement('div');
-                    track.style.cssText = 'position:relative; width:100%; height:10px; background:#2a2a2a; border-radius:5px; border:1px solid #555; overflow:hidden; cursor:pointer;';
-                    var fillEl = document.createElement('div');
-                    fillEl.style.cssText = 'height:100%; width:' + pct + '%; background:' + (isDone ? '#444' : 'linear-gradient(90deg,#4ab3d0,#7ec8e3)') + '; border-radius:5px; transition:width 0.1s; pointer-events:none;';
-                    track.appendChild(fillEl);
+                    var barWrap = document.createElement('div');
+                    barWrap.style.cssText = 'position:relative; height:8px; background:#2a2a2a; border-radius:4px; overflow:hidden;';
+                    var fill = document.createElement('div');
+                    fill.style.cssText = 'height:100%; width:' + pct + '%; background:' + (isDone ? '#444' : 'linear-gradient(90deg,#4ab3d0,#7ec8e3)') + '; border-radius:4px; transition:width 0.3s;';
+                    barWrap.appendChild(fill);
                     for (var t = 1; t < 10; t++) {
                         var tick = document.createElement('div');
-                        tick.style.cssText = 'position:absolute; top:0; bottom:0; left:' + (t * 10) + '%; width:1px; background:rgba(0,0,0,0.18); pointer-events:none;';
-                        track.appendChild(tick);
+                        tick.style.cssText = 'position:absolute; top:0; bottom:0; left:' + (t * 10) + '%; width:1px; background:rgba(0,0,0,0.18);';
+                        barWrap.appendChild(tick);
                     }
-                    trackWrap.appendChild(track);
-
-                    // 進度條拖動邏輯
-                    (function(si, ii, trackEl, fillEl2, pctLbl) {
-                        function setPct(e) {
-                            var rect2 = trackEl.getBoundingClientRect();
-                            var clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                            var ratio = Math.max(0, Math.min(1, (clientX - rect2.left) / rect2.width));
-                            var steps = [0,10,20,30,40,50,60,70,80,90,100];
-                            var snapped = steps.reduce(function(a,b){ return Math.abs(b-ratio*100) < Math.abs(a-ratio*100) ? b : a; });
-                            fillEl2.style.width = snapped + '%';
-                            pctLbl.textContent = snapped + '%';
-                            fillEl2.style.background = snapped >= 100 ? '#444' : 'linear-gradient(90deg,#4ab3d0,#7ec8e3)';
-                            pctLbl.style.color = snapped >= 100 ? '#888' : '#7ec8e3';
-                            return snapped;
-                        }
-                        var dragging = false;
-                        trackEl.addEventListener('mousedown', function(e) { dragging = true; setPct(e); });
-                        trackEl.addEventListener('touchstart', function(e) { dragging = true; setPct(e); }, { passive: true });
-                        document.addEventListener('mousemove', function(e) { if (dragging) setPct(e); });
-                        document.addEventListener('touchmove', function(e) { if (dragging) setPct(e); }, { passive: true });
-                        function endDrag(e) {
-                            if (!dragging) return;
-                            dragging = false;
-                            var newPct = parseInt(fillEl2.style.width);
-                            if (!db.workProgress[si]) return;
-                            if (db.workProgress[si][ii] && db.workProgress[si][ii].progress !== newPct) {
-                                db.workProgress[si][ii].progress = newPct;
-                                saveToLocalStorage();
-                                renderWorkProgressList();
-                            }
-                        }
-                        document.addEventListener('mouseup', endDrag);
-                        document.addEventListener('touchend', endDrag);
-                    }(siteId, idx, track, fillEl, pctLabel));
 
                     card.appendChild(topRow);
-                    card.appendChild(trackWrap);
+                    card.appendChild(barWrap);
                     listCard.appendChild(card);
                     domRowCount++;
                 });
@@ -5198,21 +5016,180 @@
             return parseInt(label) || 0;
         }
 
+        let _wpIsEditMode = false;
+        let _wpEditSnapshot = null;
 
-
-        function _wpToggleEditMode() {
-            window._wpIsEditMode = !window._wpIsEditMode;
-            const btn = document.getElementById('btnWpEdit');
-            if (btn) btn.textContent = window._wpIsEditMode ? '完成' : '編輯';
-            renderWorkProgressList();
+        function _wpSnapshot() {
+            return [
+                document.getElementById('wpInputTask') ? document.getElementById('wpInputTask').value : '',
+                document.getElementById('wpInputFloor') ? document.getElementById('wpInputFloor').value : '',
+                document.getElementById('wpVendorSelect') ? document.getElementById('wpVendorSelect').value : '',
+                document.getElementById('wpProgressLabel') ? document.getElementById('wpProgressLabel').textContent : ''
+            ].join('|');
         }
 
-        function deleteWorkProgressItem(siteId, idx) {
-            if (!siteId) siteId = _wpCurrentSiteId;
-            if (!siteId || idx === undefined || idx === null) return;
-            if (!confirm('確定要刪除此工項進度？')) return;
-            db.workProgress[siteId].splice(idx, 1);
+        function _refreshWpHistoryDatalist() {
+            const siteId = _wpCurrentSiteId || '';
+            const tasks = new Set();
+            const floors = new Set();
+            ((db.workProgress || {})[siteId] || []).forEach(function(wp) {
+                if (wp.task && wp.task.trim()) tasks.add(wp.task.trim());
+                if (wp.floor && wp.floor.trim()) floors.add(wp.floor.trim());
+            });
+            const dlTask = document.getElementById('wpTaskHistory');
+            if (dlTask) dlTask.innerHTML = Array.from(tasks).map(function(t) { return '<option value="' + t.replace(/"/g, '&quot;') + '">'; }).join('');
+            const dlFloor = document.getElementById('wpFloorHistory');
+            if (dlFloor) dlFloor.innerHTML = Array.from(floors).map(function(f) { return '<option value="' + f.replace(/"/g, '&quot;') + '">'; }).join('');
+        }
+        function _wpPopulateVendorSelect(selectedValue) {
+            const sel = document.getElementById('wpVendorSelect');
+            if (!sel) return;
+            // 只顯示案場資訊指定的施工廠商；若該案場無指定則顯示全部
+            const siteId = _wpCurrentSiteId || '';
+            const siteVendors = (db.siteInfo && db.siteInfo[siteId] && Array.isArray(db.siteInfo[siteId].vendors) && db.siteInfo[siteId].vendors.length > 0)
+                ? db.siteInfo[siteId].vendors
+                : (db.vendors || []);
+            sel.innerHTML = '<option value="">\u2014 \u9078\u64c7\u65bd\u5de5\u5ee0\u5546 \u2014</option>';
+            siteVendors.forEach(function(v) {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = v;
+                if (v === selectedValue) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        function _wpSetInputsDisabled(disabled) {
+            ['wpInputTask','wpInputFloor'].forEach(function(id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.disabled = disabled;
+                el.style.color = disabled ? '#888888' : '#ffffff';
+                el.style.background = disabled ? '#1e1e1e' : '#2a2a2a';
+                el.style.borderColor = disabled ? '#333333' : '#555555';
+                el.style.webkitUserSelect = disabled ? 'none' : 'text';
+                el.style.userSelect = disabled ? 'none' : 'text';
+            });
+            const vsel = document.getElementById('wpVendorSelect');
+            if (vsel) {
+                vsel.disabled = disabled;
+                vsel.style.background = disabled ? '#1e1e1e' : '#2a2a2a';
+                vsel.style.color = disabled ? '#888888' : '#ffffff';
+                vsel.style.borderColor = disabled ? '#333333' : '#555555';
+            }
+        }
+
+        function _wpEnterEditMode() {
+            _wpIsEditMode = true;
+            _wpSetInputsDisabled(false);
+            document.getElementById('btnWpFormEdit').style.display = 'none';
+            document.getElementById('btnWpFormSave').style.display = '';
+            document.getElementById('btnWpFormDelete').style.display = _wpEditingId !== null ? '' : 'none';
+            _wpEditSnapshot = _wpSnapshot();
+        }
+
+
+        function _wpFormModalBgClick(e) {
+            if (e.target !== e.currentTarget) return;
+            if (_wpIsEditMode) {
+                const current = _wpSnapshot();
+                if (_wpEditSnapshot !== null && current !== _wpEditSnapshot) {
+                    if (!confirm('尚未儲存，是否要離開？')) return;
+                }
+                closeWpFormModal();
+            } else if (_wpEditingId !== null) {
+                _wpSaveProgressOnly();
+            } else {
+                closeWpFormModal();
+            }
+        }
+
+        // 唯讀模式下只儲存進度條，不驗證文字欄
+        function _wpSaveProgressOnly() {
+            const siteId = _wpCurrentSiteId;
+            if (!siteId || _wpEditingId === null) { closeWpFormModal(); return; }
+            const progress = _getWpProgressValue();
+            if (!db.workProgress[siteId] || !db.workProgress[siteId][_wpEditingId]) { closeWpFormModal(); return; }
+            const changed = db.workProgress[siteId][_wpEditingId].progress !== progress;
+            db.workProgress[siteId][_wpEditingId].progress = progress;
+            if (changed) {
+                saveToLocalStorage();
+                closeWpFormModal();
+                renderWorkProgressList();
+                showToast('儲存成功');
+            } else {
+                closeWpFormModal();
+            }
+        }
+
+        function openAddWorkProgressForm() {
+            _wpEditingId = null;
+            _wpIsEditMode = true;
+            document.getElementById('wpFormTitle').textContent = '新增工項進度';
+            document.getElementById('wpInputTask').value = '';
+            document.getElementById('wpInputFloor').value = '';
+            _wpPopulateVendorSelect('');
+            _refreshWpHistoryDatalist();
+            _wpSetInputsDisabled(false);
+            document.getElementById('btnWpFormEdit').style.display = 'none';
+            document.getElementById('btnWpFormSave').style.display = '';
+            document.getElementById('btnWpFormDelete').style.display = 'none';
+            _buildWpStepBtns(0);
+            document.getElementById('wpFormModal').style.display = 'flex';
+            _wpEditSnapshot = _wpSnapshot();
+        }
+
+        function openEditWorkProgressForm(siteId, idx) {
+            const item = (db.workProgress[siteId] || [])[idx];
+            if (!item) return;
+            _wpEditingId = idx;
+            _wpIsEditMode = false;
+            document.getElementById('wpFormTitle').textContent = (item.floor ? item.floor + ' ' : '') + (item.task || '工項進度');
+            document.getElementById('wpInputTask').value = item.task || '';
+            document.getElementById('wpInputFloor').value = item.floor || '';
+            _wpPopulateVendorSelect(item.vendor || '');
+            _wpSetInputsDisabled(true);
+            document.getElementById('btnWpFormEdit').style.display = '';
+            document.getElementById('btnWpFormSave').style.display = 'none';
+            document.getElementById('btnWpFormDelete').style.display = 'none';
+            _buildWpStepBtns(item.progress || 0);
+            document.getElementById('wpFormModal').style.display = 'flex';
+        }
+
+        function closeWpFormModal() {
+            document.getElementById('wpFormModal').style.display = 'none';
+            _wpEditSnapshot = null;
+        }
+
+        function saveWorkProgressItem() {
+            const siteId = _wpCurrentSiteId;
+            if (!siteId) { alert('請先選擇案場'); return; }
+            const task = document.getElementById('wpInputTask').value.trim();
+            if (!task) { alert('請輸入工項名稱'); return; }
+            const floor = document.getElementById('wpInputFloor').value.trim();
+            const vsel = document.getElementById('wpVendorSelect');
+            const vendor = vsel ? vsel.value : '';
+            const progress = _getWpProgressValue();
+            if (!db.workProgress[siteId]) db.workProgress[siteId] = [];
+            const entry = { task, floor, vendor, progress };
+            if (_wpEditingId === null) {
+                db.workProgress[siteId].push(entry);
+            } else {
+                db.workProgress[siteId][_wpEditingId] = entry;
+            }
             saveToLocalStorage();
+            closeWpFormModal();
+            renderWorkProgressList();
+            showToast('儲存成功');
+        }
+
+        function deleteWorkProgressItem() {
+            const siteId = _wpCurrentSiteId;
+            if (!siteId || _wpEditingId === null) return;
+            if (!confirm('確定要刪除此工項進度？')) return;
+            db.workProgress[siteId].splice(_wpEditingId, 1);
+            saveToLocalStorage();
+            closeWpFormModal();
             renderWorkProgressList();
         }
 
