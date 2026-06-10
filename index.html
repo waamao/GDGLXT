@@ -1618,11 +1618,11 @@
             if (!sel) return;
             const now = new Date();
             const curVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-            sel.innerHTML = '<option value="">— 所有月份 —</option>' + _buildMonthOptions(curVal);
+            sel.innerHTML = '<option value="">所有月份</option>' + _buildMonthOptions(curVal);
 
             const siteSel = document.getElementById('inputExportSite');
             if (!siteSel) return;
-            let opts = '<option value="">— 所有案場 —</option>';
+            let opts = '<option value="">選擇案場</option>';
             (db.sites || []).forEach(function(s) {
                 opts += '<option value="' + s.id + '">' + s.name + '</option>';
             });
