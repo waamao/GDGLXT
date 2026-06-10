@@ -248,7 +248,7 @@
         </section>
 
     <!-- 案場資訊 彈窗 -->
-    <div id="siteInfoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none';if(_isEditing){const _cur=_snapshotSiteInfoModal();if(_siteInfoModalSnapshot!==null&&_cur!==_siteInfoModalSnapshot){if(confirm('資訊尚未儲存，是否要離開？'))_cancelMainInfoEdit();}else{_cancelMainInfoEdit();}}else{closeSiteInfoModal();}}">
+    <div id="siteInfoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none'||document.getElementById('vendorCardEditArea').style.display!=='none';if(_isEditing){const _cur=_snapshotSiteInfoModal();if(_siteInfoModalSnapshot!==null&&_cur!==_siteInfoModalSnapshot){if(confirm('資訊尚未儲存，是否要離開？'))_cancelMainInfoEdit();}else{_cancelMainInfoEdit();}}else{closeSiteInfoModal();}}">
         <div id="siteInfoModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:80vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">案場資訊</span>
@@ -327,7 +327,6 @@
                         </div>
                         <!-- 單一廠商 edit 模式 -->
                         <div id="vendorCardEditArea" style="display:none; flex-direction:column; gap:10px;">
-                            <div style="font-size:13px; font-weight:bold; color:#ffffff;" id="vendorCardEditTitle"></div>
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <div style="flex:1; min-width:0;">
                                     <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">承攬總價（自動計算）</label>
@@ -1829,6 +1828,7 @@
             }
             document.getElementById('siteInfoDetailWrap').style.display = '';
             document.getElementById('progressDetailWrap').style.display = 'flex';
+            _activeVendorName = null;
             if (wasEditing) {
                 // 切換案場時保持編輯模式，載入新案場資料到編輯欄位
                 _renderAllProgressBlocks();
@@ -1836,6 +1836,8 @@
                 document.getElementById('inputSiteInfoAddress').value = info.caseAddress || '';
                 document.getElementById('inputSiteInfoNotes').value   = info.notes       || '';
                 _updateEditTotalDisplay();
+                _renderVendorEditPills();
+                enterVendorCardEdit();
                 setTimeout(() => { _siteInfoModalSnapshot = _snapshotSiteInfoModal(); }, 30);
             } else {
                 _renderAllSiteInfo();
@@ -1926,12 +1928,22 @@
                 btn.addEventListener('click', function() {
                     const cur = _getSelectedVendors();
                     let next;
-                    if (cur.includes(v)) { next = cur.filter(function(x) { return x !== v; }); }
-                    else { next = cur.concat([v]); }
+                    if (cur.includes(v)) {
+                        // 取消廠商：若有計價表內容則提示
+                        const blocks = _getVendorBlocksFor(v);
+                        const hasContent = blocks.some(function(blk) {
+                            return (blk.items && blk.items.length > 0) || blk.blockTotal;
+                        });
+                        if (hasContent && !confirm('「' + v + '」已有計價表內容，確定要移除此施工廠商？')) return;
+                        next = cur.filter(function(x) { return x !== v; });
+                    } else {
+                        next = cur.concat([v]);
+                    }
                     if (!db.siteInfo) db.siteInfo = {};
                     if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
                     db.siteInfo[_siSelectedSiteId].vendors = next;
                     _renderVendorEditPills();
+                    enterVendorCardEdit();
                 });
                 container.appendChild(btn);
             });
@@ -2022,8 +2034,6 @@
         function _renderVendorCardEdit() {
             _renderVendorSwitchPills(true);
             if (!_activeVendorName) return;
-            const titleEl = document.getElementById('vendorCardEditTitle');
-            if (titleEl) titleEl.innerText = _activeVendorName;
             _updateVendorTotalDisplay();
             document.getElementById('vendorCardViewArea').style.display = 'none';
             document.getElementById('vendorCardEditArea').style.display = 'flex';
@@ -2090,8 +2100,7 @@
 
         function addVendorProgressBlock() {
             if (!_activeVendorName) return;
-            const name = prompt('請輸入新計價表名稱（可留空白）：', '');
-            if (name === null) return;
+            const name = '';
             const blocks = _getVendorBlocks();
             blocks.push({ id: Date.now().toString(), title: name, items: [], includeInTotal: false });
             saveToLocalStorage();
@@ -2328,6 +2337,14 @@
 
         // ================= 計價進度彈窗 =================
         let _progressModalIsEditing = false;
+        let _progressModalIsVendor = false;
+
+        function _modalBlocks() {
+            return _progressModalIsVendor ? _getVendorBlocks() : _getBlocks();
+        }
+        function _modalContractTotal() {
+            return _progressModalIsVendor ? _computeVendorContractTotal() : _getContractTotal();
+        }
 
         function _scrollModalToBottom() {
             const el = document.getElementById('progressModalItems');
@@ -2341,12 +2358,13 @@
             return type ? `[${type}] ${title}` : title;
         }
 
-        function _openProgressModal(bIdx) {
+        function _openProgressModal(bIdx, isVendor) {
             _siEditingBlockIdx = bIdx;
             _progressModalIsEditing = false;
-            const blocks = _getBlocks();
+            _progressModalIsVendor = !!isVendor;
+            const blocks = _modalBlocks();
             const blk = blocks[bIdx];
-            const ct = _getContractTotal();
+            const ct = _modalContractTotal();
             const blkTotal = Number(blk.blockTotal) || 0;
             const useCt = blkTotal > 0 ? blkTotal : ct;
 
@@ -2378,10 +2396,10 @@
 
         function _enterProgressModalEdit() {
             _progressModalIsEditing = true;
-            const blocks = _getBlocks();
+            const blocks = _modalBlocks();
             const blk = blocks[_siEditingBlockIdx];
             const blkTotal = Number(blk.blockTotal) || 0;
-            const ct = _getContractTotal();
+            const ct = _modalContractTotal();
             const useCt = blkTotal > 0 ? blkTotal : ct;
 
             document.getElementById('btnProgressModalEdit').style.display = 'none';
@@ -2446,7 +2464,7 @@
 
         function _addProgressModalItem() {
             if (!_progressModalIsEditing) _enterProgressModalEdit();
-            const ct = _getContractTotal();
+            const ct = _modalContractTotal();
             const btInp = document.getElementById('progressModalBlockTotalInput');
             const blkTotal = btInp && btInp.style.display !== 'none' ? (Number(btInp.value) || 0) : 0;
             const useCt = blkTotal > 0 ? blkTotal : ct;
@@ -2474,10 +2492,10 @@
         }
 
         function _recalcModalSummary() {
-            const ct = _getContractTotal();
+            const ct = _modalContractTotal();
             // Use blockTotal input (edit mode) or saved blockTotal (view mode) if available
             const btInp = document.getElementById('progressModalBlockTotalInput');
-            const blocks = _getBlocks();
+            const blocks = _modalBlocks();
             const blk = blocks[_siEditingBlockIdx] || {};
             let blkTotal = 0;
             if (btInp && btInp.style.display !== 'none') {
@@ -2506,7 +2524,7 @@
         }
 
         function _saveProgressModal() {
-            const blocks = _getBlocks();
+            const blocks = _modalBlocks();
             const title = (blocks[_siEditingBlockIdx] && blocks[_siEditingBlockIdx].title !== undefined) ? blocks[_siEditingBlockIdx].title : '';
             const rows = document.querySelectorAll('#progressModalItems div[data-modal-row]');
             const items = [];
@@ -2531,9 +2549,14 @@
             saveToLocalStorage();
             _progressModalIsEditing = false;
             _progressModalSnapshot = null;
-            _updateEditTotalDisplay();
-            _renderAllProgressBlocks();
-            _openProgressModal(_siEditingBlockIdx);
+            if (_progressModalIsVendor) {
+                _updateVendorTotalDisplay();
+                _renderVendorProgressBlocksFor(false);
+            } else {
+                _updateEditTotalDisplay();
+                _renderAllProgressBlocks();
+            }
+            _openProgressModal(_siEditingBlockIdx, _progressModalIsVendor);
             showToast('儲存成功');
         }
 
@@ -2548,7 +2571,7 @@
             _progressModalSnapshot = null;
             _progressModalIsEditing = false;
             if (_siEditingBlockIdx !== null && _siEditingBlockIdx !== undefined) {
-                _openProgressModal(_siEditingBlockIdx);
+                _openProgressModal(_siEditingBlockIdx, _progressModalIsVendor);
             } else {
                 _closeProgressModal();
             }
@@ -2574,7 +2597,7 @@
         });
 
         function _deleteProgressBlock(bIdx) {
-            const blocks = _getBlocks();
+            const blocks = _modalBlocks();
             const idx = (bIdx !== undefined) ? bIdx : _siEditingBlockIdx;
             if (idx === null || idx === undefined) return;
             const title = (blocks[idx] && blocks[idx].title) ? blocks[idx].title : '（未命名）';
@@ -2588,8 +2611,7 @@
         }
 
         function addProgressBlock() {
-            const name = prompt('請輸入新計價表名稱（可留空白）：', '');
-            if (name === null) return;
+            const name = '';
             const blocks = _getBlocks();
             blocks.push({ id: Date.now().toString(), title: name, items: [], includeInTotal: false });
             saveToLocalStorage();
@@ -2852,7 +2874,9 @@
             const site = document.getElementById('siteInfoSiteSelect')?.dataset?.siteId || '';
             const address = document.getElementById('inputSiteInfoAddress')?.value || '';
             const notes = document.getElementById('inputSiteInfoNotes')?.value || '';
-            return JSON.stringify({ site, address, notes });
+            const vendors = _getSelectedVendors().join(',');
+            const activeVendor = _activeVendorName || '';
+            return JSON.stringify({ site, address, notes, vendors, activeVendor });
         }
 
         function _snapshotProgressModal() {
