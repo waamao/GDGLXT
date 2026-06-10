@@ -553,6 +553,7 @@
             <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span style="font-size:15px; font-weight:bold; color:#ffffff; flex:1;">出勤</span>
                 <button id="btnPunchDeleteInEdit" onclick="deleteFromPunchEditModal()" class="btn-red hidden" style="padding:6px 18px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0;">刪除</button>
+                <button onclick="savePunchAndShareLine()" style="background:#06C755; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">儲存並傳送</button>
                 <button onclick="saveMultiplePunchStatus('上班')" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:6px 18px; border-radius:8px; flex-shrink:0;">儲存</button>
             </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
@@ -1540,6 +1541,12 @@
                 closePunchModal();
             }
         });
+
+        function savePunchAndShareLine() {
+            const dateStr = document.getElementById('inputPunchDate').value || getTargetDateStr();
+            saveMultiplePunchStatus('上班');
+            shareInlinePunchToLine(dateStr);
+        }
 
         function saveMultiplePunchStatus(status) {
             const dateStr = document.getElementById('inputPunchDate').value;
