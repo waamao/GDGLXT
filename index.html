@@ -5658,108 +5658,16 @@
                     }
                     trackWrap.appendChild(track);
 
-                    // 直接在 track 上拖動（只能從目前進度位置開始拖）
-                    (function(si, ii, fill, pctLabelRef) {
-                        var currentPct = pct;
-                        var GRAB_ZONE = 25; // 允許從進度點左右25%範圍內開始拖
-                        var minPct = item._autoStarted ? 10 : 0;
-                        function calcPct(clientX) {
-                            var rect = track.getBoundingClientRect();
-                            var raw = Math.round((clientX - rect.left) / rect.width * 100 / 10) * 10;
-                            return Math.max(minPct, Math.min(100, raw));
-                        }
-                        function applyPct(val) {
-                            fill.style.width = val + '%';
-                            fill.style.background = val >= 100 ? '#444' : '#ffffff';
-                            if (pctLabelRef) {
-                                pctLabelRef.textContent = val + '%';
-                                pctLabelRef.style.color = val >= 100 ? '#888' : '#ffffff';
-                            }
-                            currentPct = val;
-                        }
-                        var dragging = false;
-                        var pressTimer = null;
-                        var startX = 0, startY = 0;
-                        var LONG_PRESS_MS = 450;
-                        var MOVE_CANCEL = 10; // 超過此位移視為滑動，取消長按
-
-                        function startDrag() {
-                            dragging = true;
-                            track.style.borderColor = '#7ec8e3';
-                            track.style.boxShadow = '0 0 0 2px rgba(126,200,227,0.3)';
-                        }
-                        function endDrag() {
-                            dragging = false;
-                            track.style.borderColor = '#555';
-                            track.style.boxShadow = 'none';
-                        }
-                        function cancelPress() {
-                            if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-                        }
-
-                        trackWrap.addEventListener('touchstart', function(e) {
-                            var touchPct = calcPct(e.touches[0].clientX);
-                            if (Math.abs(touchPct - currentPct) > GRAB_ZONE) return;
-                            startX = e.touches[0].clientX;
-                            startY = e.touches[0].clientY;
-                            pressTimer = setTimeout(function() {
-                                pressTimer = null;
-                                startDrag();
-                            }, LONG_PRESS_MS);
-                        }, { passive: true });
-                        trackWrap.addEventListener('touchmove', function(e) {
-                            if (dragging) {
-                                applyPct(calcPct(e.touches[0].clientX));
-                                e.preventDefault();
-                                e.stopPropagation();
-                                return;
-                            }
-                            if (pressTimer) {
-                                var dx = Math.abs(e.touches[0].clientX - startX);
-                                var dy = Math.abs(e.touches[0].clientY - startY);
-                                if (dx > MOVE_CANCEL || dy > MOVE_CANCEL) cancelPress();
-                            }
-                        }, { passive: false });
+                    // 點擊進度條 → 開啟彈窗調整
+                    (function(si, ii) {
+                        trackWrap.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            openWpProgressEdit(si, ii);
+                        });
                         trackWrap.addEventListener('touchend', function(e) {
-                            cancelPress();
-                            if (!dragging) return;
-                            var newPct = calcPct(e.changedTouches[0].clientX);
-                            applyPct(newPct);
-                            endDrag();
-                            if (db.workProgress[si] && db.workProgress[si][ii]) {
-                                if (db.workProgress[si][ii].progress !== newPct) {
-                                    db.workProgress[si][ii].progress = newPct;
-                                    saveToLocalStorage();
-                                    renderWorkProgressList();
-                                }
-                            }
+                            e.stopPropagation();
                         }, { passive: true });
-                        trackWrap.addEventListener('mousedown', function(e) {
-                            var touchPct = calcPct(e.clientX);
-                            if (Math.abs(touchPct - currentPct) > GRAB_ZONE) return;
-                            pressTimer = setTimeout(function() {
-                                pressTimer = null;
-                                startDrag();
-                            }, LONG_PRESS_MS);
-                        });
-                        document.addEventListener('mousemove', function(e) {
-                            if (!dragging) return;
-                            applyPct(calcPct(e.clientX));
-                        });
-                        document.addEventListener('mouseup', function(e) {
-                            cancelPress();
-                            if (!dragging) return;
-                            var newPct = calcPct(e.clientX);
-                            endDrag();
-                            if (db.workProgress[si] && db.workProgress[si][ii]) {
-                                if (db.workProgress[si][ii].progress !== newPct) {
-                                    db.workProgress[si][ii].progress = newPct;
-                                    saveToLocalStorage();
-                                    renderWorkProgressList();
-                                }
-                            }
-                        });
-                    }(siteId, idx, fillEl, rightWrap.querySelector('span')));
+                    }(siteId, idx));
 
                     card.appendChild(topRow);
                     card.appendChild(trackWrap);
@@ -5822,99 +5730,16 @@
                                 inlineWrap.appendChild(topRow2);
                                 inlineWrap.appendChild(track2);
                                 chipEl.parentNode.replaceChild(inlineWrap, chipEl);
-                                // 拖動邏輯（與未滿100%之進度條一致：長按進度點±25%範圍後拖動，並以10%為一格）
-                                var currentPct2 = item.progress || 0;
-                                var GRAB_ZONE2 = 25;
-                                var minPct2 = item._autoStarted ? 10 : 0;
-                                function calcPct2(clientX) {
-                                    var rect = track2.getBoundingClientRect();
-                                    var raw = Math.round((clientX - rect.left) / rect.width * 100 / 10) * 10;
-                                    return Math.max(minPct2, Math.min(100, raw));
-                                }
-                                function apply2(val) {
-                                    fill2.style.width = val + '%';
-                                    fill2.style.background = val >= 100 ? '#444' : '#ffffff';
-                                    pctLbl.textContent = val + '%';
-                                    pctLbl.style.color = val >= 100 ? '#888' : '#ffffff';
-                                    currentPct2 = val;
-                                }
-                                var dragging2 = false;
-                                var pressTimer2 = null;
-                                var startX2 = 0, startY2 = 0;
-                                var LONG_PRESS_MS2 = 450;
-                                var MOVE_CANCEL2 = 10;
-                                function startDrag2() {
-                                    dragging2 = true;
-                                    track2.style.borderColor = '#7ec8e3';
-                                    track2.style.boxShadow = '0 0 0 2px rgba(126,200,227,0.3)';
-                                }
-                                function endDrag2() {
-                                    dragging2 = false;
-                                    track2.style.borderColor = '#555';
-                                    track2.style.boxShadow = 'none';
-                                }
-                                function cancelPress2() {
-                                    if (pressTimer2) { clearTimeout(pressTimer2); pressTimer2 = null; }
-                                }
-                                track2.addEventListener('touchstart', function(e) {
-                                    var touchPct = calcPct2(e.touches[0].clientX);
-                                    if (Math.abs(touchPct - currentPct2) > GRAB_ZONE2) return;
-                                    startX2 = e.touches[0].clientX;
-                                    startY2 = e.touches[0].clientY;
-                                    pressTimer2 = setTimeout(function() {
-                                        pressTimer2 = null;
-                                        startDrag2();
-                                    }, LONG_PRESS_MS2);
-                                }, { passive: true });
-                                track2.addEventListener('touchmove', function(e) {
-                                    if (dragging2) {
-                                        apply2(calcPct2(e.touches[0].clientX));
-                                        e.preventDefault();
+                                // 點擊進度條 → 開啟彈窗調整
+                                (function(si, ii) {
+                                    track2.addEventListener('click', function(e) {
                                         e.stopPropagation();
-                                        return;
-                                    }
-                                    if (pressTimer2) {
-                                        var dx = Math.abs(e.touches[0].clientX - startX2);
-                                        var dy = Math.abs(e.touches[0].clientY - startY2);
-                                        if (dx > MOVE_CANCEL2 || dy > MOVE_CANCEL2) cancelPress2();
-                                    }
-                                }, { passive: false });
-                                track2.addEventListener('touchend', function(e) {
-                                    cancelPress2();
-                                    if (!dragging2) return;
-                                    var newPct = calcPct2(e.changedTouches[0].clientX);
-                                    apply2(newPct);
-                                    endDrag2();
-                                    if (db.workProgress[si] && db.workProgress[si][ii] && db.workProgress[si][ii].progress !== newPct) {
-                                        db.workProgress[si][ii].progress = newPct;
-                                        saveToLocalStorage();
-                                        renderWorkProgressList();
-                                    }
-                                }, { passive: true });
-                                track2.addEventListener('mousedown', function(e) {
-                                    var touchPct = calcPct2(e.clientX);
-                                    if (Math.abs(touchPct - currentPct2) > GRAB_ZONE2) return;
-                                    pressTimer2 = setTimeout(function() {
-                                        pressTimer2 = null;
-                                        startDrag2();
-                                    }, LONG_PRESS_MS2);
-                                });
-                                document.addEventListener('mousemove', function(e) {
-                                    if (!dragging2) return;
-                                    apply2(calcPct2(e.clientX));
-                                });
-                                document.addEventListener('mouseup', function(e) {
-                                    cancelPress2();
-                                    if (!dragging2) return;
-                                    var newPct = calcPct2(e.clientX);
-                                    apply2(newPct);
-                                    endDrag2();
-                                    if (db.workProgress[si] && db.workProgress[si][ii] && db.workProgress[si][ii].progress !== newPct) {
-                                        db.workProgress[si][ii].progress = newPct;
-                                        saveToLocalStorage();
-                                        renderWorkProgressList();
-                                    }
-                                });
+                                        openWpProgressEdit(si, ii);
+                                    });
+                                    track2.addEventListener('touchend', function(e) {
+                                        e.stopPropagation();
+                                    }, { passive: true });
+                                }(si, ii));
                             });
                         }(siteId, entry.idx, chip));
                         chipsRow.appendChild(chip);
