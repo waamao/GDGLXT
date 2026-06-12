@@ -60,7 +60,8 @@
         .manage-btns .btn-rename { background-color: #111111; color: #ffffff; }
         .manage-btns .btn-del { background-color: #D9006C; color: #ffffff; }
         
-        .bottom-btn-group { position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 448px; display: flex; flex-direction: column; z-index: 100; background-color: #111111; border-top: 1px solid #333333; transition: opacity 0.2s ease; }
+        .bottom-btn-group { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 448px; display: flex; flex-direction: column; z-index: 100; background-color: #111111; border-top: 1px solid #333333; padding-bottom: 36px; transition: opacity 0.2s ease; }
+        .bottom-btn-group::after { content: ''; position: absolute; left: 0; right: 0; bottom: -100px; height: 100px; background-color: #111111; }
         .bottom-btn-group-inner { display: flex; width: 100%; position: relative; }
         button.large-bottom-btn { height: 52px !important; font-size: 15px !important; font-weight: bold !important; border-radius: 0 !important; box-shadow: none; flex: 1; display: flex; align-items: center; justify-content: center; padding: 0; border: none !important; background-color: transparent; color: #ffffff; }
 
@@ -161,7 +162,7 @@
             <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0;">
                 <input type="file" id="importFile" accept=".json" onchange="importJSON(this)" class="hidden">
                 
-                <div class="card" style="padding: 8px; flex-shrink: 0; background-color: #111111; border: none; border-bottom: 1px solid #333333; border-radius: 0;">
+                <div class="card" style="padding: 8px; flex-shrink: 0; background-color: #111111; border: none; border-radius: 0; box-shadow: none;">
                     <div class="calendar-header">
                         <button onclick="changeHomeMonth(-1)" class="btn-slate" style="padding: 0; font-size:12px; width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">←</button>
                         <div style="display:flex; flex-direction:row; align-items:center; gap:6px; flex:1; justify-content:center; position:relative;">
@@ -183,7 +184,7 @@
                     <button onclick="document.getElementById('importFile').click()" style="background-color:#111111; color:white; font-size:14px; font-weight:bold; padding:12px 24px; border-radius:12px; width:100%; border: 1px solid #555555;">📥 匯入系統備份</button>
                 </div>
 
-                <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #333333; padding-top: 8px; margin-top: -17px;">
+                <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; margin-top: -17px;">
                     <div id="inlineDayContent" style="max-height: calc(3 * 110px + 13px); overflow-y:auto; display:flex; flex-direction:column; gap:0; padding-bottom: 88px;"></div>
                 </div>
             </div>
@@ -249,8 +250,6 @@
             <div style="padding:12px 16px 8px; border-bottom:1px solid #333333; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
                 <button onclick="if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none'||document.getElementById('vendorCardEditArea').style.display!=='none';if(_isEditing){if(_siteInfoModalSnapshot!==null&&_snapshotSiteInfoModal()!==_siteInfoModalSnapshot){if(!confirm('未儲存，是否離開編輯？'))return;}_cancelMainInfoEdit();}else{closeSiteInfoModal();}" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
                 <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">案場資訊</span>
-                <button onclick="enterMainInfoEdit()" id="btnMainInfoEdit" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
-                <button onclick="saveMainInfo()" id="btnMainInfoSave" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
             </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:0;">
                 <div style="margin-bottom:12px;">
@@ -261,7 +260,10 @@
                     <div style="background-color:#1e1e1e; border:1px solid #444444; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;">
                         <div id="mainInfoViewArea" style="display:flex; flex-direction:column; gap:8px;">
                             <div>
-                                <div style="font-size:11px; font-weight:bold; color:#888888; margin-bottom:2px; letter-spacing:0.04em;">地址</div>
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:2px;">
+                                    <div style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">地址</div>
+                                    <button onclick="enterMainInfoEdit()" id="btnMainInfoEdit" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
+                                </div>
                                 <div id="siteInfoViewAddress" style="font-size:14px; color:#ffffff; line-height:1.5; -webkit-user-select:text; user-select:text;">—</div>
                             </div>
                             <div id="siteInfoViewNotesWrap" style="display:none;">
@@ -280,7 +282,10 @@
                         </div>
                         <div id="mainInfoEditArea" style="display:none; flex-direction:column; gap:10px;">
                             <div>
-                                <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">地址</label>
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
+                                    <label style="font-size:13px; font-weight:bold; color:#dddddd;">地址</label>
+                                    <button onclick="saveMainInfo()" id="btnMainInfoSave" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
+                                </div>
                                 <input type="text" id="inputSiteInfoAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
                             </div>
                             <textarea id="inputSiteInfoNotes" rows="1" placeholder="" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; resize:none; line-height:1.6; -webkit-user-select:text; user-select:text;"></textarea>
@@ -351,20 +356,20 @@
             <div style="padding:12px 16px 8px; border-bottom:1px solid #333333; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
                 <button onclick="closeWorkProgressModal()" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
                 <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">工程進度</span>
-                <button onclick="openWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增</button>
             </div>
             <!-- 固定：案場選擇 + 總進度 -->
-            <div id="wpHeaderTopSection" style="padding:12px 16px 8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0; border-bottom:1px solid #333;">
+            <div id="wpHeaderTopSection" style="padding:12px 16px 8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0;">
                 <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-                <div id="wpOverallWrap" style="display:none; background:#111111; border:none; border-radius:10px; padding:10px 12px; flex-direction:column; gap:6px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;">總進度</span>
-                        <div style="display:flex; align-items:center; gap:8px;">
+                <div id="wpOverallWrap" style="display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                            <span style="font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;">總進度</span>
                             <span id="wpOverallPeople" style="display:none; font-size:12px; color:#aaaaaa;"></span>
                             <span id="wpOverallLabel" style="font-size:13px; font-weight:700; color:#ff4d4d;">0%</span>
                         </div>
+                        <button onclick="openWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增</button>
                     </div>
-                    <div style="position:relative; height:10px; background:#1e1e1e; border-radius:5px; overflow:hidden;">
+                    <div id="wpOverallBarWrap" style="display:none; position:relative; height:10px; background:#1e1e1e; border-radius:5px; overflow:hidden;">
                         <div id="wpOverallFill" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#ff4d4d); border-radius:5px; transition:width 0.3s;"></div>
                     </div>
                 </div>
@@ -688,21 +693,21 @@
     <!-- 工程記錄 新增彈窗 -->
     <div id="addLogModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;">
         <div id="addLogModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
-            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; gap:8px;">
                 <span id="addLogModalTitle" style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">新增</span>
+                <div id="addLogTypeToggleRow" style="display:flex; gap:12px; align-items:center; flex-shrink:0;">
+                    <label style="display:flex; align-items:center; gap:4px; font-size:12px; color:#ffffff; cursor:pointer; user-select:none;" onclick="_setLogEntryType('add','record')">
+                        <span id="addLogRadioRecord" style="width:14px; height:14px; border-radius:50%; border:2px solid #ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="width:6px; height:6px; border-radius:50%; background:#ffffff;"></span></span>
+                        記錄
+                    </label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:12px; color:#ffffff; cursor:pointer; user-select:none;" onclick="_setLogEntryType('add','punch')">
+                        <span id="addLogRadioPunch" style="width:14px; height:14px; border-radius:50%; border:2px solid #ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;"></span>
+                        出勤
+                    </label>
+                </div>
                 <button id="btnAddLogDelete" onclick="deleteFromAddLogPunch()" class="btn-red hidden" style="padding:0 12px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">刪除</button>
                 <button id="btnAddLogLine" onclick="shareAddLogPunchToLine()" class="hidden" style="background:#06C755; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">LINE</button>
                 <button onclick="saveAddLogModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
-            </div>
-            <div id="addLogTypeToggleRow" style="display:flex; gap:20px; padding:10px 16px 0; align-items:center; flex-shrink:0;">
-                <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#ffffff; cursor:pointer; user-select:none;" onclick="_setLogEntryType('add','record')">
-                    <span id="addLogRadioRecord" style="width:16px; height:16px; border-radius:50%; border:2px solid #ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="width:8px; height:8px; border-radius:50%; background:#ffffff;"></span></span>
-                    記錄
-                </label>
-                <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#ffffff; cursor:pointer; user-select:none;" onclick="_setLogEntryType('add','punch')">
-                    <span id="addLogRadioPunch" style="width:16px; height:16px; border-radius:50%; border:2px solid #ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;"></span>
-                    出勤
-                </label>
             </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
                 <div>
@@ -5266,9 +5271,13 @@
             _wpCurrentSiteId = siteId;
             const container = document.getElementById('wpList');
             container.innerHTML = '';
-            const overallWrap = document.getElementById('wpOverallWrap');
 
-            if (!siteId) { overallWrap.style.display = 'none'; return; }
+            if (!siteId) {
+                document.getElementById('wpOverallBarWrap').style.display = 'none';
+                document.getElementById('wpOverallLabel').textContent = '—';
+                document.getElementById('wpOverallPeople').style.display = 'none';
+                return;
+            }
 
             const allItems = (db.workProgress[siteId] || []);
             // 只顯示有施工廠商的項目（entry.idx 保留原始索引，刪除/更新不受影響）
@@ -5277,7 +5286,9 @@
             const rawItems = visible.map(e => e.item);
 
             if (visible.length === 0) {
-                overallWrap.style.display = 'none';
+                document.getElementById('wpOverallBarWrap').style.display = 'none';
+                document.getElementById('wpOverallLabel').textContent = '—';
+                document.getElementById('wpOverallPeople').style.display = 'none';
                 container.innerHTML = '<div style="text-align:center; color:#888; font-size:13px; padding:16px 0;">尚無工項，請在工程記錄填寫施工項目（需選擇施工廠商）</div>';
                 return;
             }
@@ -5308,7 +5319,7 @@
             // 總進度 & 總人數
             const totalPct = Math.round(rawItems.reduce((sum, it) => sum + (it.progress || 0), 0) / rawItems.length);
 
-            overallWrap.style.display = 'flex';
+            document.getElementById('wpOverallBarWrap').style.display = '';
             document.getElementById('wpOverallLabel').textContent = totalPct + '%';
             document.getElementById('wpOverallFill').style.width = totalPct + '%';
             const overallPeopleEl = document.getElementById('wpOverallPeople');
