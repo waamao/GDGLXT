@@ -145,12 +145,12 @@
 
     <header style="position:relative;">
         <div id="headerLeftZone" style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;">
-            <button onclick="navigateTo('lawref')" class="btn-slate" style="background-color:#000000;">設置標準</button>
+            <button id="headerBackBtn" class="hidden" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
         </div>
         <img id="appLogoIcon" src="./favicon.png" alt="" onclick="navigateTo('sites')" style="width:28px; height:28px; border-radius:7px; object-fit:cover; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:auto; cursor:pointer;">
         <h1 id="appTitle" class="header-title"></h1>
         <div style="display: flex; gap: 4px; flex-shrink: 0;">
-            <button id="btnPunchTop" onclick="openPunchModal()" class="btn-slate" style="background-color:#000000;">出勤</button>
+            <button onclick="navigateTo('lawref')" class="btn-slate" style="background-color:#000000;">設置標準</button>
             <button onclick="navigateTo('manage')" class="btn-slate" style="background-color:#000000; position:relative;">設定<span id="manageRedDot" style="display:none; position:absolute; top:-2px; right:-4px; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px #111;"></span></button>
         </div>
     </header>
@@ -587,8 +587,8 @@
     <div class="bottom-btn-group" id="homeMainBtns" style="display:none; z-index:210;">
         <div class="bottom-btn-group-inner">
                 <div class="home-seg-pill" id="homeSegPill"></div>
-                <span class="home-seg" onclick="_switchHomeModal('site')">案場</span>
                 <span class="home-seg" onclick="_switchHomeModal('log')">記錄</span>
+                <span class="home-seg" onclick="_switchHomeModal('site')">案場</span>
                 <span class="home-seg" onclick="_switchHomeModal('progress')">進度</span>
                 <span class="home-seg" onclick="_switchHomeModal('material')">材料</span>
         </div>
@@ -689,21 +689,43 @@
     <div id="addLogModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;">
         <div id="addLogModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">新增工程記錄</span>
+                <span id="addLogModalTitle" style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">新增</span>
+                <button id="btnAddLogDelete" onclick="deleteFromAddLogPunch()" class="btn-red hidden" style="padding:0 12px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">刪除</button>
+                <button id="btnAddLogLine" onclick="shareAddLogPunchToLine()" class="hidden" style="background:#06C755; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">LINE</button>
                 <button onclick="saveAddLogModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
+            </div>
+            <div id="addLogTypeToggleRow" style="display:flex; gap:20px; padding:10px 16px 0; align-items:center; flex-shrink:0;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#ffffff; cursor:pointer; user-select:none;" onclick="_setLogEntryType('add','record')">
+                    <span id="addLogRadioRecord" style="width:16px; height:16px; border-radius:50%; border:2px solid #ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="width:8px; height:8px; border-radius:50%; background:#ffffff;"></span></span>
+                    記錄
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#ffffff; cursor:pointer; user-select:none;" onclick="_setLogEntryType('add','punch')">
+                    <span id="addLogRadioPunch" style="width:16px; height:16px; border-radius:50%; border:2px solid #ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;"></span>
+                    出勤
+                </label>
             </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
                 <div>
                     <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">選擇日期：</label>
-                    <input type="date" id="addLogDate" style="width:100%; max-width:100%; box-sizing:border-box; -webkit-appearance:none; appearance:none;">
+                    <input type="date" id="addLogDate" onchange="_onAddLogDateChange()" style="width:100%; max-width:100%; box-sizing:border-box; -webkit-appearance:none; appearance:none;">
                 </div>
-                <div>
+                <div id="addLogSiteSelectWrap">
                     <div id="addLogSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
                 </div>
-                <hr style="border:none; border-top:1px solid #444444; margin:0;">
+                <hr id="addLogHr" style="border:none; border-top:1px solid #444444; margin:0;">
                 <div id="addLogItemsWrap">
                     <div id="addLogItemsContainer" style="display:flex; flex-direction:column; max-height:calc(2 * 130px + 2 * 12px); overflow-y:auto;"></div>
                     <button onclick="_addNewLogItemRowAuto()" class="btn-slate" style="width:100%; padding:10px; margin-top:8px;">➕新增項目</button>
+                </div>
+                <div id="addLogOvertimeWrap" style="display:none; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">選擇上班案場 (可複選)：</label>
+                        <div id="addLogPunchSitesGroup" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">加班時數 (選填)：</label>
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" id="addLogOvertimeHours" placeholder="輸入加班小時數..." min="0" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -714,7 +736,7 @@
         <div id="editLogModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span id="editLogModalTitle" style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">編輯工程記錄</span>
-                <button onclick="deleteFromEditLogModal()" class="btn-red" style="padding:0 12px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">刪除</button>
+                <button onclick="deleteFromEditLogModal()" id="btnEditLogDelete" class="btn-red" style="padding:0 12px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">刪除</button>
                 <button onclick="saveEditLogModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
             </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px;">
@@ -2861,6 +2883,27 @@
         }
 
         // ================= 頁面切換 =================
+        function _setHeaderBack(handler) {
+            const btn = document.getElementById('headerBackBtn');
+            if (!btn) return;
+            if (!handler) {
+                btn.classList.add('hidden');
+                btn.onclick = null;
+            } else {
+                btn.classList.remove('hidden');
+                btn.onclick = handler;
+            }
+        }
+
+        function _updateCategoryHeaderBack() {
+            const keyword = document.getElementById('globalSearchBar')?.value.trim() || '';
+            if (_catPageMode === 'items' && !keyword) {
+                _setHeaderBack(backToCategories);
+            } else {
+                _setHeaderBack(function() { navigateTo('sites'); });
+            }
+        }
+
         function navigateTo(page) {
             currentState.page = page;
 
@@ -2873,6 +2916,7 @@
             document.getElementById('cartSubmitBtns').style.display = _isCartPage ? '' : 'none';
 
             if (page === 'sites') {
+                _setHeaderBack(null);
                 document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
                 document.getElementById('pageSites').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
@@ -2910,6 +2954,7 @@
                 const listCatEl = document.getElementById('listCategories');
                 if (listCatEl) listCatEl.scrollTop = 0;
             } else if (page === 'cart') {
+                _setHeaderBack(function() { navigateTo('categories'); });
                 document.getElementById('pageCart').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
                 const _orderDateVal = document.getElementById('inputOrderDate')?.value || '';
@@ -2920,6 +2965,7 @@
                 const listCartEl = document.getElementById('listCartItems');
                 if (listCartEl) listCartEl.scrollTop = 0;
             } else if (page === 'manage') {
+                _setHeaderBack(null);
                 document.getElementById('pageManage').classList.add('active');
                 document.getElementById('appTitle').innerText = ''; document.getElementById('appLogoIcon').style.display = 'none';
                 const _ta = document.getElementById('inputScriptUrl');
@@ -2946,6 +2992,7 @@
                 renderVendorList(false);
                 document.getElementById('pageManage').scrollTop = 0;
             } else if (page === 'lawref') {
+                _setHeaderBack(null);
                 document.getElementById('pageLawRef').classList.add('active');
                 document.getElementById('appTitle').innerText = ''; document.getElementById('appLogoIcon').style.display = 'none';
                 document.getElementById('lawSearchBar').value = '';
@@ -2987,15 +3034,24 @@
         function _openModalAlignedToCalendar(modalId, innerId, fillHeight, extraBottom) {
             const modal = document.getElementById(modalId);
             const inner = document.getElementById(innerId);
-            inner.style.marginTop = '0';
-            inner.style.maxHeight = '100%';
-            inner.style.height = '100%';
+            const header = document.querySelector('header');
+            const topOffset = header ? header.getBoundingClientRect().bottom + 8 : 8;
+            const extra = extraBottom || 0;
+            inner.style.marginTop = topOffset + 'px';
+            const maxByBottom = `calc(100vh - ${topOffset + 16}px)`;
+            const baseSize = `min(80vh, ${maxByBottom})`;
+            inner.style.maxHeight = extra ? `calc(${baseSize} + ${extra}px)` : baseSize;
+            inner.style.height = fillHeight ? (extra ? `calc(${baseSize} + ${extra}px)` : baseSize) : '';
             modal.style.display = 'flex';
         }
 
+        function _openFullscreenModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
         function openSiteInfoModal(targetSiteId) {
-            _openModalAlignedToCalendar('siteInfoModal', 'siteInfoModalInner', true, 13);
-            _setActiveHomeSeg(0);
+            _openFullscreenModal('siteInfoModal');
+            _setActiveHomeSeg(1);
             document.querySelector('#siteInfoModalInner [style*="overflow-y:auto"]')?.scrollTo(0, 0);
             document.getElementById('siteInfoDetailWrap').style.display = 'none';
             document.getElementById('progressDetailWrap').style.display = 'none';
@@ -3088,6 +3144,164 @@
         let _punchModalSnapshot = null;
         let _addLogModalSnapshot = null;
         let _editLogModalSnapshot = null;
+        let _addLogEntryType = 'record';
+
+        function _setLogEntryType(which, type) {
+            _addLogEntryType = type;
+
+            const radioRecord = document.getElementById(which + 'LogRadioRecord');
+            const radioPunch = document.getElementById(which + 'LogRadioPunch');
+            const siteSelectWrap = document.getElementById(which + 'LogSiteSelectWrap');
+            const hr = document.getElementById(which + 'LogHr');
+            const itemsWrap = document.getElementById(which + 'LogItemsWrap');
+            const overtimeWrap = document.getElementById(which + 'LogOvertimeWrap');
+
+            if (type === 'record') {
+                radioRecord.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#ffffff;"></span>';
+                radioPunch.innerHTML = '';
+                siteSelectWrap.style.display = '';
+                hr.style.display = '';
+                itemsWrap.style.display = '';
+                overtimeWrap.style.display = 'none';
+            } else {
+                radioPunch.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#ffffff;"></span>';
+                radioRecord.innerHTML = '';
+                siteSelectWrap.style.display = 'none';
+                hr.style.display = 'none';
+                itemsWrap.style.display = 'none';
+                overtimeWrap.style.display = 'flex';
+
+                const dateStr = document.getElementById(which + 'LogDate')?.value || '';
+                renderAddLogPunchSites(dateStr);
+                const hoursInput = document.getElementById(which + 'LogOvertimeHours');
+                let hours = '';
+                if (db.punches) {
+                    for (let sId in db.punches) {
+                        if (db.punches[sId] && db.punches[sId][dateStr] && db.punches[sId][dateStr].overtime) {
+                            hours = db.punches[sId][dateStr].overtime;
+                            break;
+                        }
+                    }
+                }
+                if (hoursInput) hoursInput.value = hours;
+            }
+            _updateAddLogPunchButtons();
+        }
+
+        function _updateAddLogPunchButtons() {
+            const showEdit = _addLogEntryType === 'punch' && _editCtx && _editCtx.type === 'punch';
+            const delBtn = document.getElementById('btnAddLogDelete');
+            const lineBtn = document.getElementById('btnAddLogLine');
+            if (delBtn) delBtn.classList.toggle('hidden', !showEdit);
+            if (lineBtn) lineBtn.classList.toggle('hidden', !showEdit);
+        }
+
+        function renderAddLogPunchSites(dateStr) {
+            const box = document.getElementById('addLogPunchSitesGroup');
+            if (!box) return;
+            box.innerHTML = '';
+            box.style.display = 'flex';
+            box.style.flexWrap = 'wrap';
+            box.style.flexDirection = 'row';
+            box.style.gap = '6px';
+            if (db.sites.length === 0) {
+                box.innerHTML = '<span style="font-size:13px; color:#888;">尚無案場</span>';
+                return;
+            }
+            db.sites.forEach(function(site) {
+                const isActive = !!(db.punches && db.punches[site.id] && db.punches[site.id][dateStr] && db.punches[site.id][dateStr].status === '上班');
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = site.name;
+                btn.className = 'addlog-punch-site-pill';
+                btn.dataset.siteId = site.id;
+                btn.dataset.selected = isActive ? '1' : '0';
+                btn.style.cssText = 'padding:5px 14px; border-radius:20px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; border:1.5px solid ' + (isActive ? '#ffffff' : '#444444') + '; background:' + (isActive ? '#ffffff' : '#111111') + '; color:' + (isActive ? '#000000' : '#ffffff') + ';';
+                btn.addEventListener('click', function() {
+                    const nowActive = btn.dataset.selected !== '1';
+                    btn.dataset.selected = nowActive ? '1' : '0';
+                    btn.style.border = '1.5px solid ' + (nowActive ? '#ffffff' : '#444444');
+                    btn.style.background = nowActive ? '#ffffff' : '#111111';
+                    btn.style.color = nowActive ? '#000000' : '#ffffff';
+                });
+                box.appendChild(btn);
+            });
+        }
+
+        function _onAddLogDateChange() {
+            if (_addLogEntryType !== 'punch') return;
+            const dateStr = document.getElementById('addLogDate').value;
+            renderAddLogPunchSites(dateStr);
+            const otInput = document.getElementById('addLogOvertimeHours');
+            otInput.value = '';
+            if (db.punches) {
+                for (let sId in db.punches) {
+                    if (db.punches[sId] && db.punches[sId][dateStr] && db.punches[sId][dateStr].overtime) {
+                        otInput.value = db.punches[sId][dateStr].overtime;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function _savePunchFromAddLog() {
+            const dateStr = document.getElementById('addLogDate').value || getTargetDateStr();
+            const pills = document.querySelectorAll('#addLogPunchSitesGroup .addlog-punch-site-pill');
+            const overtime = document.getElementById('addLogOvertimeHours').value.trim();
+            const note = overtime ? `加班${overtime}小時` : '';
+
+            if (!db.punches) db.punches = {};
+
+            const oldDateStr = (_editCtx && _editCtx.type === 'punch') ? _editCtx.dateStr : null;
+            if (oldDateStr && oldDateStr !== dateStr) {
+                for (let sId in db.punches) {
+                    if (db.punches[sId] && db.punches[sId][oldDateStr]) delete db.punches[sId][oldDateStr];
+                }
+            }
+
+            pills.forEach(pill => {
+                const sId = pill.dataset.siteId;
+                if (pill.dataset.selected === '1') {
+                    if (!db.punches[sId]) db.punches[sId] = {};
+                    db.punches[sId][dateStr] = { status: '上班', note, overtime };
+                } else {
+                    if (db.punches[sId] && db.punches[sId][dateStr]) delete db.punches[sId][dateStr];
+                }
+            });
+
+            saveToLocalStorage();
+            closeAddLogModal();
+            showToast('儲存成功');
+            const [y, m] = dateStr.split('-').map(Number);
+            homeCalYear = y;
+            homeCalMonth = m - 1;
+            selectedHomeDateStr = dateStr;
+            initHomeCalendar();
+            showInlineDayView(dateStr);
+        }
+
+        function deleteFromAddLogPunch() {
+            if (!_editCtx || _editCtx.type !== 'punch') return;
+            const dateStr = _editCtx.dateStr;
+            if (!confirm(`⚠️ 確定要刪除 ${dateStr} 的出勤紀錄嗎？(不可還原)`)) return;
+            if (db.punches) {
+                for (let sId in db.punches) {
+                    if (db.punches[sId] && db.punches[sId][dateStr]) delete db.punches[sId][dateStr];
+                }
+            }
+            saveToLocalStorage();
+            _editCtx = null;
+            closeAddLogModal();
+            initHomeCalendar();
+            showInlineDayView(dateStr);
+            updateHomeImportBtn();
+        }
+
+        function shareAddLogPunchToLine() {
+            const dateStr = document.getElementById('addLogDate').value || (_editCtx && _editCtx.dateStr) || '';
+            shareInlinePunchToLine(dateStr);
+        }
+
         let _siteInfoModalSnapshot = null;
         let _progressModalSnapshot = null;
 
@@ -3107,7 +3321,9 @@
                 contractor: el.querySelector('.log-contractor-input')?.value || '',
                 people: el.querySelector('.log-people-input')?.value || ''
             }));
-            return JSON.stringify({ date, site, items });
+            const overtime = document.getElementById('addLogOvertimeHours')?.value || '';
+            const punchSites = Array.from(document.querySelectorAll('#addLogPunchSitesGroup .addlog-punch-site-pill')).map(b => b.dataset.selected);
+            return JSON.stringify({ date, site, items, type: _addLogEntryType, overtime, punchSites });
         }
 
         function _snapshotEditLogModal() {
@@ -3212,6 +3428,7 @@
         }
 
         function renderCategories() {
+            _updateCategoryHeaderBack();
             const list = document.getElementById('listCategories');
             const keyword = document.getElementById('globalSearchBar').value.toLowerCase().trim();
             const header = document.getElementById('categoryListHeader');
@@ -3747,39 +3964,26 @@
         }
 
         function openInlineEditPunch(dateStr) {
+            _setActiveHomeSeg(0);
             _editCtx = { type: 'punch', dateStr };
-            // Open punch modal prefilled with the card's date
-            document.getElementById('inputPunchDate').value = dateStr;
-            renderPunchSites();
-            // Correctly read overtime from existing punch record
-            const otInput = document.getElementById('inputOvertimeHours');
-            otInput.value = '';
-            if (db.punches) {
-                for (let sId in db.punches) {
-                    if (db.punches[sId] && db.punches[sId][dateStr]) {
-                        const rec = db.punches[sId][dateStr];
-                        if (rec.overtime !== undefined && rec.overtime !== '') {
-                            otInput.value = rec.overtime;
-                        } else if (rec.note) {
-                            const m = rec.note.match(/加班(\d+(?:\.\d+)?)小時/);
-                            if (m) otInput.value = m[1];
-                        }
-                        break;
-                    }
-                }
-            }
-            const delBtn = document.getElementById('btnPunchDeleteInEdit');
-            if (delBtn) delBtn.classList.remove('hidden');
-            document.getElementById('punchModal').style.display = 'flex';
-            document.querySelector('#punchModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
-            setTimeout(() => { _punchModalSnapshot = _snapshotPunchModal(); }, 50);
+            document.getElementById('addLogModalTitle').textContent = '編輯出勤';
+            document.getElementById('addLogTypeToggleRow').style.display = 'none';
+            document.getElementById('addLogDate').value = dateStr;
+            _setLogEntryType('add', 'punch');
+            _openModalAlignedToCalendar('addLogModal', 'addLogModalInner');
+            document.querySelector('#addLogModal [style*="overflow-y:auto"]')?.scrollTo(0, 0);
+            setTimeout(() => { _addLogModalSnapshot = _snapshotAddLogModal(); }, 50);
         }
 
         // ================= 工程記錄 新增彈窗 =================
         function openAddLogModal() {
-            _setActiveHomeSeg(1);
+            _setActiveHomeSeg(0);
+            _editCtx = null;
+            document.getElementById('addLogModalTitle').textContent = '新增';
+            document.getElementById('addLogTypeToggleRow').style.display = 'flex';
             const dateStr = selectedHomeDateStr || getTargetDateStr();
             document.getElementById('addLogDate').value = dateStr;
+            _setLogEntryType('add', 'record');
             _renderSitePills('addLogSiteSelect', '', function(siteId) {
                 const container = document.getElementById('addLogItemsContainer');
                 container.innerHTML = '';
@@ -3798,6 +4002,8 @@
             document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
             document.getElementById('addLogModal').style.display = 'none';
             _addLogModalSnapshot = null;
+            _editCtx = null;
+            _updateAddLogPunchButtons();
         }
 
         function _updateNewLogItemLabels() {
@@ -4028,6 +4234,9 @@
         }
 
         function saveAddLogModal() {
+            if (_addLogEntryType === 'punch') {
+                return _savePunchFromAddLog();
+            }
             const siteSel = document.getElementById('addLogSiteSelect');
             const siteId = siteSel ? (siteSel.dataset.siteId || '') : '';
             if (!siteId) return alert('⚠️ 請先選擇案場！');
@@ -4992,7 +5201,7 @@
 
         function openWorkProgressModal() {
             _setActiveHomeSeg(2);
-            _openModalAlignedToCalendar('workProgressModal', 'workProgressModalInner', true, 13);
+            _openFullscreenModal('workProgressModal');
             const firstId = db.sites.length > 0 ? db.sites[0].id : '';
             _renderSitePills('wpSiteSelect', firstId, function(siteId) {
                 renderWorkProgressList();
