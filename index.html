@@ -133,12 +133,6 @@
         * { scrollbar-color: #555555 transparent; scrollbar-width: thin; }
         /* btn-red utility (used inline on delete buttons) */
         .btn-red { background-color: #D9006C !important; color: #ffffff !important; }
-
-        #listCategories .item-label span {
-            -webkit-user-select: text;
-            user-select: text;
-            -webkit-touch-callout: default;
-        }
     </style>
 </head>
 <body>
@@ -149,9 +143,27 @@
             <button id="headerHomeBtn" class="hidden btn-slate" onclick="navigateTo('sites')" style="background-color:#000000;">首頁</button>
         </div>
         <h1 id="appTitle" class="header-title"></h1>
-        <div style="display: flex; gap: 4px; flex-shrink: 0;">
+        <div id="headerRightBtns" style="display: flex; gap: 4px; flex-shrink: 0;">
             <button onclick="navigateTo('lawref')" class="btn-slate" style="background-color:#000000;">設置標準</button>
             <button onclick="navigateTo('manage')" class="btn-slate" style="background-color:#000000; position:relative;">設定<span id="manageRedDot" style="display:none; position:absolute; top:-2px; right:-4px; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px #111;"></span></button>
+        </div>
+        <div id="headerSiteInfoBtns" style="display: none; gap: 4px; flex-shrink: 0;">
+            <button onclick="enterMainInfoEdit()" id="btnMainInfoEdit" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
+            <button onclick="saveMainInfo()" id="btnMainInfoSave" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
+        </div>
+        <div id="headerWpBtns" style="display: none; gap: 4px; flex-shrink: 0;">
+            <button onclick="openWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增工項</button>
+        </div>
+        <div id="headerCatBtns" style="display: none; gap: 6px; align-items: center; flex-shrink: 0;">
+            <div id="catEditBtnGroup" style="display:flex; gap:6px; align-items:center;">
+                <button id="btnCatAddInline" onclick="addCategoryInline()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增分類</button>
+                <button id="btnCatEdit" onclick="enterCatEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
+                <button id="btnCatSave" onclick="exitCatEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
+            </div>
+            <div id="itemEditBtnGroup" style="display:none; gap:6px; align-items:center;">
+                <button id="btnItemEdit" onclick="enterItemEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
+                <button id="btnItemSave" onclick="exitItemEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
+            </div>
         </div>
     </header>
 
@@ -212,17 +224,8 @@
             <div class="list-container" style="flex: 1; min-height: 0;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin:4px; flex-shrink:0;">
                     <h3 id="categoryListHeader" style="font-size: 14px; color: #dddddd; margin: 0;">選擇材料分類：</h3>
-                    <div id="catEditBtnGroup" style="display:flex; gap:6px; align-items:center;">
-                        <button id="btnCatAddInline" onclick="addCategoryInline()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增分類</button>
-                        <button id="btnCatEdit" onclick="enterCatEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
-                        <button id="btnCatSave" onclick="exitCatEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
-                    </div>
-                    <div id="itemEditBtnGroup" style="display:none; gap:6px; align-items:center;">
-                        <button id="btnItemEdit" onclick="enterItemEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
-                        <button id="btnItemSave" onclick="exitItemEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
-                    </div>
                 </div>
-                <div id="listCategories" class="scroll-list-body" style="padding-bottom: 8px; max-height: calc(9 * (44px + 8px) - 8px + 25px); overflow-y: auto;"></div>
+                <div id="listCategories" class="scroll-list-body" style="padding-bottom: 8px; max-height: calc(9 * (44px + 8px) - 8px + 25px + 3px); overflow-y: auto;"></div>
             </div>
         </section>
 
@@ -261,12 +264,11 @@
                             <div>
                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:2px;">
                                     <div style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">地址</div>
-                                    <button onclick="enterMainInfoEdit()" id="btnMainInfoEdit" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
                                 </div>
-                                <div id="siteInfoViewAddress" style="font-size:14px; color:#ffffff; line-height:1.5; -webkit-user-select:text; user-select:text;">—</div>
+                                <div id="siteInfoViewAddress" style="font-size:14px; color:#ffffff; line-height:1.5;">—</div>
                             </div>
                             <div id="siteInfoViewNotesWrap" style="display:none;">
-                                <div id="siteInfoViewNotes" style="font-size:14px; color:#ffffff; line-height:1.6; white-space:pre-wrap; -webkit-user-select:text; user-select:text;"></div>
+                                <div id="siteInfoViewNotes" style="font-size:14px; color:#ffffff; line-height:1.6; white-space:pre-wrap;"></div>
                             </div>
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:6px; border-top:1px solid #444444;">
                                 <div>
@@ -283,7 +285,6 @@
                             <div>
                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
                                     <label style="font-size:13px; font-weight:bold; color:#dddddd;">地址</label>
-                                    <button onclick="saveMainInfo()" id="btnMainInfoSave" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
                                 </div>
                                 <input type="text" id="inputSiteInfoAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
                             </div>
@@ -471,8 +472,8 @@
         </div>
 
         <!-- 計價進度 彈窗 -->
-        <div id="progressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-end; justify-content:center; padding-bottom:88px;">
-            <div style="background:#1e1e1e; border-radius:14px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:calc(100vh - 88px - 16px); overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <div id="progressEditModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-end; justify-content:center;">
+            <div style="background:#1e1e1e; border-radius:14px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:calc(100% - 16px); overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
                 <div style="padding:14px 16px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; flex-shrink:0; gap:8px;">
                     <span id="progressModalTitleView" style="flex:1; font-size:15px; font-weight:bold; color:#ffffff; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
                     <button id="btnProgressModalEdit" onclick="_enterProgressModalEdit()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
@@ -588,6 +589,10 @@
     </div>
     <script>
         function _switchHomeModal(target) {
+            // 設置標準頁在開啟其他視窗時要自動關閉，先切回首頁
+            if (currentState.page === 'lawref' && target !== 'material') {
+                navigateTo('sites');
+            }
             const siteOpen = document.getElementById('siteInfoModal').style.display === 'flex';
             const logOpen = document.getElementById('addLogModal').style.display === 'flex';
             const progressOpen = document.getElementById('workProgressModal').style.display === 'flex';
@@ -2635,6 +2640,7 @@
                 itemsContainer.appendChild(_makeModalItemRow(iIdx, item.month, item.amount, useCt, false));
             });
             _recalcModalSummary();
+            _alignModalTopToHeader('progressEditModal');
             document.getElementById('progressEditModal').style.display = 'flex';
             _scrollModalToBottom();
             const _homeBtns = document.getElementById('homeMainBtns');
@@ -3027,6 +3033,8 @@
             document.getElementById('orderCartBtns').style.display = _isOrderPage ? '' : 'none';
             document.getElementById('cartSubmitBtns').style.display = _isCartPage ? '' : 'none';
             document.getElementById('headerHomeBtn').classList.toggle('hidden', !(_isOrderPage || _isCartPage));
+            document.getElementById('headerRightBtns').style.display = (page === 'sites') ? '' : 'none';
+            document.getElementById('headerCatBtns').style.display = _isOrderPage ? 'flex' : 'none';
 
             if (page === 'sites') {
                 _setHeaderBack(null);
@@ -3171,9 +3179,19 @@
             if (backHandler) _setHeaderBack(backHandler);
         }
 
+        // 計價表明細彈窗：上緣切齊標題列下緣，且只覆蓋下方區域，不擠壓上層視窗
+        function _alignModalTopToHeader(modalId) {
+            const modal = document.getElementById(modalId);
+            const header = document.querySelector('header');
+            const topOffset = header ? header.getBoundingClientRect().bottom : 0;
+            modal.style.top = topOffset + 'px';
+        }
+
         function openSiteInfoModal(targetSiteId) {
             _openFullscreenModal('siteInfoModal', _backFromSiteInfo);
             _setActiveHomeSeg(1);
+            document.getElementById('headerRightBtns').style.display = 'none';
+            document.getElementById('headerSiteInfoBtns').style.display = 'flex';
             document.querySelector('#siteInfoModalInner [style*="overflow-y:auto"]')?.scrollTo(0, 0);
             document.getElementById('siteInfoDetailWrap').style.display = 'none';
             document.getElementById('progressDetailWrap').style.display = 'none';
@@ -3227,6 +3245,8 @@
             document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
             document.getElementById('siteInfoModal').style.display = 'none';
             _siteInfoModalSnapshot = null;
+            document.getElementById('headerSiteInfoBtns').style.display = 'none';
+            if (currentState.page === 'sites') document.getElementById('headerRightBtns').style.display = '';
             _setHeaderBack(null);
         }
 
@@ -5324,7 +5344,7 @@
             headerRow.appendChild(copyBtn);
 
             const body = document.createElement('div');
-            body.style.cssText = 'font-size:13px; color:#cccccc; line-height:1.9; white-space:pre-wrap; word-break:break-all; -webkit-user-select:text; user-select:text;';
+            body.style.cssText = 'font-size:13px; color:#cccccc; line-height:1.9; white-space:pre-wrap; word-break:break-all;';
             body.textContent = _formatLawContent(content);
 
             row.appendChild(headerRow);
@@ -5340,6 +5360,8 @@
         function openWorkProgressModal() {
             _setActiveHomeSeg(2);
             _openFullscreenModal('workProgressModal', closeWorkProgressModal);
+            document.getElementById('headerRightBtns').style.display = 'none';
+            document.getElementById('headerWpBtns').style.display = 'flex';
             const firstId = db.sites.length > 0 ? db.sites[0].id : '';
             _renderSitePills('wpSiteSelect', firstId, function(siteId) {
                 renderWorkProgressList();
@@ -5350,6 +5372,8 @@
         function closeWorkProgressModal() {
             document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
             document.getElementById('workProgressModal').style.display = 'none';
+            document.getElementById('headerWpBtns').style.display = 'none';
+            if (currentState.page === 'sites') document.getElementById('headerRightBtns').style.display = '';
             _setHeaderBack(null);
         }
 
@@ -5621,24 +5645,10 @@
                     var rightWrap = document.createElement('div');
                     rightWrap.style.cssText = 'display:flex; align-items:center; gap:8px; flex-shrink:0;';
 
-                    // 無人記錄且0% → 顯示刪除按鈕；否則顯示百分比
-                    if (pct === 0 && totalPeople === 0) {
-                        var delBtn = document.createElement('button');
-                        delBtn.textContent = '刪除';
-                        delBtn.style.cssText = 'background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; flex-shrink:0;';
-                        (function(si, ii) {
-                            delBtn.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                deleteWorkProgressItem(si, ii);
-                            });
-                        }(siteId, idx));
-                        rightWrap.appendChild(delBtn);
-                    } else {
-                        var pctLabel = document.createElement('span');
-                        pctLabel.style.cssText = 'font-size:14px; font-weight:700; color:' + (isDone ? '#888' : '#ffffff') + '; white-space:nowrap; min-width:36px; text-align:right;';
-                        pctLabel.textContent = pct + '%';
-                        rightWrap.appendChild(pctLabel);
-                    }
+                    var pctLabel = document.createElement('span');
+                    pctLabel.style.cssText = 'font-size:14px; font-weight:700; color:' + (isDone ? '#888' : '#ffffff') + '; white-space:nowrap; min-width:36px; text-align:right;';
+                    pctLabel.textContent = pct + '%';
+                    rightWrap.appendChild(pctLabel);
 
                     topRow.appendChild(titleWrap);
                     topRow.appendChild(rightWrap);
