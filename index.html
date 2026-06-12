@@ -248,15 +248,14 @@
             </div>
         </section>
 
-    <!-- 案場資訊 彈窗 -->
-    <div id="siteInfoModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:#111111; z-index:200; align-items:stretch; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;_backFromSiteInfo();}">
-        <div id="siteInfoModalInner" style="background:#111111; border-radius:0; padding:0; width:100%; max-width:448px; display:flex; flex-direction:column; height:100%; max-height:100%; overflow:hidden;">
-            <!-- 固定：案場選擇 -->
-            <div style="padding:12px 16px 8px; flex-shrink:0;">
-                <div id="siteInfoSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-            </div>
-            <!-- 可滾動：其餘內容 -->
-            <div id="siteInfoScrollArea" style="flex:1; overflow-y:auto; padding:8px 16px 16px; display:flex; flex-direction:column; gap:0;">
+    <!-- 案場資訊 頁面 -->
+    <section id="pageSiteInfo" class="page">
+        <!-- 固定：案場選擇 -->
+        <div style="flex-shrink:0;">
+            <div id="siteInfoSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+        </div>
+        <!-- 可滾動：其餘內容 -->
+        <div id="siteInfoScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:88px; display:flex; flex-direction:column; gap:0;">
 
                 <div id="siteInfoDetailWrap" style="display:none; margin-bottom:0;">
                     <div style="background-color:#1e1e1e; border:1px solid #444444; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;">
@@ -345,34 +344,31 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- 工程進度 彈窗 -->
-    <div id="workProgressModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:#111111; z-index:200; align-items:stretch; justify-content:center;" onclick="if(event.target===this)closeWorkProgressModal()">
-        <div id="workProgressModalInner" style="background:#111111; border-radius:0; padding:0; width:100%; max-width:448px; display:flex; flex-direction:column; height:100%; max-height:100%; overflow:hidden;">
-            <!-- 固定：案場選擇 + 總進度 -->
-            <div id="wpHeaderTopSection" style="padding:12px 16px 8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0; border-bottom:1px solid #333333;">
-                <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-                <div id="wpOverallWrap" style="display:flex; flex-direction:column; gap:6px; padding-bottom:10px;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                        <div id="wpVendorPeopleList" style="display:flex; flex-direction:column; gap:2px; min-width:0; font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;"></div>
-                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;">
-                            <span id="wpOverallLabel" style="font-size:17px; font-weight:700; color:#ff4d4d;">0%</span>
-                        </div>
-                    </div>
-                    <div id="wpOverallBarWrap" style="display:none; position:relative; height:24px; background:#1e1e1e; border-radius:12px; overflow:hidden;">
-                        <div id="wpOverallFill" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#ff4d4d); border-radius:12px; transition:width 0.3s;"></div>
+    <!-- 工程進度 頁面 -->
+    <section id="pageWorkProgress" class="page">
+        <!-- 固定：案場選擇 + 總進度 -->
+        <div id="wpHeaderTopSection" style="padding-bottom:8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0; border-bottom:1px solid #333333;">
+            <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+            <div id="wpOverallWrap" style="display:flex; flex-direction:column; gap:6px; padding-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                    <div id="wpVendorPeopleList" style="display:flex; flex-direction:column; gap:2px; min-width:0; font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;"></div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;">
+                        <span id="wpOverallLabel" style="font-size:17px; font-weight:700; color:#ff4d4d;">0%</span>
                     </div>
                 </div>
-            </div>
-            <!-- 可滾動：工項列表 -->
-            <div id="wpScrollArea" style="flex:1; overflow-y:auto; padding:12px 16px 16px;">
-                <div id="wpList" style="display:flex; flex-direction:column; gap:0;"></div>
+                <div id="wpOverallBarWrap" style="display:none; position:relative; height:24px; background:#1e1e1e; border-radius:12px; overflow:hidden;">
+                    <div id="wpOverallFill" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#ff4d4d); border-radius:12px; transition:width 0.3s;"></div>
+                </div>
             </div>
         </div>
-    </div>
+        <!-- 可滾動：工項列表 -->
+        <div id="wpScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:88px;">
+            <div id="wpList" style="display:flex; flex-direction:column; gap:0;"></div>
+        </div>
+    </section>
 
     <!-- 工程進度新增彈窗 -->
     <div id="wpAddModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)_tryCloseWpAddModal()">
@@ -589,23 +585,19 @@
     </div>
     <script>
         function _switchHomeModal(target) {
-            // 設置標準頁在開啟其他視窗時要自動關閉，先切回首頁
-            if (currentState.page === 'lawref' && target !== 'material') {
+            // 設置標準頁在開啟其他視窗（記錄彈窗）時要自動關閉，先切回首頁
+            if (currentState.page === 'lawref' && target === 'log') {
                 navigateTo('sites');
             }
-            const siteOpen = document.getElementById('siteInfoModal').style.display === 'flex';
+            const siteOpen = currentState.page === 'siteinfo';
             const logOpen = document.getElementById('addLogModal').style.display === 'flex';
-            const progressOpen = document.getElementById('workProgressModal').style.display === 'flex';
-            if (target === 'site' && siteOpen) { closeSiteInfoModal(); return; }
+            const progressOpen = currentState.page === 'workprogress';
+            if (target === 'site' && siteOpen) { _backFromSiteInfo(); return; }
             if (target === 'log' && logOpen) { closeAddLogModal(); return; }
             if (target === 'progress' && progressOpen) { closeWorkProgressModal(); return; }
-            if (siteOpen && target !== 'site') closeSiteInfoModal();
             if (logOpen && target !== 'log') closeAddLogModal();
-            if (progressOpen && target !== 'progress') closeWorkProgressModal();
             if (target === 'material') {
-                if (siteOpen) closeSiteInfoModal();
                 if (logOpen) closeAddLogModal();
-                if (progressOpen) closeWorkProgressModal();
                 navigateTo('categories');
                 return;
             }
@@ -1514,12 +1506,10 @@
             const SITE_THRESHOLD = 55, SITE_MAX_Y = 60;
 
             function getSiteSwipeContext(target) {
-                const siteModal = document.getElementById('siteInfoModal');
-                const wpModal = document.getElementById('workProgressModal');
-                if (siteModal && siteModal.style.display === 'flex' && siteModal.contains(target)) {
+                if (currentState.page === 'siteinfo') {
                     return { pillBoxId: 'siteInfoSiteSelect', scrollAreaId: 'siteInfoScrollArea' };
                 }
-                if (wpModal && wpModal.style.display === 'flex' && wpModal.contains(target)) {
+                if (currentState.page === 'workprogress') {
                     return { pillBoxId: 'wpSiteSelect', scrollAreaId: 'wpScrollArea' };
                 }
                 return null;
@@ -1967,8 +1957,8 @@
             if (_activeVendorName === old) _activeVendorName = trimmed;
             saveToLocalStorage();
             renderVendorList(true);
-            // 若案場資訊視窗開著，刷新廠商卡
-            if (document.getElementById('siteInfoModal').style.display !== 'none') {
+            // 若案場資訊頁開著，刷新廠商卡
+            if (currentState.page === 'siteinfo') {
                 _renderVendorCard();
             }
         }
@@ -3021,11 +3011,11 @@
             currentState.page = page;
 
             // 切換頁面前先關閉所有浮層
-            if (document.getElementById('siteInfoModal').style.display === 'flex') closeSiteInfoModal();
             if (document.getElementById('addLogModal').style.display === 'flex') closeAddLogModal();
-            if (document.getElementById('workProgressModal').style.display === 'flex') closeWorkProgressModal();
+            _siteInfoModalSnapshot = null;
 
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
             // 控制底部按鈕群
             const _isOrderPage = (page === 'categories' || page === 'items');
             const _isCartPage = (page === 'cart');
@@ -3035,6 +3025,8 @@
             document.getElementById('headerHomeBtn').classList.toggle('hidden', !(_isOrderPage || _isCartPage));
             document.getElementById('headerRightBtns').style.display = (page === 'sites') ? '' : 'none';
             document.getElementById('headerCatBtns').style.display = _isOrderPage ? 'flex' : 'none';
+            document.getElementById('headerSiteInfoBtns').style.display = (page === 'siteinfo') ? 'flex' : 'none';
+            document.getElementById('headerWpBtns').style.display = (page === 'workprogress') ? 'flex' : 'none';
 
             if (page === 'sites') {
                 _setHeaderBack(null);
@@ -3124,6 +3116,16 @@
                 _lawDefaultCollapsed = true;
                 _renderLawList();
                 document.getElementById('lawTocArea').scrollTop = 0;
+            } else if (page === 'siteinfo') {
+                _setHeaderBack(_backFromSiteInfo);
+                document.getElementById('pageSiteInfo').classList.add('active');
+                document.getElementById('appTitle').innerText = '';
+                _setActiveHomeSeg(1);
+            } else if (page === 'workprogress') {
+                _setHeaderBack(closeWorkProgressModal);
+                document.getElementById('pageWorkProgress').classList.add('active');
+                document.getElementById('appTitle').innerText = '';
+                _setActiveHomeSeg(2);
             }
             updateCartBadge();
         }
@@ -3170,15 +3172,6 @@
             modal.style.display = 'flex';
         }
 
-        function _openFullscreenModal(modalId, backHandler) {
-            const modal = document.getElementById(modalId);
-            const header = document.querySelector('header');
-            const topOffset = header ? header.getBoundingClientRect().bottom : 0;
-            modal.style.top = topOffset + 'px';
-            modal.style.display = 'flex';
-            if (backHandler) _setHeaderBack(backHandler);
-        }
-
         // 計價表明細彈窗：上緣切齊標題列下緣，且只覆蓋下方區域，不擠壓上層視窗
         function _alignModalTopToHeader(modalId) {
             const modal = document.getElementById(modalId);
@@ -3188,11 +3181,8 @@
         }
 
         function openSiteInfoModal(targetSiteId) {
-            _openFullscreenModal('siteInfoModal', _backFromSiteInfo);
-            _setActiveHomeSeg(1);
-            document.getElementById('headerRightBtns').style.display = 'none';
-            document.getElementById('headerSiteInfoBtns').style.display = 'flex';
-            document.querySelector('#siteInfoModalInner [style*="overflow-y:auto"]')?.scrollTo(0, 0);
+            navigateTo('siteinfo');
+            document.getElementById('siteInfoScrollArea')?.scrollTo(0, 0);
             document.getElementById('siteInfoDetailWrap').style.display = 'none';
             document.getElementById('progressDetailWrap').style.display = 'none';
             _siSelectedSiteId = null;
@@ -3242,16 +3232,11 @@
         }
 
         function closeSiteInfoModal() {
-            document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
-            document.getElementById('siteInfoModal').style.display = 'none';
-            _siteInfoModalSnapshot = null;
-            document.getElementById('headerSiteInfoBtns').style.display = 'none';
-            if (currentState.page === 'sites') document.getElementById('headerRightBtns').style.display = '';
-            _setHeaderBack(null);
+            navigateTo('sites');
         }
 
         function _isModalOpen() {
-            return ['punchModal','addLogModal','editLogModal','editOrderModal','siteInfoModal','confirmAddModal','addItemNameModal'].some(
+            return ['punchModal','addLogModal','editLogModal','editOrderModal','confirmAddModal','addItemNameModal'].some(
                 id => { const el = document.getElementById(id); return el && el.style.display === 'flex'; }
             );
         }
@@ -4970,6 +4955,8 @@
                         // 觸發返回
                         const p = currentState.page;
                         if (p === 'manage' || p === 'lawref') navigateTo('sites');
+                        else if (p === 'siteinfo') _backFromSiteInfo();
+                        else if (p === 'workprogress') closeWorkProgressModal();
                         else if (p === 'categories') {
                             if (_catPageMode === 'catPick') cancelCatPick();
                             else if (_catPageMode === 'items') backToCategories();
@@ -5358,10 +5345,7 @@
         let _wpCurrentSiteId = null;
 
         function openWorkProgressModal() {
-            _setActiveHomeSeg(2);
-            _openFullscreenModal('workProgressModal', closeWorkProgressModal);
-            document.getElementById('headerRightBtns').style.display = 'none';
-            document.getElementById('headerWpBtns').style.display = 'flex';
+            navigateTo('workprogress');
             const firstId = db.sites.length > 0 ? db.sites[0].id : '';
             _renderSitePills('wpSiteSelect', firstId, function(siteId) {
                 renderWorkProgressList();
@@ -5370,11 +5354,7 @@
         }
 
         function closeWorkProgressModal() {
-            document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
-            document.getElementById('workProgressModal').style.display = 'none';
-            document.getElementById('headerWpBtns').style.display = 'none';
-            if (currentState.page === 'sites') document.getElementById('headerRightBtns').style.display = '';
-            _setHeaderBack(null);
+            navigateTo('sites');
         }
 
         // 解析案場所有工程記錄，建立 (工項|樓層) → 人數 對照表（格式：● 工項 / ↳ 樓層 / ↳ 人數）
@@ -5786,9 +5766,8 @@
             const modal = document.getElementById('wpAddModal');
             const inner = modal ? modal.firstElementChild : null;
             if (!modal || !inner) return;
-            const wpModal = document.getElementById('workProgressModal');
             let target = null;
-            if (wpModal && wpModal.style.display === 'flex') {
+            if (currentState.page === 'workprogress') {
                 const overall = document.getElementById('wpOverallWrap');
                 if (overall && overall.style.display !== 'none') target = overall;
                 else target = document.getElementById('wpHeaderTopSection');
