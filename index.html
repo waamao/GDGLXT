@@ -29,6 +29,7 @@
         
         .page { display: none; height: 100%; min-height: 0; flex-direction: column; gap: 12px; }
         .page.active { display: flex; }
+        #pageLawRef.active { position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 448px; height: 100vh; background-color: #111111; z-index: 300; padding: 8px 16px 16px; margin: 0; box-sizing: border-box; }
         
         #pageSites { display: none; height: 100%; flex-direction: column; justify-content: space-between; }
         #pageSites.active { display: flex; }
@@ -182,8 +183,8 @@
                     <button onclick="document.getElementById('importFile').click()" style="background-color:#111111; color:white; font-size:14px; font-weight:bold; padding:12px 24px; border-radius:12px; width:100%; border: 1px solid #555555;">📥 匯入系統備份</button>
                 </div>
 
-                <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;">
-                    <div id="inlineDayContent" style="max-height: calc(3 * 110px + 13px); overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-bottom: 88px;"></div>
+                <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #333333; padding-top: 8px; margin-top: -17px;">
+                    <div id="inlineDayContent" style="max-height: calc(3 * 110px + 13px); overflow-y:auto; display:flex; flex-direction:column; gap:0; padding-bottom: 88px;"></div>
                 </div>
             </div>
 
@@ -243,9 +244,10 @@
         </section>
 
     <!-- 案場資訊 彈窗 -->
-    <div id="siteInfoModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none'||document.getElementById('vendorCardEditArea').style.display!=='none';if(_isEditing){if(_siteInfoModalSnapshot!==null&&_snapshotSiteInfoModal()!==_siteInfoModalSnapshot){if(!confirm('未儲存，是否離開編輯？'))return;}_cancelMainInfoEdit();}else{closeSiteInfoModal();}}">
-        <div id="siteInfoModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
-            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+    <div id="siteInfoModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#111111; z-index:200; align-items:stretch; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none'||document.getElementById('vendorCardEditArea').style.display!=='none';if(_isEditing){if(_siteInfoModalSnapshot!==null&&_snapshotSiteInfoModal()!==_siteInfoModalSnapshot){if(!confirm('未儲存，是否離開編輯？'))return;}_cancelMainInfoEdit();}else{closeSiteInfoModal();}}">
+        <div id="siteInfoModalInner" style="background:#111111; border-radius:0; padding:0; width:100%; max-width:448px; display:flex; flex-direction:column; height:100%; max-height:100%; overflow:hidden;">
+            <div style="padding:12px 16px 8px; border-bottom:1px solid #333333; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
+                <button onclick="if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none'||document.getElementById('vendorCardEditArea').style.display!=='none';if(_isEditing){if(_siteInfoModalSnapshot!==null&&_snapshotSiteInfoModal()!==_siteInfoModalSnapshot){if(!confirm('未儲存，是否離開編輯？'))return;}_cancelMainInfoEdit();}else{closeSiteInfoModal();}" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
                 <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">案場資訊</span>
                 <button onclick="enterMainInfoEdit()" id="btnMainInfoEdit" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
                 <button onclick="saveMainInfo()" id="btnMainInfoSave" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
@@ -343,17 +345,18 @@
     </div>
 
     <!-- 工程進度 彈窗 -->
-    <div id="workProgressModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;" onclick="if(event.target===this)closeWorkProgressModal()">
-        <div id="workProgressModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
+    <div id="workProgressModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#111111; z-index:200; align-items:stretch; justify-content:center;" onclick="if(event.target===this)closeWorkProgressModal()">
+        <div id="workProgressModalInner" style="background:#111111; border-radius:0; padding:0; width:100%; max-width:448px; display:flex; flex-direction:column; height:100%; max-height:100%; overflow:hidden;">
             <!-- 固定標題列 -->
-            <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
+            <div style="padding:12px 16px 8px; border-bottom:1px solid #333333; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
+                <button onclick="closeWorkProgressModal()" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
                 <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">工程進度</span>
                 <button onclick="openWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增</button>
             </div>
             <!-- 固定：案場選擇 + 總進度 -->
             <div id="wpHeaderTopSection" style="padding:12px 16px 8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0; border-bottom:1px solid #333;">
                 <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-                <div id="wpOverallWrap" style="display:none; background:#2a2a2a; border:1px solid #444; border-radius:10px; padding:10px 12px; flex-direction:column; gap:6px;">
+                <div id="wpOverallWrap" style="display:none; background:#111111; border:none; border-radius:10px; padding:10px 12px; flex-direction:column; gap:6px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;">總進度</span>
                         <div style="display:flex; align-items:center; gap:8px;">
@@ -565,6 +568,10 @@
         </section>
 
         <section id="pageLawRef" class="page">
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; padding-bottom:4px;">
+                <button onclick="navigateTo('sites')" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
+                <span style="font-size:15px; font-weight:bold; color:#ffffff;">設置標準</span>
+            </div>
             <div class="card" style="padding: 8px 12px; flex-direction: row; align-items: center; gap: 8px; flex-shrink:0;">
                 <span style="color: #888888;">🔍</span>
                 <input type="text" id="lawSearchBar" oninput="_renderLawList()" style="border: none; padding: 4px; font-size: 14px; width: 100%; outline: none;" placeholder="搜尋條文內容或條號...">
@@ -2980,14 +2987,9 @@
         function _openModalAlignedToCalendar(modalId, innerId, fillHeight, extraBottom) {
             const modal = document.getElementById(modalId);
             const inner = document.getElementById(innerId);
-            const header = document.querySelector('header');
-            const topOffset = header ? header.getBoundingClientRect().bottom + 8 : 8;
-            const extra = extraBottom || 0;
-            inner.style.marginTop = topOffset + 'px';
-            const maxByBottom = `calc(100vh - ${topOffset + 16}px)`;
-            const baseSize = `min(80vh, ${maxByBottom})`;
-            inner.style.maxHeight = extra ? `calc(${baseSize} + ${extra}px)` : baseSize;
-            inner.style.height = fillHeight ? (extra ? `calc(${baseSize} + ${extra}px)` : baseSize) : '';
+            inner.style.marginTop = '0';
+            inner.style.maxHeight = '100%';
+            inner.style.height = '100%';
             modal.style.display = 'flex';
         }
 
@@ -5133,7 +5135,7 @@
 
             // 外層貼合容器（仿計價進度表樣式）
             const listCard = document.createElement('div');
-            listCard.style.cssText = 'background:#1e1e1e; border:1px solid #444; border-radius:12px; overflow:hidden; display:flex; flex-direction:column;';
+            listCard.style.cssText = 'background:#111111; border:none; border-radius:0; overflow:hidden; display:flex; flex-direction:column; margin:0 -16px;';
 
             // 維護各工項群組的收起狀態 & 100% 樓層的暫時展開狀態（跨 render 保留）
             if (!window._wpTaskCollapsed) window._wpTaskCollapsed = {};
@@ -5153,7 +5155,7 @@
 
                 // ── 工項 header ──
                 const header = document.createElement('div');
-                let hCss = 'padding:6px 14px 6px; display:flex; align-items:center; gap:6px; background:' + groupBg + '; cursor:pointer;';
+                let hCss = 'padding:6px 30px 6px; display:flex; align-items:center; gap:6px; background:' + groupBg + '; cursor:pointer;';
                 if (domRowCount > 0) hCss += ' border-top:1px solid #444;';
                 header.style.cssText = hCss;
 
@@ -5218,7 +5220,7 @@
                     var totalPeople = calcTotalPeople(item.task, item.floor);
 
                     var card = document.createElement('div');
-                    var cardCss = 'padding:11px 14px; display:flex; flex-direction:column; gap:8px; background:' + groupBg + ';';
+                    var cardCss = 'padding:11px 30px; display:flex; flex-direction:column; gap:8px; background:' + groupBg + ';';
                     if (isDone) cardCss += ' opacity:0.55;';
                     card.style.cssText = cardCss;
 
@@ -5397,7 +5399,7 @@
                 // ── 100% 樓層：收起進度條，只顯示樓層標籤（點標籤可暫時展開調整） ──
                 if (doneEntries.length > 0) {
                     var chipsRow = document.createElement('div');
-                    var chipsCss = 'padding:9px 14px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:' + groupBg + ';';
+                    var chipsCss = 'padding:9px 30px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:' + groupBg + ';';
                     chipsRow.style.cssText = chipsCss;
 
                     doneEntries.forEach(function(entry) {
