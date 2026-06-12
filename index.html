@@ -29,7 +29,6 @@
         
         .page { display: none; height: 100%; min-height: 0; flex-direction: column; gap: 12px; }
         .page.active { display: flex; }
-        #pageLawRef.active { position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 448px; height: 100vh; background-color: #111111; z-index: 300; padding: 8px 16px 16px; margin: 0; box-sizing: border-box; }
         
         #pageSites { display: none; height: 100%; flex-direction: column; justify-content: space-between; }
         #pageSites.active { display: flex; }
@@ -162,7 +161,7 @@
             <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0;">
                 <input type="file" id="importFile" accept=".json" onchange="importJSON(this)" class="hidden">
                 
-                <div class="card" style="padding: 8px; flex-shrink: 0; background-color: #111111; border: none; border-radius: 0; box-shadow: none;">
+                <div class="card" style="padding: 8px; flex-shrink: 0; background-color: #111111; border: none; border-bottom: 1px solid #333333; border-radius: 0; box-shadow: none;">
                     <div class="calendar-header">
                         <button onclick="changeHomeMonth(-1)" class="btn-slate" style="padding: 0; font-size:12px; width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">←</button>
                         <div style="display:flex; flex-direction:row; align-items:center; gap:6px; flex:1; justify-content:center; position:relative;">
@@ -184,7 +183,7 @@
                     <button onclick="document.getElementById('importFile').click()" style="background-color:#111111; color:white; font-size:14px; font-weight:bold; padding:12px 24px; border-radius:12px; width:100%; border: 1px solid #555555;">📥 匯入系統備份</button>
                 </div>
 
-                <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; margin-top: -17px;">
+                <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid #333333;">
                     <div id="inlineDayContent" style="max-height: calc(3 * 110px + 13px); overflow-y:auto; display:flex; flex-direction:column; gap:0; padding-bottom: 88px;"></div>
                 </div>
             </div>
@@ -245,12 +244,8 @@
         </section>
 
     <!-- 案場資訊 彈窗 -->
-    <div id="siteInfoModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#111111; z-index:200; align-items:stretch; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none'||document.getElementById('vendorCardEditArea').style.display!=='none';if(_isEditing){if(_siteInfoModalSnapshot!==null&&_snapshotSiteInfoModal()!==_siteInfoModalSnapshot){if(!confirm('未儲存，是否離開編輯？'))return;}_cancelMainInfoEdit();}else{closeSiteInfoModal();}}">
+    <div id="siteInfoModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#111111; z-index:200; align-items:stretch; justify-content:center;" onclick="if(event.target===this){if(_justBlurredKeyboard)return;_backFromSiteInfo();}">
         <div id="siteInfoModalInner" style="background:#111111; border-radius:0; padding:0; width:100%; max-width:448px; display:flex; flex-direction:column; height:100%; max-height:100%; overflow:hidden;">
-            <div style="padding:12px 16px 8px; border-bottom:1px solid #333333; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
-                <button onclick="if(_blurActiveInput())return;const _isEditing=document.getElementById('mainInfoEditArea').style.display!=='none'||document.getElementById('vendorCardEditArea').style.display!=='none';if(_isEditing){if(_siteInfoModalSnapshot!==null&&_snapshotSiteInfoModal()!==_siteInfoModalSnapshot){if(!confirm('未儲存，是否離開編輯？'))return;}_cancelMainInfoEdit();}else{closeSiteInfoModal();}" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
-                <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">案場資訊</span>
-            </div>
             <div style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:0;">
                 <div style="margin-bottom:12px;">
                     <div id="siteInfoSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
@@ -352,11 +347,6 @@
     <!-- 工程進度 彈窗 -->
     <div id="workProgressModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#111111; z-index:200; align-items:stretch; justify-content:center;" onclick="if(event.target===this)closeWorkProgressModal()">
         <div id="workProgressModalInner" style="background:#111111; border-radius:0; padding:0; width:100%; max-width:448px; display:flex; flex-direction:column; height:100%; max-height:100%; overflow:hidden;">
-            <!-- 固定標題列 -->
-            <div style="padding:12px 16px 8px; border-bottom:1px solid #333333; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0;">
-                <button onclick="closeWorkProgressModal()" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
-                <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">工程進度</span>
-            </div>
             <!-- 固定：案場選擇 + 總進度 -->
             <div id="wpHeaderTopSection" style="padding:12px 16px 8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0;">
                 <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
@@ -369,8 +359,8 @@
                         </div>
                         <button onclick="openWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增</button>
                     </div>
-                    <div id="wpOverallBarWrap" style="display:none; position:relative; height:10px; background:#1e1e1e; border-radius:5px; overflow:hidden;">
-                        <div id="wpOverallFill" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#ff4d4d); border-radius:5px; transition:width 0.3s;"></div>
+                    <div id="wpOverallBarWrap" style="display:none; position:relative; height:24px; background:#1e1e1e; border-radius:12px; overflow:hidden;">
+                        <div id="wpOverallFill" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#ff4d4d); border-radius:12px; transition:width 0.3s;"></div>
                     </div>
                 </div>
             </div>
@@ -573,10 +563,6 @@
         </section>
 
         <section id="pageLawRef" class="page">
-            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; padding-bottom:4px;">
-                <button onclick="navigateTo('sites')" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
-                <span style="font-size:15px; font-weight:bold; color:#ffffff;">設置標準</span>
-            </div>
             <div class="card" style="padding: 8px 12px; flex-direction: row; align-items: center; gap: 8px; flex-shrink:0;">
                 <span style="color: #888888;">🔍</span>
                 <input type="text" id="lawSearchBar" oninput="_renderLawList()" style="border: none; padding: 4px; font-size: 14px; width: 100%; outline: none;" placeholder="搜尋條文內容或條號...">
@@ -2900,6 +2886,19 @@
             }
         }
 
+        function _backFromSiteInfo() {
+            if (_blurActiveInput()) return;
+            const _isEditing = document.getElementById('mainInfoEditArea').style.display !== 'none' || document.getElementById('vendorCardEditArea').style.display !== 'none';
+            if (_isEditing) {
+                if (_siteInfoModalSnapshot !== null && _snapshotSiteInfoModal() !== _siteInfoModalSnapshot) {
+                    if (!confirm('未儲存，是否離開編輯？')) return;
+                }
+                _cancelMainInfoEdit();
+            } else {
+                closeSiteInfoModal();
+            }
+        }
+
         function _updateCategoryHeaderBack() {
             const keyword = document.getElementById('globalSearchBar')?.value.trim() || '';
             if (_catPageMode === 'items' && !keyword) {
@@ -2997,9 +2996,9 @@
                 renderVendorList(false);
                 document.getElementById('pageManage').scrollTop = 0;
             } else if (page === 'lawref') {
-                _setHeaderBack(null);
+                _setHeaderBack(function() { navigateTo('sites'); });
                 document.getElementById('pageLawRef').classList.add('active');
-                document.getElementById('appTitle').innerText = ''; document.getElementById('appLogoIcon').style.display = 'none';
+                document.getElementById('appTitle').innerText = ''; document.getElementById('appLogoIcon').style.display = '';
                 document.getElementById('lawSearchBar').value = '';
                 _lawDefaultCollapsed = true;
                 _renderLawList();
@@ -3050,12 +3049,17 @@
             modal.style.display = 'flex';
         }
 
-        function _openFullscreenModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
+        function _openFullscreenModal(modalId, backHandler) {
+            const modal = document.getElementById(modalId);
+            const header = document.querySelector('header');
+            const topOffset = header ? header.getBoundingClientRect().bottom : 0;
+            modal.style.top = topOffset + 'px';
+            modal.style.display = 'flex';
+            if (backHandler) _setHeaderBack(backHandler);
         }
 
         function openSiteInfoModal(targetSiteId) {
-            _openFullscreenModal('siteInfoModal');
+            _openFullscreenModal('siteInfoModal', _backFromSiteInfo);
             _setActiveHomeSeg(1);
             document.querySelector('#siteInfoModalInner [style*="overflow-y:auto"]')?.scrollTo(0, 0);
             document.getElementById('siteInfoDetailWrap').style.display = 'none';
@@ -3110,6 +3114,7 @@
             document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
             document.getElementById('siteInfoModal').style.display = 'none';
             _siteInfoModalSnapshot = null;
+            _setHeaderBack(null);
         }
 
         function _isModalOpen() {
@@ -5206,7 +5211,7 @@
 
         function openWorkProgressModal() {
             _setActiveHomeSeg(2);
-            _openFullscreenModal('workProgressModal');
+            _openFullscreenModal('workProgressModal', closeWorkProgressModal);
             const firstId = db.sites.length > 0 ? db.sites[0].id : '';
             _renderSitePills('wpSiteSelect', firstId, function(siteId) {
                 renderWorkProgressList();
@@ -5217,6 +5222,7 @@
         function closeWorkProgressModal() {
             document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
             document.getElementById('workProgressModal').style.display = 'none';
+            _setHeaderBack(null);
         }
 
         // 解析案場所有工程記錄，建立 (工項|樓層) → 人數 對照表（格式：● 工項 / ↳ 樓層 / ↳ 人數）
