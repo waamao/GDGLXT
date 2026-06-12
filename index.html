@@ -380,13 +380,13 @@
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <div>
                     <label style="font-size:12px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">工項名稱</label>
-                    <input id="wpAddTask" type="text" list="wpTaskDatalist" autocomplete="off" placeholder="例：泥作、油漆..." style="width:100%; border:1px solid #555; border-radius:8px; padding:8px 12px; font-size:14px; background:#111; color:#fff; box-sizing:border-box; -webkit-user-select:text; user-select:text;">
+                    <input id="wpAddTask" type="text" list="wpTaskDatalist" autocomplete="off" placeholder="例：泥作、油漆..." oninput="_wpAddJustSaved=false;" style="width:100%; border:1px solid #555; border-radius:8px; padding:8px 12px; font-size:14px; background:#111; color:#fff; box-sizing:border-box; -webkit-user-select:text; user-select:text;">
                     <datalist id="wpTaskDatalist"></datalist>
                 </div>
                 <div style="display:flex; gap:8px;">
                     <div style="flex:1; min-width:0;">
                         <label style="font-size:12px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">樓層／區域</label>
-                        <input id="wpAddFloor" type="text" name="wpAddFloor" list="wpFloorDatalist" placeholder="例：1F、2F..." style="width:100%; border:1px solid #555; border-radius:8px; padding:8px 12px; font-size:14px; background:#111; color:#fff; box-sizing:border-box; -webkit-user-select:text; user-select:text;">
+                        <input id="wpAddFloor" type="text" name="wpAddFloor" list="wpFloorDatalist" placeholder="例：1F、2F..." oninput="_wpAddJustSaved=false;" style="width:100%; border:1px solid #555; border-radius:8px; padding:8px 12px; font-size:14px; background:#111; color:#fff; box-sizing:border-box; -webkit-user-select:text; user-select:text;">
                         <datalist id="wpFloorDatalist"></datalist>
                     </div>
                     <div style="flex:1; min-width:0;">
@@ -3178,6 +3178,9 @@
             const header = document.querySelector('header');
             const topOffset = header ? header.getBoundingClientRect().bottom : 0;
             modal.style.top = topOffset + 'px';
+            // 確保 main 沒有殘留 transform，避免 position:fixed 的子元素定位異常
+            const main = document.querySelector('main.max-w-md');
+            if (main) { main.style.transition = 'none'; main.style.transform = ''; main.style.opacity = ''; }
         }
 
         function openSiteInfoModal(targetSiteId) {
@@ -3236,7 +3239,7 @@
         }
 
         function _isModalOpen() {
-            return ['punchModal','addLogModal','editLogModal','editOrderModal','confirmAddModal','addItemNameModal'].some(
+            return ['punchModal','addLogModal','editLogModal','editOrderModal','confirmAddModal','addItemNameModal','progressEditModal','addBlockModal','wpAddModal','wpProgressEditModal'].some(
                 id => { const el = document.getElementById(id); return el && el.style.display === 'flex'; }
             );
         }
@@ -5508,9 +5511,9 @@
                 });
             });
 
-            // 外層貼合容器（仿計價進度表樣式）
+            // 外層貼合容器（仿材料訂購清單卡片邊界）
             const listCard = document.createElement('div');
-            listCard.style.cssText = 'background:#111111; border:none; border-radius:0; overflow:hidden; display:flex; flex-direction:column; margin:0 -16px;';
+            listCard.style.cssText = 'background:#111111; border:1px solid #444444; border-radius:12px; overflow:hidden; display:flex; flex-direction:column;';
 
             // 維護各工項群組的收起狀態 & 100% 樓層的暫時展開狀態（跨 render 保留）
             if (!window._wpTaskCollapsed) window._wpTaskCollapsed = {};
@@ -5530,7 +5533,7 @@
 
                 // ── 工項 header ──
                 const header = document.createElement('div');
-                let hCss = 'padding:6px 30px 6px; display:flex; align-items:center; gap:6px; background:' + groupBg + '; cursor:pointer;';
+                let hCss = 'padding:6px 12px 6px; display:flex; align-items:center; gap:6px; background:' + groupBg + '; cursor:pointer;';
                 if (domRowCount > 0) hCss += ' border-top:1px solid #444;';
                 header.style.cssText = hCss;
 
@@ -5595,7 +5598,7 @@
                     var totalPeople = calcTotalPeople(item.task, item.floor);
 
                     var card = document.createElement('div');
-                    var cardCss = 'padding:11px 30px; display:flex; flex-direction:column; gap:8px; background:' + groupBg + ';';
+                    var cardCss = 'padding:11px 12px; display:flex; flex-direction:column; gap:8px; background:' + groupBg + ';';
                     if (isDone) cardCss += ' opacity:0.55;';
                     card.style.cssText = cardCss;
 
@@ -5668,7 +5671,7 @@
                 // ── 100% 樓層：收起進度條，只顯示樓層標籤（點標籤可暫時展開調整） ──
                 if (doneEntries.length > 0) {
                     var chipsRow = document.createElement('div');
-                    var chipsCss = 'padding:9px 30px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:' + groupBg + ';';
+                    var chipsCss = 'padding:9px 12px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:' + groupBg + ';';
                     chipsRow.style.cssText = chipsCss;
 
                     doneEntries.forEach(function(entry) {
@@ -5759,6 +5762,7 @@
 
         // ── 工程進度：新增項目 ──
         let _wpAddSiteId = null;
+        let _wpAddJustSaved = false; // 儲存成功後，點擊視窗外不再提示未儲存
         let _wpAddFromLogContainerId = null; // 由工程記錄/編輯彈窗開啟時，記錄目標項目清單容器
 
         // 將「新增進度項目」彈窗上緣對齊「總進度」框下緣；若由工程記錄開啟則對齊該彈窗內容上緣；否則置中
@@ -5798,6 +5802,7 @@
             const sid = sel ? (sel.dataset.siteId || '') : '';
             if (!sid) return showToast('請先選擇案場');
             _wpAddSiteId = sid;
+            _wpAddJustSaved = false;
             _wpAddFromLogContainerId = (siteSelectId === 'editLogSiteSelect') ? 'editLogItemsContainer' : 'addLogItemsContainer';
             document.getElementById('wpAddTask').value = '';
             document.getElementById('wpAddFloor').value = '';
@@ -5822,6 +5827,7 @@
             const sid = siteEl ? (siteEl.dataset.siteId || '') : '';
             if (!sid) return showToast('請先選擇案場');
             _wpAddSiteId = sid;
+            _wpAddJustSaved = false;
             _wpAddFromLogContainerId = null;
             document.getElementById('wpAddTask').value = '';
             document.getElementById('wpAddFloor').value = '';
@@ -5851,13 +5857,14 @@
         }
 
         function _tryCloseWpAddModal() {
-            if (_wpAddModalHasContent() && !confirm('未儲存，是否離開編輯？')) return;
+            if (!_wpAddJustSaved && _wpAddModalHasContent() && !confirm('未儲存，是否離開編輯？')) return;
             closeWpAddModal();
         }
 
         function closeWpAddModal() {
             document.getElementById('wpAddModal').style.display = 'none';
             _wpAddSiteId = null;
+            _wpAddJustSaved = false;
             _wpAddFromLogContainerId = null;
         }
 
@@ -5874,6 +5881,7 @@
             db.workProgress[_wpAddSiteId].push({ task: task, floor: floor, vendor: vendor, progress: 0 });
             saveToLocalStorage();
             showToast('儲存成功');
+            _wpAddJustSaved = true;
             renderWorkProgressList();
             // 保留視窗開啟以便繼續新增；刷新記憶選項
             const taskDl = document.getElementById('wpTaskDatalist');
