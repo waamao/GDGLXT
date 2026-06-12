@@ -108,13 +108,13 @@
         .btn-delete-log-item { background: #D9006C; color: #ffffff; font-size: 12px; font-weight: bold; padding: 0 12px; border-radius: 8px; position: absolute; top: 4px; right: 4px; display:inline-flex; align-items:center; justify-content:center; }
 
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background-color: transparent; padding: 4px; border-radius: 8px; height: 254px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background-color: transparent; padding: 4px; border-radius: 8px; height: 254px; position: relative; }
         .calendar-weekday { text-align: center; font-size: 11px; font-weight: bold; color: #555555; padding: 2px 0 8px; }
         .calendar-day { background-color: transparent; border: none; border-radius: 8px; min-height: 0; padding: 2px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: visible; }
         .calendar-day:active .day-num { background-color: #2a2a2a; }
         .calendar-day.empty { background-color: transparent; border: none; cursor: default; }
         .calendar-day.today .day-num { background-color: #ffffff; color: #000000; font-weight: 700; }
-        .calendar-day.selected .day-num { border: 1px solid #999999; }
+        .cal-day-pill { position: absolute; top: 0; left: 0; width: 26px; height: 26px; box-sizing: border-box; border: 1px solid #999999; border-radius: 50%; pointer-events: none; opacity: 0; z-index: 0; transition: transform 0.25s ease, opacity 0.2s ease; will-change: transform; }
         .day-num { font-size: 13px; font-weight: 500; color: #cccccc; width: 26px; height: 26px; min-width: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
         .day-dots { display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 2px; position: absolute; top: calc(50% + 15px); left: 50%; transform: translateX(-50%); }
         .dot-log-group { display: flex; flex-direction: column; gap: 2px; align-items: center; }
@@ -145,9 +145,9 @@
 
     <header style="position:relative;">
         <div id="headerLeftZone" style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;">
-            <button id="headerBackBtn" class="hidden" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">←</button>
+            <button id="headerBackBtn" class="hidden" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">＜</button>
+            <button id="headerHomeBtn" class="hidden btn-slate" onclick="navigateTo('sites')" style="background-color:#000000;">首頁</button>
         </div>
-        <img id="appLogoIcon" src="./favicon.png" alt="" onclick="navigateTo('sites')" style="width:28px; height:28px; border-radius:7px; object-fit:cover; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:auto; cursor:pointer;">
         <h1 id="appTitle" class="header-title"></h1>
         <div style="display: flex; gap: 4px; flex-shrink: 0;">
             <button onclick="navigateTo('lawref')" class="btn-slate" style="background-color:#000000;">設置標準</button>
@@ -161,7 +161,7 @@
             <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0;">
                 <input type="file" id="importFile" accept=".json" onchange="importJSON(this)" class="hidden">
                 
-                <div class="card" style="padding: 8px; flex-shrink: 0; background-color: #111111; border: none; border-bottom: 1px solid #333333; border-radius: 0; box-shadow: none;">
+                <div class="card" style="padding: 8px; flex-shrink: 0; background-color: #111111; border: none; border-radius: 0; box-shadow: none;">
                     <div class="calendar-header">
                         <button onclick="changeHomeMonth(-1)" class="btn-slate" style="padding: 0; font-size:12px; width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">←</button>
                         <div style="display:flex; flex-direction:row; align-items:center; gap:6px; flex:1; justify-content:center; position:relative;">
@@ -179,22 +179,24 @@
                     <div class="calendar-grid" id="homeCalendarGrid"></div>
                 </div>
 
+                <div style="flex-shrink: 0; margin: 0 -16px; border-bottom: 1px solid #333333;"></div>
+
                 <div id="homeImportBtnWrap" class="hidden" style="flex-shrink: 0; text-align: center; padding: 8px 0;">
                     <button onclick="document.getElementById('importFile').click()" style="background-color:#111111; color:white; font-size:14px; font-weight:bold; padding:12px 24px; border-radius:12px; width:100%; border: 1px solid #555555;">📥 匯入系統備份</button>
                 </div>
 
-                <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid #333333;">
-                    <div id="inlineDayContent" style="max-height: calc(3 * 110px + 13px); overflow-y:auto; display:flex; flex-direction:column; gap:0; padding-bottom: 88px;"></div>
+                <div id="inlineDayView" class="hidden" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 8px;">
+                    <div id="inlineDayContent" style="max-height: calc(3 * 110px + 13px + 12px); margin-top: -12px; overflow-y:auto; display:flex; flex-direction:column; gap:0; padding-bottom: 88px;"></div>
                 </div>
             </div>
 
         </section>
 
         <section id="pageCategories" class="page">
-            <div class="card" style="padding: 10px; flex-shrink: 0;">
+            <div class="card" style="padding: 0; margin: 4px; background-color: #111111; border: none; box-shadow: none; border-radius: 0;">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <div style="display:flex; flex-direction:column; gap:4px; flex:1; min-width:0;">
-                        <label style="font-size: 13px; font-weight: bold; color: #dddddd;">選擇訂購日期：</label>
+                        <label style="font-size: 13px; font-weight: bold; color: #dddddd;">選擇日期：</label>
                         <input type="date" id="inputOrderDate" style="width: 100%; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none;">
                     </div>
                 </div>
@@ -225,7 +227,7 @@
         </section>
 
         <section id="pageCart" class="page">
-            <div style="padding: 10px; flex-shrink: 0; background-color: #111111;">
+            <div style="padding: 10px 4px; flex-shrink: 0; background-color: #111111;">
                 <div style="display:flex; flex-direction:column; gap:4px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
                         <label style="font-size: 13px; font-weight: bold; color: #dddddd;">送貨地點：</label>
@@ -350,16 +352,14 @@
     <div id="workProgressModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:#111111; z-index:200; align-items:stretch; justify-content:center;" onclick="if(event.target===this)closeWorkProgressModal()">
         <div id="workProgressModalInner" style="background:#111111; border-radius:0; padding:0; width:100%; max-width:448px; display:flex; flex-direction:column; height:100%; max-height:100%; overflow:hidden;">
             <!-- 固定：案場選擇 + 總進度 -->
-            <div id="wpHeaderTopSection" style="padding:12px 16px 8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0;">
+            <div id="wpHeaderTopSection" style="padding:12px 16px 8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0; border-bottom:1px solid #333333;">
                 <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-                <div id="wpOverallWrap" style="display:flex; flex-direction:column; gap:6px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                        <div style="display:flex; align-items:center; gap:8px; min-width:0;">
-                            <span style="font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;">總進度</span>
-                            <span id="wpOverallPeople" style="display:none; font-size:12px; color:#aaaaaa;"></span>
-                            <span id="wpOverallLabel" style="font-size:13px; font-weight:700; color:#ff4d4d;">0%</span>
+                <div id="wpOverallWrap" style="display:flex; flex-direction:column; gap:6px; padding-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                        <div id="wpVendorPeopleList" style="display:flex; flex-direction:column; gap:2px; min-width:0; font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;"></div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;">
+                            <span id="wpOverallLabel" style="font-size:17px; font-weight:700; color:#ff4d4d;">0%</span>
                         </div>
-                        <button onclick="openWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增</button>
                     </div>
                     <div id="wpOverallBarWrap" style="display:none; position:relative; height:24px; background:#1e1e1e; border-radius:12px; overflow:hidden;">
                         <div id="wpOverallFill" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#ff4d4d); border-radius:12px; transition:width 0.3s;"></div>
@@ -377,8 +377,8 @@
     <div id="wpAddModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)_tryCloseWpAddModal()">
         <div style="background:#1e1e1e; border:1px solid #444; border-radius:14px; padding:16px; width:calc(100% - 64px); max-width:340px; display:flex; flex-direction:column; gap:14px;">
             <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">新增進度項目</span>
-                <button type="button" onclick="saveWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增</button>
+                <span style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">新增工程進度</span>
+                <button type="button" onclick="saveWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
             </div>
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <div>
@@ -515,19 +515,19 @@
         </div>
 
         <section id="pageManage" class="page" style="overflow-y: auto;">
-            <div class="card" style="background-color: #1e1e1e; border: 1px solid #555555;">
+            <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0;">
                 <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px;">
                     <h3 style="font-size:14px; margin:0; color:#ffffff;">系統</h3>
                     <span id="importedFileName" style="display:none; font-size:12px; color:#aaaaaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60%;"></span>
                 </div>
-                <button onclick="document.getElementById('importFile').click()" class="btn-amber" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px;">📥 匯入系統備份檔(JSON)</button>
-                <button onclick="exportJSON()" class="btn-slate" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px;">📤 匯出系統備份</button>
+                <button onclick="document.getElementById('importFile').click()" class="btn-amber" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #555555;">📥 匯入系統備份檔(JSON)</button>
+                <button onclick="exportJSON()" class="btn-slate" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #555555;">📤 匯出系統備份</button>
                 <div id="backupWarningBanner" style="display:none; background:#fff7ed; border:1px solid #fb923c; border-radius:8px; padding:8px 12px; font-size:12px; color:#9a3412; font-weight:600;">⚠️ <span id="backupWarningText"></span></div>
                 <div id="lastExportTimeDisplay" style="display:none; font-size:12px; color:#64748b; text-align:right; margin-top:-4px;">上次備份：<span id="lastExportTimeText"></span></div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
                     <select id="inputExportSite" style="flex:1; border: 1px solid #555555; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: #1e1e1e;"></select>
                     <select id="inputExportOrderMonth" style="flex:1; border: 1px solid #555555; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: #1e1e1e;"></select>
-                    <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding: 10px 14px; font-size: 13px; border-radius: 8px;">📊 匯出Excel</button>
+                    <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding: 10px 14px; font-size: 13px; border-radius: 8px; border: 1px solid #555555;">📊 匯出Excel</button>
                 </div>
                 <div style="border-top:1px solid #444444; padding-top:10px; margin-top:4px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
@@ -540,7 +540,7 @@
                     <textarea id="inputScriptUrl" oninput="saveScriptUrl();" placeholder="請貼上 https://script.google.com/... 網址" disabled style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background-color:#2a2a2a; resize:none; line-height:1.6; word-break:break-all; overflow-wrap:anywhere; white-space:nowrap; -webkit-user-select:none; user-select:none; color:#aaaaaa; overflow:hidden; height:36px; box-sizing:border-box;"></textarea>
                 </div>
             </div>
-            <div class="card">
+            <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0;">
                 <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px; margin-bottom:8px;">
                     <h3 style="font-size: 14px; margin: 0; color: #ffffff;">案場維護</h3>
                     <div style="display:flex; gap:6px; align-items:center;">
@@ -551,7 +551,7 @@
                 </div>
                 <div id="siteInfoList" style="display: flex; flex-direction: column; gap: 4px;"></div>
             </div>
-            <div class="card" style="margin-bottom: 40px;">
+            <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0; margin-bottom: 40px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px; margin-bottom:8px;">
                     <h3 style="font-size: 14px; margin: 0; color: #ffffff;">廠商維護</h3>
                     <div style="display:flex; gap:6px; align-items:center;">
@@ -682,7 +682,7 @@
     <div id="addLogModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center;">
         <div id="addLogModalInner" style="background:#1e1e1e; border-radius:14px; padding:0; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:88vh; overflow:hidden;">
             <div style="padding:12px 16px 8px; border-bottom:1px solid #444444; display:flex; align-items:center; gap:8px;">
-                <span id="addLogModalTitle" style="font-size:14px; font-weight:bold; color:#ffffff; flex:1; min-width:0;">新增</span>
+                <span id="addLogModalTitle" style="font-size:14px; font-weight:bold; color:#ffffff; flex-shrink:0;">新增</span>
                 <div id="addLogTypeToggleRow" style="display:flex; gap:12px; align-items:center; flex-shrink:0;">
                     <label style="display:flex; align-items:center; gap:4px; font-size:12px; color:#ffffff; cursor:pointer; user-select:none;" onclick="_setLogEntryType('add','record')">
                         <span id="addLogRadioRecord" style="width:14px; height:14px; border-radius:50%; border:2px solid #ffffff; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="width:6px; height:6px; border-radius:50%; background:#ffffff;"></span></span>
@@ -693,6 +693,7 @@
                         出勤
                     </label>
                 </div>
+                <div style="flex:1; min-width:0;"></div>
                 <button id="btnAddLogDelete" onclick="deleteFromAddLogPunch()" class="btn-red hidden" style="padding:0 12px; font-size:12px; font-weight:bold; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">刪除</button>
                 <button id="btnAddLogLine" onclick="shareAddLogPunchToLine()" class="hidden" style="background:#06C755; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">LINE</button>
                 <button onclick="saveAddLogModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
@@ -931,6 +932,7 @@
                             const now = new Date();
                             const its = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
                             localStorage.setItem('_importTime', its);
+                            localStorage.setItem('_importFileName', file.name);
                         } catch(e) {}
                         if (document.getElementById('inputScriptUrl')) {
                             document.getElementById('inputScriptUrl').value = db.config.scriptUrl || '';
@@ -1140,6 +1142,35 @@
                 gridEl.appendChild(dayEl);
             }
         }
+
+        // ── 月曆選擇圓圈：以動畫方式移動到目前選中日期 ──
+        function _updateCalDayPill() {
+            const grid = document.getElementById('homeCalendarGrid');
+            if (!grid) return;
+            let pill = document.getElementById('calDayPill');
+            if (!pill) {
+                pill = document.createElement('div');
+                pill.id = 'calDayPill';
+                pill.className = 'cal-day-pill';
+                grid.appendChild(pill);
+            }
+            const selEl = grid.querySelector('.calendar-day.selected .day-num');
+            if (!selEl) {
+                pill.style.opacity = '0';
+                return;
+            }
+            const gridRect = grid.getBoundingClientRect();
+            const elRect = selEl.getBoundingClientRect();
+            pill.style.opacity = '1';
+            pill.style.transform = 'translate(' + (elRect.left - gridRect.left) + 'px, ' + (elRect.top - gridRect.top) + 'px)';
+        }
+
+        (function() {
+            const grid = document.getElementById('homeCalendarGrid');
+            if (!grid) return;
+            const observer = new MutationObserver(function() { _updateCalDayPill(); });
+            observer.observe(grid, { attributes: true, attributeFilter: ['class'], subtree: true });
+        })();
 
         function changeHomeMonth(dir) {
             const calGrid = document.getElementById('homeCalendarGrid');
@@ -1440,6 +1471,45 @@
                 const dy = Math.abs(e.changedTouches[0].clientY - swipeStartY);
                 if (Math.abs(dx) < THRESHOLD || dy > MAX_Y) return;
                 navigateDayBy(dx > 0 ? -1 : 1);
+            }, { passive: true });
+        })();
+
+
+        // ================= 案場/進度 全螢幕視窗：左緣右滑返回 =================
+        var _swipeBackHandlers = {};
+        (function() {
+            let backStartX = 0, backStartY = 0, backActive = false;
+            const EDGE = 30, BACK_THRESHOLD = 60, BACK_MAX_Y = 60;
+            const SWIPE_BACK_MODALS = ['siteInfoModal', 'workProgressModal'];
+
+            function getOpenBackModal() {
+                for (const id of SWIPE_BACK_MODALS) {
+                    const m = document.getElementById(id);
+                    if (m && m.style.display === 'flex') return id;
+                }
+                return null;
+            }
+
+            document.addEventListener('touchstart', function(e) {
+                backActive = false;
+                const openId = getOpenBackModal();
+                if (!openId) return;
+                if (e.touches[0].clientX > EDGE) return;
+                backStartX = e.touches[0].clientX;
+                backStartY = e.touches[0].clientY;
+                backActive = true;
+            }, { passive: true });
+
+            document.addEventListener('touchend', function(e) {
+                if (!backActive) return;
+                backActive = false;
+                const openId = getOpenBackModal();
+                if (!openId) return;
+                const dx = e.changedTouches[0].clientX - backStartX;
+                const dy = Math.abs(e.changedTouches[0].clientY - backStartY);
+                if (dx < BACK_THRESHOLD || dy > BACK_MAX_Y) return;
+                const handler = _swipeBackHandlers[openId];
+                if (handler) handler();
             }, { passive: true });
         })();
 
@@ -2925,13 +2995,13 @@
             document.getElementById('homeMainBtns').style.display = (!_isOrderPage && !_isCartPage && page !== 'manage') ? '' : 'none';
             document.getElementById('orderCartBtns').style.display = _isOrderPage ? '' : 'none';
             document.getElementById('cartSubmitBtns').style.display = _isCartPage ? '' : 'none';
+            document.getElementById('headerHomeBtn').classList.toggle('hidden', !(_isOrderPage || _isCartPage));
 
             if (page === 'sites') {
                 _setHeaderBack(null);
                 document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
                 document.getElementById('pageSites').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
-                document.getElementById('appLogoIcon').style.display = '';
                 initHomeCalendar();
                 if (selectedHomeDateStr) {
                     document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
@@ -2976,9 +3046,9 @@
                 const listCartEl = document.getElementById('listCartItems');
                 if (listCartEl) listCartEl.scrollTop = 0;
             } else if (page === 'manage') {
-                _setHeaderBack(null);
+                _setHeaderBack(function() { navigateTo('sites'); });
                 document.getElementById('pageManage').classList.add('active');
-                document.getElementById('appTitle').innerText = ''; document.getElementById('appLogoIcon').style.display = 'none';
+                document.getElementById('appTitle').innerText = '';
                 const _ta = document.getElementById('inputScriptUrl');
                 _ta.value = db.config?.scriptUrl || '';
                 _ta.disabled = true;
@@ -2989,6 +3059,11 @@
                 document.getElementById('btnScriptUrlSave').style.display = 'none';
                 _populateExportMonthSelect();
                 _refreshLastExportDisplay();
+                try {
+                    const _impFn = localStorage.getItem('_importFileName');
+                    const fnEl = document.getElementById('importedFileName');
+                    if (_impFn && fnEl) { fnEl.textContent = '✓ ' + _impFn; fnEl.style.display = 'inline'; }
+                } catch(e) {}
                 _siteInfoEditMode = false;
                 document.getElementById('btnSiteInfoEdit').style.display = '';
                 document.getElementById('btnSiteInfoSave').style.display = 'none';
@@ -3005,7 +3080,7 @@
             } else if (page === 'lawref') {
                 _setHeaderBack(function() { navigateTo('sites'); });
                 document.getElementById('pageLawRef').classList.add('active');
-                document.getElementById('appTitle').innerText = ''; document.getElementById('appLogoIcon').style.display = '';
+                document.getElementById('appTitle').innerText = '';
                 document.getElementById('lawSearchBar').value = '';
                 _lawDefaultCollapsed = true;
                 _renderLawList();
@@ -3063,6 +3138,7 @@
             modal.style.top = topOffset + 'px';
             modal.style.display = 'flex';
             if (backHandler) _setHeaderBack(backHandler);
+            _swipeBackHandlers[modalId] = backHandler || null;
         }
 
         function openSiteInfoModal(targetSiteId) {
@@ -3294,6 +3370,7 @@
             homeCalMonth = m - 1;
             selectedHomeDateStr = dateStr;
             initHomeCalendar();
+            _afterShowCheckId = 'inlineChkPunch';
             showInlineDayView(dateStr);
         }
 
@@ -4189,7 +4266,7 @@
                 '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
                     '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1; display:flex; align-items:baseline; gap:4px;" class="log-item-label">項目' + itemNum + '：<span class="log-progress-pct" style="font-size:11px;font-weight:400;color:#7ec8e3;"></span></label>' +
                     '<div style="display:flex; gap:6px;">' +
-                        '<button type="button" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px;" onclick="_openWpAddFromLog(\'addLogSiteSelect\')">新增</button>' +
+                        '<button type="button" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px;" onclick="_openWpAddFromLog(\'addLogSiteSelect\')">新增工項</button>' +
                         '<button type="button" class="btn-delete-log-item" style="position:static; height:24px; line-height:24px;" onclick="removeNewLogItemRow(this)">移除</button>' +
                     '</div>' +
                 '</div>' +
@@ -4427,7 +4504,7 @@
                 '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
                     '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1; display:flex; align-items:baseline; gap:4px;" class="log-item-label">項目' + itemNum + '：<span class="log-progress-pct" style="font-size:11px;font-weight:400;color:#7ec8e3;"></span></label>' +
                     '<div style="display:flex; gap:6px;">' +
-                        '<button type="button" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px;" onclick="_openWpAddFromLog(\'editLogSiteSelect\')">新增</button>' +
+                        '<button type="button" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px;" onclick="_openWpAddFromLog(\'editLogSiteSelect\')">新增工項</button>' +
                         '<button type="button" class="btn-delete-log-item" style="position:static; height:24px; line-height:24px;" onclick="removeEditLogItemRow(this)">移除</button>' +
                     '</div>' +
                 '</div>' +
@@ -4575,9 +4652,23 @@
             if (!Array.isArray(db.dailyRecords[targetDateStr].log)) {
                 db.dailyRecords[targetDateStr].log = db.dailyRecords[targetDateStr].log ? [db.dailyRecords[targetDateStr].log] : [];
             }
-            db.dailyRecords[targetDateStr].log.push({ siteId: selectedSiteId, text: logText });
-            saveToLocalStorage();
+            const alreadyCopied = db.dailyRecords[targetDateStr].log.some(r => r.text === logText && r.siteId === selectedSiteId);
+            if (!alreadyCopied) {
+                db.dailyRecords[targetDateStr].log.push({ siteId: selectedSiteId, text: logText });
+                saveToLocalStorage();
+                initHomeCalendar();
+                if (selectedHomeDateStr) {
+                    document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+                    document.querySelectorAll('.calendar-day:not(.empty)').forEach(el => {
+                        const numEl = el.querySelector('.day-num');
+                        if (!numEl) return;
+                        const ds = `${homeCalYear}-${String(homeCalMonth+1).padStart(2,'0')}-${String(parseInt(numEl.innerText)).padStart(2,'0')}`;
+                        if (ds === selectedHomeDateStr) el.classList.add('selected');
+                    });
+                }
+            }
             showToast(`已複製到 ${targetDateStr}`);
+            _editLogModalSnapshot = _snapshotEditLogModal();
         }
 
         function closeEditLogModal() {
@@ -5237,6 +5328,7 @@
             const map = {};
             const startDateMap = {}; // key → 最早有人數的日期
             const endDateMap = {};   // key → 最晚有人數的日期
+            const vendorTotals = {}; // 廠商 → 總出工人數
             let grand = 0;
             // 日期依序掃描，才能正確判斷「最早」
             const sortedDates = Object.keys(db.dailyRecords).sort();
@@ -5247,12 +5339,13 @@
                 arr.forEach(function(logEntry) {
                     if (!logEntry || logEntry.siteId !== siteId || !logEntry.text) return;
                     const lines = logEntry.text.split('\n');
-                    let curTask = null, curFloor = '', curPeople = 0;
+                    let curTask = null, curFloor = '', curVendor = '', curPeople = 0;
                     function flush() {
                         if (curTask === null || curPeople <= 0) return;
                         const key = curTask + '|' + curFloor;
                         map[key] = (map[key] || 0) + curPeople;
                         grand += curPeople;
+                        if (curVendor) vendorTotals[curVendor] = (vendorTotals[curVendor] || 0) + curPeople;
                         if (!startDateMap[key]) startDateMap[key] = dateStr;
                         endDateMap[key] = dateStr; // 最晚有人數的日期
                     }
@@ -5264,19 +5357,21 @@
                             const mParen = t.match(/^(.+?)（.+）$/); // 舊格式：工項（備註）
                             if (mParen) t = mParen[1].trim();
                             curTask = (t === '無') ? '' : t;
-                            curFloor = ''; curPeople = 0;
+                            curFloor = ''; curVendor = ''; curPeople = 0;
                             return;
                         }
                         if (curTask === null) return;
                         const mFloor = line.match(/^↳ 樓層：(.*)$/);
                         if (mFloor) { curFloor = mFloor[1].trim(); return; }
+                        const mVend = line.match(/^↳ 廠商：(.*)$/);
+                        if (mVend) { curVendor = mVend[1].trim(); return; }
                         const mPeople = line.match(/^↳ 人數：(\d+)/);
                         if (mPeople) curPeople += parseInt(mPeople[1], 10);
                     });
                     flush();
                 });
             }
-            return { map: map, grand: grand, startDateMap: startDateMap, endDateMap: endDateMap };
+            return { map: map, grand: grand, startDateMap: startDateMap, endDateMap: endDateMap, vendorTotals: vendorTotals };
         }
 
         function renderWorkProgressList() {
@@ -5288,7 +5383,7 @@
             if (!siteId) {
                 document.getElementById('wpOverallBarWrap').style.display = 'none';
                 document.getElementById('wpOverallLabel').textContent = '—';
-                document.getElementById('wpOverallPeople').style.display = 'none';
+                document.getElementById('wpVendorPeopleList').innerHTML = '';
                 return;
             }
 
@@ -5301,14 +5396,13 @@
             if (visible.length === 0) {
                 document.getElementById('wpOverallBarWrap').style.display = 'none';
                 document.getElementById('wpOverallLabel').textContent = '—';
-                document.getElementById('wpOverallPeople').style.display = 'none';
+                document.getElementById('wpVendorPeopleList').innerHTML = '';
                 container.innerHTML = '<div style="text-align:center; color:#888; font-size:13px; padding:16px 0;">尚無工項，請在工程記錄填寫施工項目（需選擇施工廠商）</div>';
                 return;
             }
 
             // (工項|樓層) → 人數 對照表
             const _pm = _wpBuildPeopleMap(siteId);
-            const grandTotalPeople = _pm.grand;
             function calcTotalPeople(task, floor) {
                 return _pm.map[(task || '') + '|' + (floor || '')] || 0;
             }
@@ -5329,19 +5423,33 @@
                 return '（' + _fmtMD(sd) + '）';
             }
 
-            // 總進度 & 總人數
+            // 總進度（百分比＋進度條），下方以廠商出工人數取代原「總進度」文字
             const totalPct = Math.round(rawItems.reduce((sum, it) => sum + (it.progress || 0), 0) / rawItems.length);
 
-            document.getElementById('wpOverallBarWrap').style.display = '';
             document.getElementById('wpOverallLabel').textContent = totalPct + '%';
+            document.getElementById('wpOverallBarWrap').style.display = '';
             document.getElementById('wpOverallFill').style.width = totalPct + '%';
-            const overallPeopleEl = document.getElementById('wpOverallPeople');
-            if (grandTotalPeople > 0) {
-                overallPeopleEl.textContent = grandTotalPeople + ' 人';
-                overallPeopleEl.style.display = 'inline';
-            } else {
-                overallPeopleEl.style.display = 'none';
-            }
+
+            // 各廠商總出工人數（依工項|樓層對照表加總）
+            const vendorTotals = {};
+            visible.forEach(function(entry) {
+                const vName = (entry.item.vendor || '').trim();
+                if (!vName) return;
+                const ppl = calcTotalPeople(entry.item.task, entry.item.floor);
+                if (ppl > 0) vendorTotals[vName] = (vendorTotals[vName] || 0) + ppl;
+            });
+
+            const vendorListEl = document.getElementById('wpVendorPeopleList');
+            vendorListEl.innerHTML = '';
+            const vendorNames = Object.keys(vendorTotals).sort(function(a, b) {
+                return a.localeCompare(b, 'zh-Hant');
+            });
+            vendorNames.forEach(function(vName) {
+                const line = document.createElement('span');
+                line.style.cssText = 'white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                line.textContent = vName + ' 總出工' + vendorTotals[vName] + '人';
+                vendorListEl.appendChild(line);
+            });
 
             // ── 以工項分組（依名稱排序），組內 100% 樓層沉底 ──
             const indexed = visible;
@@ -5509,7 +5617,7 @@
                     var trackWrap = document.createElement('div');
                     trackWrap.style.cssText = 'position:relative; height:32px; display:flex; align-items:center; touch-action:pan-y;';
                     var track = document.createElement('div');
-                    track.style.cssText = 'position:relative; width:100%; height:18px; background:#2a2a2a; border-radius:9px; border:1px solid #555; overflow:hidden; cursor:pointer; touch-action:pan-y;';
+                    track.style.cssText = 'position:relative; width:100%; height:12px; background:#2a2a2a; border-radius:6px; border:1px solid #555; overflow:hidden; cursor:pointer; touch-action:pan-y;';
                     var fillEl = document.createElement('div');
                     fillEl.style.cssText = 'height:100%; width:' + pct + '%; background:' + (isDone ? '#444' : '#ffffff') + '; border-radius:5px; transition:width 0.1s; pointer-events:none;';
                     track.appendChild(fillEl);
@@ -5672,7 +5780,7 @@
                                 topRow2.appendChild(titleWrap2);
                                 topRow2.appendChild(pctLbl);
                                 var track2 = document.createElement('div');
-                                track2.style.cssText = 'position:relative; width:100%; height:10px; background:#2a2a2a; border-radius:5px; border:1px solid #555; overflow:hidden; cursor:pointer; touch-action:none;';
+                                track2.style.cssText = 'position:relative; width:100%; height:12px; background:#2a2a2a; border-radius:6px; border:1px solid #555; overflow:hidden; cursor:pointer; touch-action:pan-y;';
                                 var fill2 = document.createElement('div');
                                 fill2.style.cssText = 'height:100%; width:' + (item.progress||0) + '%; background:#444; border-radius:5px; transition:width 0.1s; pointer-events:none;';
                                 track2.appendChild(fill2);
@@ -5684,26 +5792,99 @@
                                 inlineWrap.appendChild(topRow2);
                                 inlineWrap.appendChild(track2);
                                 chipEl.parentNode.replaceChild(inlineWrap, chipEl);
-                                // 拖動邏輯
-                                var dragging2 = false;
+                                // 拖動邏輯（與未滿100%之進度條一致：長按進度點±25%範圍後拖動，並以10%為一格）
+                                var currentPct2 = item.progress || 0;
+                                var GRAB_ZONE2 = 25;
                                 var minPct2 = item._autoStarted ? 10 : 0;
                                 function calcPct2(clientX) {
                                     var rect = track2.getBoundingClientRect();
-                                    return Math.max(minPct2, Math.min(100, Math.round((clientX - rect.left) / rect.width * 100)));
+                                    var raw = Math.round((clientX - rect.left) / rect.width * 100 / 10) * 10;
+                                    return Math.max(minPct2, Math.min(100, raw));
                                 }
                                 function apply2(val) {
                                     fill2.style.width = val + '%';
-                                    pctLbl.textContent = val + '%';
                                     fill2.style.background = val >= 100 ? '#444' : '#ffffff';
+                                    pctLbl.textContent = val + '%';
                                     pctLbl.style.color = val >= 100 ? '#888' : '#ffffff';
+                                    currentPct2 = val;
                                 }
-                                track2.addEventListener('touchstart', function(e) { dragging2 = true; apply2(calcPct2(e.touches[0].clientX)); e.stopPropagation(); }, { passive: true });
-                                track2.addEventListener('touchmove', function(e) { if (dragging2) apply2(calcPct2(e.touches[0].clientX)); e.stopPropagation(); }, { passive: true });
-                                track2.addEventListener('touchend', function(e) {
-                                    if (!dragging2) return; dragging2 = false;
-                                    var v = calcPct2(e.changedTouches[0].clientX); apply2(v);
-                                    if (db.workProgress[si] && db.workProgress[si][ii]) { db.workProgress[si][ii].progress = v; saveToLocalStorage(); renderWorkProgressList(); }
+                                var dragging2 = false;
+                                var pressTimer2 = null;
+                                var startX2 = 0, startY2 = 0;
+                                var LONG_PRESS_MS2 = 450;
+                                var MOVE_CANCEL2 = 10;
+                                function startDrag2() {
+                                    dragging2 = true;
+                                    track2.style.borderColor = '#7ec8e3';
+                                    track2.style.boxShadow = '0 0 0 2px rgba(126,200,227,0.3)';
+                                }
+                                function endDrag2() {
+                                    dragging2 = false;
+                                    track2.style.borderColor = '#555';
+                                    track2.style.boxShadow = 'none';
+                                }
+                                function cancelPress2() {
+                                    if (pressTimer2) { clearTimeout(pressTimer2); pressTimer2 = null; }
+                                }
+                                track2.addEventListener('touchstart', function(e) {
+                                    var touchPct = calcPct2(e.touches[0].clientX);
+                                    if (Math.abs(touchPct - currentPct2) > GRAB_ZONE2) return;
+                                    startX2 = e.touches[0].clientX;
+                                    startY2 = e.touches[0].clientY;
+                                    pressTimer2 = setTimeout(function() {
+                                        pressTimer2 = null;
+                                        startDrag2();
+                                    }, LONG_PRESS_MS2);
                                 }, { passive: true });
+                                track2.addEventListener('touchmove', function(e) {
+                                    if (dragging2) {
+                                        apply2(calcPct2(e.touches[0].clientX));
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        return;
+                                    }
+                                    if (pressTimer2) {
+                                        var dx = Math.abs(e.touches[0].clientX - startX2);
+                                        var dy = Math.abs(e.touches[0].clientY - startY2);
+                                        if (dx > MOVE_CANCEL2 || dy > MOVE_CANCEL2) cancelPress2();
+                                    }
+                                }, { passive: false });
+                                track2.addEventListener('touchend', function(e) {
+                                    cancelPress2();
+                                    if (!dragging2) return;
+                                    var newPct = calcPct2(e.changedTouches[0].clientX);
+                                    apply2(newPct);
+                                    endDrag2();
+                                    if (db.workProgress[si] && db.workProgress[si][ii] && db.workProgress[si][ii].progress !== newPct) {
+                                        db.workProgress[si][ii].progress = newPct;
+                                        saveToLocalStorage();
+                                        renderWorkProgressList();
+                                    }
+                                }, { passive: true });
+                                track2.addEventListener('mousedown', function(e) {
+                                    var touchPct = calcPct2(e.clientX);
+                                    if (Math.abs(touchPct - currentPct2) > GRAB_ZONE2) return;
+                                    pressTimer2 = setTimeout(function() {
+                                        pressTimer2 = null;
+                                        startDrag2();
+                                    }, LONG_PRESS_MS2);
+                                });
+                                document.addEventListener('mousemove', function(e) {
+                                    if (!dragging2) return;
+                                    apply2(calcPct2(e.clientX));
+                                });
+                                document.addEventListener('mouseup', function(e) {
+                                    cancelPress2();
+                                    if (!dragging2) return;
+                                    var newPct = calcPct2(e.clientX);
+                                    apply2(newPct);
+                                    endDrag2();
+                                    if (db.workProgress[si] && db.workProgress[si][ii] && db.workProgress[si][ii].progress !== newPct) {
+                                        db.workProgress[si][ii].progress = newPct;
+                                        saveToLocalStorage();
+                                        renderWorkProgressList();
+                                    }
+                                });
                             });
                         }(siteId, entry.idx, chip));
                         chipsRow.appendChild(chip);
@@ -5733,6 +5914,7 @@
 
         // ── 工程進度：新增項目 ──
         let _wpAddSiteId = null;
+        let _wpAddFromLogContainerId = null; // 由工程記錄/編輯彈窗開啟時，記錄目標項目清單容器
 
         // 將「新增進度項目」彈窗上緣對齊「總進度」框下緣；若由工程記錄開啟則對齊該彈窗內容上緣；否則置中
         function _positionWpAddModal() {
@@ -5772,6 +5954,7 @@
             const sid = sel ? (sel.dataset.siteId || '') : '';
             if (!sid) return showToast('請先選擇案場');
             _wpAddSiteId = sid;
+            _wpAddFromLogContainerId = (siteSelectId === 'editLogSiteSelect') ? 'editLogItemsContainer' : 'addLogItemsContainer';
             document.getElementById('wpAddTask').value = '';
             document.getElementById('wpAddFloor').value = '';
             document.getElementById('wpAddVendor').innerHTML = _buildLogVendorOptions(sid, '');
@@ -5795,6 +5978,7 @@
             const sid = siteEl ? (siteEl.dataset.siteId || '') : '';
             if (!sid) return showToast('請先選擇案場');
             _wpAddSiteId = sid;
+            _wpAddFromLogContainerId = null;
             document.getElementById('wpAddTask').value = '';
             document.getElementById('wpAddFloor').value = '';
             // 填入廠商選項
@@ -5830,6 +6014,7 @@
         function closeWpAddModal() {
             document.getElementById('wpAddModal').style.display = 'none';
             _wpAddSiteId = null;
+            _wpAddFromLogContainerId = null;
         }
 
         function saveWpAddModal() {
@@ -5870,6 +6055,44 @@
                     taskSel.innerHTML = _buildLogWpTaskOptions(sid, cur || '');
                 });
             });
+            // 將新工項自動填入工程記錄的項目列（項目1未填則填入項目1，已填則填入項目2，沒有項目2則自動新增）
+            if (_wpAddFromLogContainerId) {
+                _fillNewWpIntoLogRow(_wpAddFromLogContainerId, task, floor, vendor);
+            }
+        }
+
+        // 將新工項（工項/樓層/廠商）填入指定項目清單中第一個未選擇工項的列；若都已選擇則新增一列再填入
+        function _fillNewWpIntoLogRow(containerId, task, floor, vendor) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            function getRows() {
+                return Array.from(container.children).filter(function(r) {
+                    return r.classList.contains('log-entry-item') && !r.classList.contains('log-custom-item');
+                });
+            }
+            let rows = getRows();
+            let targetRow = rows.find(function(r) {
+                const sel = r.querySelector('.log-task-input');
+                return sel && !sel.value;
+            });
+            if (!targetRow) {
+                if (containerId === 'editLogItemsContainer') _addEditLogItemRowAuto();
+                else _addNewLogItemRowAuto();
+                rows = getRows();
+                targetRow = rows[rows.length - 1];
+            }
+            if (!targetRow) return;
+            const taskSel = targetRow.querySelector('.log-task-input');
+            if (!taskSel) return;
+            taskSel.value = task;
+            _onLogTaskChange(taskSel);
+            const floorSel = targetRow.querySelector('.log-floor-input');
+            if (floorSel) {
+                floorSel.value = floor;
+                _onLogFloorChange(floorSel);
+            }
+            const vendorSel = targetRow.querySelector('.log-vendor-input');
+            if (vendorSel && vendor) vendorSel.value = vendor;
         }
 
         function openWpProgressEdit(siteId, idx) {
