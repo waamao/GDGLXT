@@ -244,7 +244,7 @@
                     <h3 style="font-size: 14px; color: #dddddd; margin: 0;">已選材料明細：</h3>
                     <button onclick="clearOnlyOrder()" style="background-color:#D9006C; color:white; border-radius:8px; padding:6px 18px; font-size:12px; font-weight:bold; flex-shrink:0;">清除訂單</button>
                 </div>
-                <div id="listCartItems" class="scroll-list-body" style="max-height: calc(10 * (44px + 8px)); overflow-y: auto;"></div>
+                <div id="listCartItems" class="scroll-list-body" style="max-height: calc(10 * (44px + 8px) + 20px); overflow-y: auto;"></div>
             </div>
         </section>
 
@@ -467,16 +467,16 @@
             </div>
         </div>
 
-        <!-- 計價進度 彈窗 -->
-        <div id="progressEditModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:88px; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-end; justify-content:center;">
-            <div style="background:#1e1e1e; border-radius:14px; width:calc(100% - 32px); max-width:416px; display:flex; flex-direction:column; max-height:calc(100% - 16px); overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
-                <div style="padding:14px 16px 10px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; flex-shrink:0; gap:8px;">
-                    <span id="progressModalTitleView" style="flex:1; font-size:15px; font-weight:bold; color:#ffffff; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
-                    <button id="btnProgressModalEdit" onclick="_enterProgressModalEdit()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
-                    <button id="btnProgressModalSave" onclick="_saveProgressModal()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
-                </div>
+        <!-- 計價進度 頁面 -->
+        <section id="pageProgressEdit" class="page">
+            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; flex-shrink:0; gap:8px; padding-bottom:10px;">
+                <span id="progressModalTitleView" style="flex:1; font-size:15px; font-weight:bold; color:#ffffff; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+                <button id="btnProgressModalEdit" onclick="_enterProgressModalEdit()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
+                <button id="btnProgressModalSave" onclick="_saveProgressModal()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
+            </div>
+            <div id="progressModalScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:88px; display:flex; flex-direction:column; gap:0;">
                 <!-- 計價表總價 + 列入總計價進度 -->
-                <div id="progressModalMetaRow" style="padding:8px 16px; border-bottom:1px solid #444444; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; align-items:end; flex-shrink:0; background:#1e1e1e;">
+                <div id="progressModalMetaRow" style="padding:8px 0; border-bottom:1px solid #444444; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; align-items:end; flex-shrink:0;">
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">類型</label>
                         <span id="progressModalBlockTypeView" style="font-size:13px; font-weight:600; color:#ffffff;">—</span>
@@ -498,18 +498,18 @@
                     </div>
                     <span></span>
                 </div>
-                <div id="progressModalItems" style="flex:1; overflow-y:auto; padding:8px 16px; display:flex; flex-direction:column; gap:6px;"></div>
-                <div style="padding:8px 16px 6px; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; border-top:1px solid #444444; flex-shrink:0;">
+                <div id="progressModalItems" style="display:flex; flex-direction:column; gap:6px; padding:8px 0;"></div>
+                <div style="padding:8px 0 6px; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; border-top:1px solid #444444; flex-shrink:0;">
                     <span style="font-size:13px; font-weight:bold; color:#ef4444;">合計</span>
                     <span id="progressModalSumAmt" style="font-size:13px; font-weight:bold; color:#ef4444; text-align:right; font-variant-numeric:tabular-nums;">—</span>
                     <span id="progressModalSumPct" style="font-size:13px; font-weight:bold; color:#ef4444; text-align:right;">—</span>
                     <span></span>
                 </div>
-                <div id="progressModalAddBtn" style="display:none; padding:10px 16px 16px; flex-shrink:0;">
+                <div id="progressModalAddBtn" style="display:none; padding:10px 0 0;">
                     <button onclick="_addProgressModalItem()" style="width:100%; background:#111111; color:white; border-radius:8px; font-size:13px; font-weight:bold; padding:10px;">➕新增月份</button>
                 </div>
             </div>
-        </div>
+        </section>
 
         <section id="pageManage" class="page" style="overflow-y: auto;">
             <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0;">
@@ -2588,7 +2588,7 @@
         }
 
         function _scrollModalToBottom() {
-            const el = document.getElementById('progressModalItems');
+            const el = document.getElementById('progressModalScrollArea');
             if (el) setTimeout(() => { el.scrollTop = el.scrollHeight; }, 30);
         }
 
@@ -2630,11 +2630,8 @@
                 itemsContainer.appendChild(_makeModalItemRow(iIdx, item.month, item.amount, useCt, false));
             });
             _recalcModalSummary();
-            _alignModalTopToHeader('progressEditModal');
-            document.getElementById('progressEditModal').style.display = 'flex';
+            navigateTo('progressedit');
             _scrollModalToBottom();
-            const _homeBtns = document.getElementById('homeMainBtns');
-            if (_homeBtns) { _homeBtns.style.opacity = '0.35'; _homeBtns.style.pointerEvents = 'none'; }
         }
 
         function _enterProgressModalEdit() {
@@ -2825,11 +2822,9 @@
         }
 
         function _closeProgressModal() {
-            document.getElementById('progressEditModal').style.display = 'none';
             _progressModalSnapshot = null;
             _progressModalIsEditing = false;
-            const _homeBtns = document.getElementById('homeMainBtns');
-            if (_homeBtns) { _homeBtns.style.opacity = ''; _homeBtns.style.pointerEvents = ''; }
+            navigateTo('siteinfo');
             // 關閉時刷新對應卡片
             if (_progressModalIsVendor) {
                 const _vendorIsEditing = document.getElementById('mainInfoEditArea').style.display !== 'none';
@@ -2857,7 +2852,6 @@
         }
 
         function _tryCloseProgressModal() {
-            if (_justBlurredKeyboard) return;
             if (_blurActiveInput()) return;
             if (_progressModalIsEditing) {
                 if (_progressModalSnapshot !== null && _snapshotProgressModal() !== _progressModalSnapshot) {
@@ -2868,11 +2862,6 @@
                 _closeProgressModal();
             }
         }
-
-        document.getElementById('progressEditModal').addEventListener('click', function(e) {
-            if (e.target !== this) return;
-            _tryCloseProgressModal();
-        });
 
         function _deleteProgressBlockMain(bIdx) {
             const blocks = _getBlocks();
@@ -3008,11 +2997,14 @@
         }
 
         function navigateTo(page) {
+            const _prevPage = currentState.page;
             currentState.page = page;
 
             // 切換頁面前先關閉所有浮層
             if (document.getElementById('addLogModal').style.display === 'flex') closeAddLogModal();
-            _siteInfoModalSnapshot = null;
+            // 在「案場資訊」與「計價表明細」之間切換時，保留編輯快照供未儲存提示判斷
+            const _keepSiteInfoSnapshot = (page === 'progressedit') || (_prevPage === 'progressedit' && page === 'siteinfo');
+            if (!_keepSiteInfoSnapshot) _siteInfoModalSnapshot = null;
 
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.home-seg').forEach(s => s.classList.remove('active-seg'));
@@ -3126,6 +3118,11 @@
                 document.getElementById('pageWorkProgress').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
                 _setActiveHomeSeg(2);
+            } else if (page === 'progressedit') {
+                _setHeaderBack(_tryCloseProgressModal);
+                document.getElementById('pageProgressEdit').classList.add('active');
+                document.getElementById('appTitle').innerText = '';
+                _setActiveHomeSeg(1);
             }
             updateCartBadge();
         }
@@ -3172,16 +3169,6 @@
             modal.style.display = 'flex';
         }
 
-        // 計價表明細彈窗：上緣切齊標題列下緣，且只覆蓋下方區域，不擠壓上層視窗
-        function _alignModalTopToHeader(modalId) {
-            const modal = document.getElementById(modalId);
-            const header = document.querySelector('header');
-            const topOffset = header ? header.getBoundingClientRect().bottom : 0;
-            modal.style.top = topOffset + 'px';
-            // 確保 main 沒有殘留 transform，避免 position:fixed 的子元素定位異常
-            const main = document.querySelector('main.max-w-md');
-            if (main) { main.style.transition = 'none'; main.style.transform = ''; main.style.opacity = ''; }
-        }
 
         function openSiteInfoModal(targetSiteId) {
             navigateTo('siteinfo');
@@ -3239,7 +3226,7 @@
         }
 
         function _isModalOpen() {
-            return ['punchModal','addLogModal','editLogModal','editOrderModal','confirmAddModal','addItemNameModal','progressEditModal','addBlockModal','wpAddModal','wpProgressEditModal'].some(
+            return ['punchModal','addLogModal','editLogModal','editOrderModal','confirmAddModal','addItemNameModal','addBlockModal','wpAddModal','wpProgressEditModal'].some(
                 id => { const el = document.getElementById(id); return el && el.style.display === 'flex'; }
             );
         }
@@ -4960,6 +4947,7 @@
                         if (p === 'manage' || p === 'lawref') navigateTo('sites');
                         else if (p === 'siteinfo') _backFromSiteInfo();
                         else if (p === 'workprogress') closeWorkProgressModal();
+                        else if (p === 'progressedit') _tryCloseProgressModal();
                         else if (p === 'categories') {
                             if (_catPageMode === 'catPick') cancelCatPick();
                             else if (_catPageMode === 'items') backToCategories();
@@ -5511,9 +5499,9 @@
                 });
             });
 
-            // 外層貼合容器（仿材料訂購清單卡片邊界）
+            // 外層貼合容器（左右延伸至螢幕邊緣，仿計價進度表樣式）
             const listCard = document.createElement('div');
-            listCard.style.cssText = 'background:#111111; border:1px solid #444444; border-radius:12px; overflow:hidden; display:flex; flex-direction:column;';
+            listCard.style.cssText = 'background:#111111; border:none; border-radius:0; overflow:hidden; display:flex; flex-direction:column; margin:0 -16px;';
 
             // 維護各工項群組的收起狀態 & 100% 樓層的暫時展開狀態（跨 render 保留）
             if (!window._wpTaskCollapsed) window._wpTaskCollapsed = {};
@@ -5533,7 +5521,7 @@
 
                 // ── 工項 header ──
                 const header = document.createElement('div');
-                let hCss = 'padding:6px 12px 6px; display:flex; align-items:center; gap:6px; background:' + groupBg + '; cursor:pointer;';
+                let hCss = 'padding:6px 30px 6px; display:flex; align-items:center; gap:6px; background:' + groupBg + '; cursor:pointer;';
                 if (domRowCount > 0) hCss += ' border-top:1px solid #444;';
                 header.style.cssText = hCss;
 
@@ -5598,7 +5586,7 @@
                     var totalPeople = calcTotalPeople(item.task, item.floor);
 
                     var card = document.createElement('div');
-                    var cardCss = 'padding:11px 12px; display:flex; flex-direction:column; gap:8px; background:' + groupBg + ';';
+                    var cardCss = 'padding:11px 30px; display:flex; flex-direction:column; gap:8px; background:' + groupBg + ';';
                     if (isDone) cardCss += ' opacity:0.55;';
                     card.style.cssText = cardCss;
 
@@ -5671,7 +5659,7 @@
                 // ── 100% 樓層：收起進度條，只顯示樓層標籤（點標籤可暫時展開調整） ──
                 if (doneEntries.length > 0) {
                     var chipsRow = document.createElement('div');
-                    var chipsCss = 'padding:9px 12px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:' + groupBg + ';';
+                    var chipsCss = 'padding:9px 30px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:' + groupBg + ';';
                     chipsRow.style.cssText = chipsCss;
 
                     doneEntries.forEach(function(entry) {
