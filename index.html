@@ -25,9 +25,10 @@
         .btn-amber, .btn-slate { background-color: #111111; color: white; }
         .btn-green { background-color: #3d3d3d; color: white; }
         
-        header button { border-radius: 33px !important; }
+        header button { border-radius: 33px !important; height: 32px !important; padding-top: 0 !important; padding-bottom: 0 !important; line-height: 32px !important; }
         
         .page { display: none; height: 100%; min-height: 0; flex-direction: column; gap: 12px; }
+        #pageSiteInfo, #pageProgressEdit { height: calc(100% - 88px); }
         .page.active { display: flex; }
         
         #pageSites { display: none; height: 100%; flex-direction: column; justify-content: space-between; }
@@ -154,9 +155,13 @@
         <div id="headerWpBtns" style="display: none; gap: 4px; flex-shrink: 0;">
             <button onclick="openWpAddModal()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增工項</button>
         </div>
+        <div id="headerProgressEditBtns" style="display: none; gap: 4px; flex-shrink: 0;">
+            <button id="btnProgressModalEdit" onclick="_enterProgressModalEdit()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
+            <button id="btnProgressModalSave" onclick="_saveProgressModal()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
+        </div>
         <div id="headerCatBtns" style="display: none; gap: 6px; align-items: center; flex-shrink: 0;">
             <div id="catEditBtnGroup" style="display:flex; gap:6px; align-items:center;">
-                <button id="btnCatAddInline" onclick="addCategoryInline()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增分類</button>
+                <button id="btnCatAddInline" onclick="addCategoryInline()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增分類</button>
                 <button id="btnCatEdit" onclick="enterCatEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
                 <button id="btnCatSave" onclick="exitCatEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
             </div>
@@ -217,7 +222,7 @@
                 <div class="card" style="padding: 8px 12px; flex-direction: row; align-items: center; gap: 8px; flex:1;">
                     <span style="color: #888888;">🔍</span>
                     <input type="text" id="globalSearchBar" oninput="renderCategories()" style="border: none; padding: 4px; font-size: 14px; width: 100%; outline: none;" placeholder="搜尋全部材料品項...">
-                    <button id="btnQuickAddInSearch" onclick="quickAddFromSearch()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增</button>
+                    <button id="btnQuickAddInSearch" onclick="quickAddFromSearch()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">新增</button>
                 </div>
             </div>
 
@@ -255,7 +260,7 @@
             <div id="siteInfoSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
         </div>
         <!-- 可滾動：其餘內容 -->
-        <div id="siteInfoScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:88px; display:flex; flex-direction:column; gap:0;">
+        <div id="siteInfoScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:16px; display:flex; flex-direction:column; gap:0;">
 
                 <div id="siteInfoDetailWrap" style="display:none; margin-bottom:0;">
                     <div style="background-color:#1e1e1e; border:1px solid #444444; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;">
@@ -299,7 +304,7 @@
                                     <input type="hidden" id="inputSiteInfoTotal">
                                 </div>
                                 <div style="flex-shrink:0; padding-top:22px;">
-                                    <button onclick="addProgressBlock()" style="padding:0 12px; background:#111111; color:white; border-radius:8px; font-size:12px; font-weight:bold; white-space:nowrap; height:24px; line-height:24px;">＋ 新增計價表</button>
+                                    <button onclick="addProgressBlock()" style="padding:0 12px; background:#000000; color:white; border-radius:8px; font-size:12px; font-weight:bold; white-space:nowrap; height:24px; line-height:24px;">＋ 新增計價表</button>
                                 </div>
                             </div>
                         </div>
@@ -334,7 +339,7 @@
                                     <div id="vendorCardTotalDisplay" style="font-size:14px; font-weight:600; color:#ffffff; padding:8px 10px; background:#2a2a2a; border:1px solid #555555; border-radius:8px; min-height:38px; line-height:1.4;">—</div>
                                 </div>
                                 <div style="flex-shrink:0; padding-top:22px;">
-                                    <button onclick="addVendorProgressBlock()" style="padding:0 12px; background:#111111; color:white; border-radius:8px; font-size:12px; font-weight:bold; white-space:nowrap; height:24px; line-height:24px;">＋ 新增計價表</button>
+                                    <button onclick="addVendorProgressBlock()" style="padding:0 12px; background:#000000; color:white; border-radius:8px; font-size:12px; font-weight:bold; white-space:nowrap; height:24px; line-height:24px;">＋ 新增計價表</button>
                                 </div>
                             </div>
                         </div>
@@ -469,12 +474,10 @@
 
         <!-- 計價進度 頁面 -->
         <section id="pageProgressEdit" class="page">
-            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; flex-shrink:0; gap:8px; padding-bottom:10px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; flex-shrink:0; gap:8px; padding-bottom:0;">
                 <span id="progressModalTitleView" style="flex:1; font-size:15px; font-weight:bold; color:#ffffff; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
-                <button id="btnProgressModalEdit" onclick="_enterProgressModalEdit()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
-                <button id="btnProgressModalSave" onclick="_saveProgressModal()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
             </div>
-            <div id="progressModalScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:88px; display:flex; flex-direction:column; gap:0;">
+            <div id="progressModalScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:16px; margin-top:-5px; display:flex; flex-direction:column; gap:0;">
                 <!-- 計價表總價 + 列入總計價進度 -->
                 <div id="progressModalMetaRow" style="padding:8px 0; border-bottom:1px solid #444444; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; align-items:end; flex-shrink:0;">
                     <div style="display:flex; flex-direction:column; gap:2px;">
@@ -506,7 +509,7 @@
                     <span></span>
                 </div>
                 <div id="progressModalAddBtn" style="display:none; padding:10px 0 0;">
-                    <button onclick="_addProgressModalItem()" style="width:100%; background:#111111; color:white; border-radius:8px; font-size:13px; font-weight:bold; padding:10px;">➕新增月份</button>
+                    <button onclick="_addProgressModalItem()" style="width:100%; background:#000000; color:white; border-radius:8px; font-size:13px; font-weight:bold; padding:10px;">➕新增月份</button>
                 </div>
             </div>
         </section>
@@ -541,7 +544,7 @@
                 <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px; margin-bottom:8px;">
                     <h3 style="font-size: 14px; margin: 0; color: #ffffff;">案場維護</h3>
                     <div style="display:flex; gap:6px; align-items:center;">
-                        <button id="btnSiteInfoAdd" onclick="confirmAddSiteInfo()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增案場</button>
+                        <button id="btnSiteInfoAdd" onclick="confirmAddSiteInfo()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增案場</button>
                         <button id="btnSiteInfoEdit" onclick="enterSiteInfoEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
                         <button id="btnSiteInfoSave" onclick="exitSiteInfoEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
                     </div>
@@ -552,7 +555,7 @@
                 <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; padding-bottom:4px; margin-bottom:8px;">
                     <h3 style="font-size: 14px; margin: 0; color: #ffffff;">廠商維護</h3>
                     <div style="display:flex; gap:6px; align-items:center;">
-                        <button id="btnVendorAdd" onclick="addVendor()" style="display:none; background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增廠商</button>
+                        <button id="btnVendorAdd" onclick="addVendor()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增廠商</button>
                         <button id="btnVendorEdit" onclick="enterVendorEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
                         <button id="btnVendorSave" onclick="exitVendorEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
                     </div>
@@ -585,10 +588,6 @@
     </div>
     <script>
         function _switchHomeModal(target) {
-            // 設置標準頁在開啟其他視窗（記錄彈窗）時要自動關閉，先切回首頁
-            if (currentState.page === 'lawref' && target === 'log') {
-                navigateTo('sites');
-            }
             const siteOpen = currentState.page === 'siteinfo';
             const logOpen = document.getElementById('addLogModal').style.display === 'flex';
             const progressOpen = currentState.page === 'workprogress';
@@ -601,8 +600,16 @@
                 navigateTo('categories');
                 return;
             }
+            if (target === 'log') {
+                // 點擊「記錄」時，先關閉所有其他頁面，回到首頁再開啟
+                const needBack = ['siteinfo','workprogress','categories','cart','lawref','manage','progressedit'].includes(currentState.page);
+                if (needBack) {
+                    navigateTo('sites');
+                }
+                openAddLogModal();
+                return;
+            }
             if (target === 'site') openSiteInfoModal();
-            else if (target === 'log') openAddLogModal();
             else if (target === 'progress') openWorkProgressModal();
         }
     </script>
@@ -706,7 +713,7 @@
                 <hr id="addLogHr" style="border:none; border-top:1px solid #444444; margin:0;">
                 <div id="addLogItemsWrap">
                     <div id="addLogItemsContainer" style="display:flex; flex-direction:column; max-height:calc(2 * 130px + 2 * 12px); overflow-y:auto;"></div>
-                    <button onclick="_addNewLogItemRowAuto()" class="btn-slate" style="width:100%; padding:10px; margin-top:8px;">➕新增項目</button>
+                    <button onclick="_addNewLogItemRowAuto()" class="btn-slate" style="width:100%; padding:10px; margin-top:8px; background:#000000;">➕新增項目</button>
                 </div>
                 <div id="addLogOvertimeWrap" style="display:none; flex-direction:column; gap:12px;">
                     <div>
@@ -744,7 +751,7 @@
                 <hr style="border:none; border-top:1px solid #444444; margin:0;">
                 <div id="editLogItemsWrap">
                     <div id="editLogItemsContainer" style="display:flex; flex-direction:column; max-height:calc(2 * 130px + 2 * 12px); overflow-y:auto;"></div>
-                    <button onclick="_addEditLogItemRowAuto()" class="btn-slate" style="width:100%; padding:10px; margin-top:8px;">➕新增項目</button>
+                    <button onclick="_addEditLogItemRowAuto()" class="btn-slate" style="width:100%; padding:10px; margin-top:8px; background:#000000;">➕新增項目</button>
                 </div>
             </div>
         </div>
@@ -3019,6 +3026,7 @@
             document.getElementById('headerCatBtns').style.display = _isOrderPage ? 'flex' : 'none';
             document.getElementById('headerSiteInfoBtns').style.display = (page === 'siteinfo') ? 'flex' : 'none';
             document.getElementById('headerWpBtns').style.display = (page === 'workprogress') ? 'flex' : 'none';
+            document.getElementById('headerProgressEditBtns').style.display = (page === 'progressedit') ? 'flex' : 'none';
 
             if (page === 'sites') {
                 _setHeaderBack(null);
@@ -4291,7 +4299,7 @@
                 '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
                     '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1; display:flex; align-items:baseline; gap:4px;" class="log-item-label">項目' + itemNum + '：<span class="log-progress-pct" style="font-size:11px;font-weight:400;color:#7ec8e3;"></span></label>' +
                     '<div style="display:flex; gap:6px;">' +
-                        '<button type="button" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px;" onclick="_openWpAddFromLog(\'addLogSiteSelect\')">新增工項</button>' +
+                        '<button type="button" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px;" onclick="_openWpAddFromLog(\'addLogSiteSelect\')">新增工項</button>' +
                         '<button type="button" class="btn-delete-log-item" style="position:static; height:24px; line-height:24px;" onclick="removeNewLogItemRow(this)">移除</button>' +
                     '</div>' +
                 '</div>' +
@@ -4529,7 +4537,7 @@
                 '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
                     '<label style="font-size:13px;font-weight:bold;color:#dddddd;line-height:1; display:flex; align-items:baseline; gap:4px;" class="log-item-label">項目' + itemNum + '：<span class="log-progress-pct" style="font-size:11px;font-weight:400;color:#7ec8e3;"></span></label>' +
                     '<div style="display:flex; gap:6px;">' +
-                        '<button type="button" style="background:#111111; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px;" onclick="_openWpAddFromLog(\'editLogSiteSelect\')">新增工項</button>' +
+                        '<button type="button" style="background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px;" onclick="_openWpAddFromLog(\'editLogSiteSelect\')">新增工項</button>' +
                         '<button type="button" class="btn-delete-log-item" style="position:static; height:24px; line-height:24px;" onclick="removeEditLogItemRow(this)">移除</button>' +
                     '</div>' +
                 '</div>' +
@@ -4893,95 +4901,7 @@
             closeEditOrderModal();
         });
 
-        // ================= 右滑返回手勢 =================
-        (function() {
-            let touchStartX = 0, touchStartY = 0, touchStartTime = 0, isDragging = false, mainEl = null;
-            const EDGE_ZONE = 80, LONG_PRESS_MS = 300;
-            function getMain() { return mainEl || (mainEl = document.querySelector('main.max-w-md')); }
-            function canGoBack() { return currentState.page !== 'sites' && !_isModalOpen(); }
 
-            document.addEventListener('touchstart', e => {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                touchStartTime = Date.now();
-                isDragging = false;
-                getMain().style.transition = 'none';
-            }, { passive: true });
-
-            document.addEventListener('touchmove', e => {
-                const dx = e.touches[0].clientX - touchStartX;
-                const dy = Math.abs(e.touches[0].clientY - touchStartY);
-                const elapsed = Date.now() - touchStartTime;
-                if (!isDragging && touchStartX <= EDGE_ZONE && dx > 8 && dy < 50 && canGoBack() && elapsed < LONG_PRESS_MS) {
-                    isDragging = true;
-                }
-                if (isDragging && dx > 0) {
-                    const m = getMain();
-                    m.style.transform = `translateX(${dx}px)`;
-                    m.style.opacity = `${Math.max(0.4, 1 - dx / window.innerWidth)}`;
-                }
-            }, { passive: true });
-
-            document.addEventListener('touchend', e => {
-                const m = getMain();
-                const dx = e.changedTouches[0].clientX - touchStartX;
-                const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-                if (isDragging && _isModalOpen()) {
-                    m.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-                    m.style.transform = '';
-                    m.style.opacity = '';
-                    setTimeout(() => { m.style.transition = ''; }, 200);
-                    isDragging = false;
-                    return;
-                }
-                if (isDragging && dx > 40 && dy < 50 && canGoBack()) {
-                    m.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
-                    m.style.transform = 'translateX(100%)';
-                    m.style.opacity = '0';
-                    setTimeout(() => {
-                        m.style.transition = 'none';
-                        m.style.transform = '';
-                        m.style.opacity = '';
-                        // 觸發返回
-                        const p = currentState.page;
-                        if (p === 'manage' || p === 'lawref') navigateTo('sites');
-                        else if (p === 'siteinfo') _backFromSiteInfo();
-                        else if (p === 'workprogress') closeWorkProgressModal();
-                        else if (p === 'progressedit') _tryCloseProgressModal();
-                        else if (p === 'categories') {
-                            if (_catPageMode === 'catPick') cancelCatPick();
-                            else if (_catPageMode === 'items') backToCategories();
-                            else navigateTo('sites');
-                        }
-                        else if (p === 'items') navigateTo('categories');
-                        else if (p === 'cart') {
-                            currentState.page = 'categories';
-                            document.getElementById('pageCart').classList.remove('active');
-                            document.getElementById('pageCategories').classList.add('active');
-                            document.getElementById('homeMainBtns').style.display = 'none';
-                            document.getElementById('orderCartBtns').style.display = '';
-                            document.getElementById('cartSubmitBtns').style.display = 'none';
-                            _catPageMode = 'items';
-                            renderCategories();
-                        }
-                        m.style.transform = 'translateX(-30px)';
-                        m.style.opacity = '0';
-                        requestAnimationFrame(() => {
-                            m.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-                            m.style.transform = '';
-                            m.style.opacity = '';
-                            setTimeout(() => { m.style.transition = ''; }, 220);
-                        });
-                    }, 220);
-                } else if (isDragging) {
-                    m.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-                    m.style.transform = '';
-                    m.style.opacity = '';
-                    setTimeout(() => { m.style.transition = ''; }, 200);
-                }
-                isDragging = false;
-            }, { passive: true });
-        })();
 
         // ================= Excel 匯出（工程記錄 / 材料訂購 / 出勤，三張工作表）=================
         function _siteNameById(siteId) {
