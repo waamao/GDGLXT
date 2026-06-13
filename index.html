@@ -31,7 +31,8 @@
         .page.page-swipe-exit { transition: transform 0.28s cubic-bezier(.25,.46,.45,.94), opacity 0.28s ease; }
         @keyframes pageSwipeEnter { from { transform: translateX(28px); opacity: 0.4; } to { transform: translateX(0); opacity: 1; } }
         .page.page-swipe-enter { animation: pageSwipeEnter 0.28s cubic-bezier(.25,.46,.45,.94); }
-        #pageSiteInfo, #pageProgressEdit { height: calc(100% - 88px); }
+        #pageProgressEdit { height: calc(100% - 68px); margin-top: -20px; }
+        #pageSiteInfo { height: calc(100% - 58px); }
         .page.active { display: flex; }
         
         #pageSites { display: none; height: 100%; flex-direction: column; justify-content: space-between; }
@@ -257,7 +258,7 @@
                     <h3 style="font-size: 14px; color: #dddddd; margin: 0;">已選材料明細：</h3>
                     <button onclick="clearOnlyOrder()" style="background-color:#D9006C; color:white; border-radius:8px; padding:6px 18px; font-size:12px; font-weight:bold; flex-shrink:0;">清除訂單</button>
                 </div>
-                <div id="listCartItems" class="scroll-list-body" style="max-height: calc(10 * (44px + 8px) + 20px); overflow-y: auto;"></div>
+                <div id="listCartItems" class="scroll-list-body" style="max-height: calc(10 * (44px + 8px) + 20px + 30px); overflow-y: auto;"></div>
             </div>
         </section>
 
@@ -394,9 +395,9 @@
         <!-- 固定：案場選擇 + 總進度 -->
         <div id="wpHeaderTopSection" style="padding-bottom:8px; display:flex; flex-direction:column; gap:10px; flex-shrink:0;">
             <div id="wpSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-            <div id="wpOverallWrap" style="display:flex; flex-direction:column; gap:6px; padding-bottom:10px;">
+            <div id="wpOverallWrap" style="display:flex; flex-direction:column; gap:6px; padding-bottom:0; margin-bottom:-2px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                    <div id="wpVendorPeopleList" style="display:flex; flex-direction:column; gap:2px; min-width:0; font-size:12px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;"></div>
+                    <div id="wpVendorPeopleList" style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:3px 12px; flex:1; min-width:0; font-size:13px; font-weight:700; color:#aaaaaa; letter-spacing:0.04em;"></div>
                     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;">
                         <span id="wpOverallLabel" style="font-size:17px; font-weight:700; color:#ff4d4d;">0%</span>
                     </div>
@@ -4789,11 +4790,19 @@
             _updateRowProgressLabel(row, siteId);
         }
 
-        function _buildLogVendorOptions(siteId, selectedValue) {
-            const rawV = (db.siteInfo && db.siteInfo[siteId] && Array.isArray(db.siteInfo[siteId].vendors) && db.siteInfo[siteId].vendors.length > 0)
-                ? db.siteInfo[siteId].vendors : (db.vendors || []);
-            const ord = db.vendors || [];
-            const vendors = ord.filter(function(v){return rawV.includes(v);}).concat(rawV.filter(function(v){return !ord.includes(v);}));
+        // 取得「工程進度表」中已出現過的廠商（依 db.vendors 順序）
+        function _siteVendorsInProgress(siteId) {
+            const items = db.workProgress[siteId] || [];
+            const used = new Set(items.map(function(i) { return (i.vendor || '').trim(); }).filter(Boolean));
+            const order = db.vendors || [];
+            const list = order.filter(function(v) { return used.has(v); });
+            used.forEach(function(v) { if (!list.includes(v)) list.push(v); });
+            return list;
+        }
+
+        function _buildLogVendorOptions(siteId, selectedValue, source) {
+            const rawV = source === 'blocks' ? _siteVendorsWithBlocks(siteId) : _siteVendorsInProgress(siteId);
+            const vendors = rawV.length > 0 ? rawV : (db.vendors || []);
             // 若無指定，預設第一個廠商
             const defaultVal = selectedValue || (vendors[0] || '');
             let opts = '';
@@ -6238,7 +6247,7 @@
             _wpAddFromLogContainerId = (siteSelectId === 'editLogSiteSelect') ? 'editLogItemsContainer' : 'addLogItemsContainer';
             document.getElementById('wpAddTask').value = '';
             document.getElementById('wpAddFloor').value = '';
-            document.getElementById('wpAddVendor').innerHTML = _buildLogVendorOptions(sid, '');
+            document.getElementById('wpAddVendor').innerHTML = _buildLogVendorOptions(sid, '', 'blocks');
             const taskDl = document.getElementById('wpTaskDatalist');
             if (taskDl) {
                 const tasks = [...new Set((db.workProgress[sid] || []).map(i => i.task || '').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
@@ -6264,7 +6273,7 @@
             document.getElementById('wpAddTask').value = '';
             document.getElementById('wpAddFloor').value = '';
             // 填入廠商選項
-            document.getElementById('wpAddVendor').innerHTML = _buildLogVendorOptions(sid, '');
+            document.getElementById('wpAddVendor').innerHTML = _buildLogVendorOptions(sid, '', 'blocks');
             // 填入工項 datalist
             const taskDl = document.getElementById('wpTaskDatalist');
             if (taskDl) {
@@ -6308,8 +6317,8 @@
             if (!task && !floor) return showToast('請輸入工項或樓層');
             if (!vendor) return showToast('請選擇施工廠商');
             const existing = db.workProgress[_wpAddSiteId] || [];
-            const isDup = existing.some(i => (i.task || '') === task && (i.floor || '') === floor);
-            if (isDup) return showToast('該案場已有相同工項與樓層的項目');
+            const isDup = existing.some(i => (i.task || '') === task && (i.floor || '') === floor && (i.vendor || '') === vendor);
+            if (isDup) return showToast('該案場已有相同工項、樓層與廠商的項目');
             if (!db.workProgress[_wpAddSiteId]) db.workProgress[_wpAddSiteId] = [];
             db.workProgress[_wpAddSiteId].push({ task: task, floor: floor, vendor: vendor, progress: 0 });
             saveToLocalStorage();
