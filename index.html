@@ -276,9 +276,12 @@
 
                 <div id="siteInfoDetailWrap" style="display:none; margin-bottom:0;">
                     <div style="background-color:#1e1e1e; border:1px solid #444444; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;">
-                        <div style="display:flex; flex-direction:column; gap:2px;">
+                        <div id="siteInfoNameWrap" style="display:none; flex-direction:column; gap:2px;">
                             <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">案場名稱</label>
-                            <input type="text" id="inputSiteInfoName" disabled style="font-size:15px; font-weight:700; -webkit-user-select:text; user-select:text;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="text" id="inputSiteInfoName" disabled style="flex:1; min-width:0; font-size:15px; font-weight:700; -webkit-user-select:text; user-select:text;">
+                                <button type="button" onclick="_deleteCurrentSiteInfo()" style="flex-shrink:0; padding:0 12px; height:30px; border-radius:8px; border:none; background:#D9006C; color:#ffffff; font-size:12px; font-weight:bold;">刪除案場</button>
+                            </div>
                         </div>
                         <div id="mainInfoViewArea" style="display:flex; flex-direction:column; gap:8px;">
                             <div>
@@ -311,11 +314,11 @@
                             <div>
                                 <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">樓層</label>
                                 <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                                    <span style="font-size:13px; color:#dddddd;">地下</span>
-                                    <input type="number" inputmode="numeric" id="inputSiteInfoFloorBelow" style="width:56px; text-align:center; -webkit-user-select:text; user-select:text;">
-                                    <span style="font-size:13px; color:#dddddd;">樓～地上</span>
+                                    <span style="font-size:13px; color:#dddddd;">地上</span>
                                     <input type="number" inputmode="numeric" id="inputSiteInfoFloorAbove" style="width:56px; text-align:center; -webkit-user-select:text; user-select:text;">
-                                    <span style="font-size:13px; color:#dddddd;">樓　屋突</span>
+                                    <span style="font-size:13px; color:#dddddd;">層　地下</span>
+                                    <input type="number" inputmode="numeric" id="inputSiteInfoFloorBelow" style="width:56px; text-align:center; -webkit-user-select:text; user-select:text;">
+                                    <span style="font-size:13px; color:#dddddd;">層　屋突</span>
                                     <input type="number" inputmode="numeric" id="inputSiteInfoFloorRoof" style="width:56px; text-align:center; -webkit-user-select:text; user-select:text;">
                                     <span style="font-size:13px; color:#dddddd;">樓</span>
                                 </div>
@@ -327,10 +330,6 @@
                                 <input type="text" id="inputSiteInfoAddress" placeholder="請輸入工地地址..." style="-webkit-user-select:text; user-select:text;">
                             </div>
                             <textarea id="inputSiteInfoNotes" rows="1" placeholder="" style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; resize:none; line-height:1.6; -webkit-user-select:text; user-select:text;"></textarea>
-                            <div>
-                                <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:6px;">施工廠商</label>
-                                <div id="siteInfoVendorPills" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-                            </div>
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <div style="flex:1; min-width:0;">
                                     <label style="font-size:13px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">承攬總價（含稅，自動計算）</label>
@@ -350,7 +349,15 @@
                     <!-- 施工廠商卡片 -->
                     <div id="vendorDetailCard" style="background-color:#1e1e1e; border:1px solid #444444; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px; margin-top:8px;">
                         <div style="font-size:13px; font-weight:bold; color:#dddddd;">施工廠商：</div>
-                        <!-- 廠商切換膠囊 -->
+                        <!-- 廠商名稱編輯／刪除（編輯模式才顯示） -->
+                        <div id="vendorNameWrap" style="display:none; flex-direction:column; gap:2px;">
+                            <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">廠商名稱</label>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="text" id="inputActiveVendorName" onchange="_handleActiveVendorNameChange()" style="flex:1; min-width:0; font-size:15px; font-weight:700; -webkit-user-select:text; user-select:text;">
+                                <button type="button" onclick="_deleteActiveVendor()" style="flex-shrink:0; padding:0 12px; height:30px; border-radius:8px; border:none; background:#D9006C; color:#ffffff; font-size:12px; font-weight:bold;">刪除廠商</button>
+                            </div>
+                        </div>
+                        <!-- 廠商膠囊：檢視模式僅顯示已選廠商；編輯模式顯示全部廠商，已選即長亮 -->
                         <div id="vendorCardViewPills" style="display:flex; flex-wrap:wrap; gap:6px; min-height:22px;"></div>
                         <!-- 單一廠商 view 模式 -->
                         <div id="vendorCardViewArea" style="display:none; flex-direction:column; gap:8px;">
@@ -425,7 +432,10 @@
                 <div style="display:flex; gap:8px;">
                     <div style="flex:1; min-width:0;">
                         <label style="font-size:12px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">樓層／區域</label>
-                        <input id="wpAddFloor" type="text" name="wpAddFloor" list="wpFloorDatalist" placeholder="例：1F、2F..." oninput="_wpAddJustSaved=false;" style="width:100%; border:1px solid #555; border-radius:8px; padding:8px 12px; font-size:14px; background:#111; color:#fff; box-sizing:border-box; -webkit-user-select:text; user-select:text;">
+                        <div style="display:flex; gap:4px;">
+                            <input id="wpAddFloor" type="text" name="wpAddFloor" list="wpFloorDatalist" placeholder="例：1F、2F..." oninput="_wpAddJustSaved=false;" style="flex:1; min-width:0; border:1px solid #555; border-radius:8px; padding:8px 12px; font-size:14px; background:#111; color:#fff; box-sizing:border-box; -webkit-user-select:text; user-select:text;">
+                            <button type="button" onclick="_openFloorPicker(document.getElementById('wpAddFloor'), _wpAddSiteId)" style="flex-shrink:0; width:36px; border:1px solid #555; border-radius:8px; background:#1e1e1e; color:#ffffff; font-size:15px;">🏢</button>
+                        </div>
                         <datalist id="wpFloorDatalist"></datalist>
                     </div>
                     <div style="flex:1; min-width:0;">
@@ -435,6 +445,18 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- 樓層選擇彈窗（共用） -->
+    <div id="floorPickerModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:400; align-items:center; justify-content:center;" onclick="if(event.target===this)_closeFloorPicker()">
+        <div style="background:#1e1e1e; border:1px solid #444; border-radius:14px; padding:16px; width:calc(100% - 64px); max-width:340px; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:14px; font-weight:bold; color:#ffffff;">選擇樓層</span>
+                <button type="button" onclick="_closeFloorPicker()" style="background:#333333; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">關閉</button>
+            </div>
+            <div id="floorPickerPills" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+            <button type="button" onclick="_confirmFloorPicker()" style="background:#000000; color:#ffffff; font-size:13px; font-weight:bold; height:36px; border-radius:8px; border:none;">確定</button>
         </div>
     </div>
 
@@ -2147,14 +2169,9 @@
             renderVendorList();
         }
 
-        function renameVendor(idx) {
-            const old = (db.vendors || [])[idx];
-            if (old === undefined) return;
-            const newName = prompt('請輸入廠商新名稱：', old);
-            if (!newName || !newName.trim()) return;
-            const trimmed = newName.trim();
-            if (trimmed === old) return;
-            if ((db.vendors || []).some(function(v, i) { return i !== idx && v === trimmed; })) return alert('廠商「' + trimmed + '」已存在。');
+        // 套用廠商改名（不含 prompt/重複檢查），同步 workProgress、siteInfo 各欄位
+        function _applyVendorRename(old, trimmed) {
+            if (old === trimmed) return;
             // 同步更新 workProgress 中的廠商名稱
             Object.keys(db.workProgress || {}).forEach(function(siteId) {
                 (db.workProgress[siteId] || []).forEach(function(wp) { if (wp.vendor === old) wp.vendor = trimmed; });
@@ -2175,9 +2192,20 @@
                     delete info.vendorProgressBlocksMap[old];
                 }
             });
-            db.vendors[idx] = trimmed;
             // 同步 _activeVendorName
             if (_activeVendorName === old) _activeVendorName = trimmed;
+        }
+
+        function renameVendor(idx) {
+            const old = (db.vendors || [])[idx];
+            if (old === undefined) return;
+            const newName = prompt('請輸入廠商新名稱：', old);
+            if (!newName || !newName.trim()) return;
+            const trimmed = newName.trim();
+            if (trimmed === old) return;
+            if ((db.vendors || []).some(function(v, i) { return i !== idx && v === trimmed; })) return alert('廠商「' + trimmed + '」已存在。');
+            _applyVendorRename(old, trimmed);
+            db.vendors[idx] = trimmed;
             saveToLocalStorage();
             renderVendorList();
             // 若案場資訊頁開著，刷新廠商卡
@@ -2214,6 +2242,107 @@
                 });
             });
             return true;
+        }
+
+        function _deleteCurrentSiteInfo() {
+            if (!_siSelectedSiteId) return;
+            const siteId = _siSelectedSiteId;
+            _siteInfoEditBackup = null;
+            _siteInfoModalSnapshot = null;
+            _disableSiteInfoPillsSort();
+            deleteSiteFromManage(siteId);
+        }
+
+        // ── 案場膠囊拖曳排序（編輯模式）──
+        let _siteInfoPillsSortable = null;
+
+        function _enableSiteInfoPillsSort() {
+            const box = document.getElementById('siteInfoSiteSelect');
+            if (!box) return;
+            if (_siteInfoPillsSortable) { _siteInfoPillsSortable.destroy(); _siteInfoPillsSortable = null; }
+            _siteInfoPillsSortable = new Sortable(box, {
+                animation: 150,
+                filter: 'button:not([data-site-id])',
+                preventOnFilter: false,
+                onEnd: function() {
+                    const sorted = [];
+                    box.querySelectorAll('button[data-site-id]').forEach(function(el) {
+                        const s = db.sites.find(function(s) { return s.id === el.dataset.siteId; });
+                        if (s) sorted.push(s);
+                    });
+                    db.sites.forEach(function(s) { if (!sorted.includes(s)) sorted.push(s); });
+                    db.sites = sorted;
+                    saveToLocalStorage();
+                }
+            });
+        }
+
+        function _disableSiteInfoPillsSort() {
+            if (_siteInfoPillsSortable) { _siteInfoPillsSortable.destroy(); _siteInfoPillsSortable = null; }
+        }
+
+        // ── 施工廠商膠囊拖曳排序（編輯模式）──
+        let _vendorPillsSortable = null;
+
+        function _enableVendorPillsSort() {
+            const box = document.getElementById('vendorCardViewPills');
+            if (!box) return;
+            if (_vendorPillsSortable) { _vendorPillsSortable.destroy(); _vendorPillsSortable = null; }
+            _vendorPillsSortable = new Sortable(box, {
+                animation: 150,
+                filter: 'button:not([data-vendor-name])',
+                preventOnFilter: false,
+                onEnd: function() {
+                    const sorted = [];
+                    box.querySelectorAll('button[data-vendor-name]').forEach(function(el) {
+                        const name = el.dataset.vendorName;
+                        if ((db.vendors || []).includes(name)) sorted.push(name);
+                    });
+                    (db.vendors || []).forEach(function(v) { if (!sorted.includes(v)) sorted.push(v); });
+                    db.vendors = sorted;
+                    saveToLocalStorage();
+                }
+            });
+        }
+
+        function _disableVendorPillsSort() {
+            if (_vendorPillsSortable) { _vendorPillsSortable.destroy(); _vendorPillsSortable = null; }
+        }
+
+        // 廠商名稱輸入框 onchange：套用改名
+        function _handleActiveVendorNameChange() {
+            const input = document.getElementById('inputActiveVendorName');
+            if (!input || !_activeVendorName) return;
+            const old = _activeVendorName;
+            const newName = input.value.trim();
+            if (!newName) { input.value = old; return; }
+            if (newName === old) return;
+            if ((db.vendors || []).includes(newName)) {
+                alert('廠商「' + newName + '」已存在。');
+                input.value = old;
+                return;
+            }
+            const idx = (db.vendors || []).indexOf(old);
+            _applyVendorRename(old, newName);
+            if (idx !== -1) db.vendors[idx] = newName;
+            _activeVendorName = newName;
+            saveToLocalStorage();
+            renderVendorList();
+            _renderVendorCardEdit();
+        }
+
+        // 刪除目前編輯中的施工廠商
+        function _deleteActiveVendor() {
+            if (!_activeVendorName) return;
+            const name = _activeVendorName;
+            if (_vendorHasBlocks(name)) { alert('施工廠商已有計價表不可刪除'); return; }
+            if (!confirm('確定要刪除廠商「' + name + '」嗎？')) return;
+            const idx = (db.vendors || []).indexOf(name);
+            if (idx !== -1) db.vendors.splice(idx, 1);
+            _activeVendorName = null;
+            saveToLocalStorage();
+            renderVendorList();
+            _renderVendorCardEdit();
         }
 
         function renameSiteFromManage(siteId) {
@@ -2281,11 +2410,16 @@
             if (wasEditing) {
                 // 切換案場時保持編輯模式，載入新案場資料到編輯欄位
                 const info = (db.siteInfo && db.siteInfo[siteId]) || {};
+                const siteObj = db.sites.find(s => s.id === siteId);
+                const nameInput = document.getElementById('inputSiteInfoName');
+                if (nameInput) nameInput.value = siteObj ? siteObj.name : '';
+                document.getElementById('inputSiteInfoFloorBelow').value = info.floorBelow || '';
+                document.getElementById('inputSiteInfoFloorAbove').value = info.floorAbove || '';
+                document.getElementById('inputSiteInfoFloorRoof').value  = info.floorRoof  || '';
                 document.getElementById('inputSiteInfoAddress').value = info.caseAddress || '';
                 document.getElementById('inputSiteInfoNotes').value   = info.notes       || '';
                 _updateEditTotalDisplay();
                 _renderAllProgressBlocks();
-                _renderVendorEditPills();
                 // 預設選第一個廠商
                 const vendors = _getSelectedVendors();
                 _activeVendorName = vendors.length > 0 ? vendors[0] : null;
@@ -2387,51 +2521,24 @@
         // ---- 廠商膠囊（多選，編輯模式）----
         let _activeVendorName = null;  // 目前 view 模式選中的廠商
 
-        function _getSelectedVendors() {
-            const info = (db.siteInfo && db.siteInfo[_siSelectedSiteId]) || {};
-            const v = info.vendors;
-            let selected = [];
-            if (Array.isArray(v)) selected = v;
-            else if (info.vendor) selected = [info.vendor];
+        // 取得某案場已建立計價表的廠商（依 db.vendors 順序）
+        function _siteVendorsWithBlocks(siteId) {
+            const info = (db.siteInfo && db.siteInfo[siteId]) || {};
+            const map = info.vendorProgressBlocksMap || {};
             const order = db.vendors || [];
-            return order.filter(function(x) { return selected.includes(x); })
-                        .concat(selected.filter(function(x) { return !order.includes(x); }));
+            return order.filter(function(v) { return Array.isArray(map[v]) && map[v].length > 0; });
         }
 
-        function _renderVendorEditPills() {
-            const container = document.getElementById('siteInfoVendorPills');
-            if (!container) return;
-            const selected = _getSelectedVendors();
-            container.innerHTML = '';
-            (db.vendors || []).forEach(function(v) {
-                const on = selected.includes(v);
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.textContent = v;
-                btn.style.cssText = 'padding:6px 14px; border-radius:33px; font-size:13px; font-weight:bold; border:1px solid ' + (on ? '#ffffff' : '#555555') + '; background:' + (on ? '#3d3d3d' : '#1e1e1e') + '; color:#ffffff; cursor:pointer; transition:all 0.15s;';
-                btn.addEventListener('click', function() {
-                    const cur = _getSelectedVendors();
-                    let next;
-                    if (cur.includes(v)) {
-                        // 取消廠商：若有計價表內容則提示
-                        const blocks = _getVendorBlocksFor(v);
-                        const hasContent = blocks.some(function(blk) {
-                            return (blk.items && blk.items.length > 0) || blk.blockTotal;
-                        });
-                        if (hasContent && !confirm('「' + v + '」已有計價表內容，確定要移除此施工廠商？')) return;
-                        next = cur.filter(function(x) { return x !== v; });
-                    } else {
-                        next = cur.concat([v]);
-                    }
-                    if (!db.siteInfo) db.siteInfo = {};
-                    if (!db.siteInfo[_siSelectedSiteId]) db.siteInfo[_siSelectedSiteId] = {};
-                    db.siteInfo[_siSelectedSiteId].vendors = next;
-                    _renderVendorEditPills();
-                    enterVendorCardEdit();
-                });
-                container.appendChild(btn);
-            });
+        function _vendorHasBlocks(vendorName) {
+            const info = (db.siteInfo && db.siteInfo[_siSelectedSiteId]) || {};
+            const map = info.vendorProgressBlocksMap || {};
+            return Array.isArray(map[vendorName]) && map[vendorName].length > 0;
         }
+
+        function _getSelectedVendors() {
+            return _siteVendorsWithBlocks(_siSelectedSiteId);
+        }
+
 
 
         // ---- 廠商卡片 per-vendor blocks ----
@@ -2470,6 +2577,68 @@
             const container = document.getElementById('vendorCardViewPills');
             if (!container) return;
             const selected = _getSelectedVendors();
+            container.innerHTML = '';
+
+            if (isEditing) {
+                const allVendors = db.vendors || [];
+                if (allVendors.length === 0) {
+                    container.innerHTML = '<span style="font-size:13px; color:#888888;">尚無廠商</span>';
+                }
+                if (!_activeVendorName && allVendors.length > 0) {
+                    _activeVendorName = selected.length > 0 ? selected[0] : allVendors[0];
+                }
+                const nameWrap = document.getElementById('vendorNameWrap');
+                const nameInput = document.getElementById('inputActiveVendorName');
+                if (nameWrap && nameInput) {
+                    if (_activeVendorName) {
+                        nameWrap.style.display = 'flex';
+                        nameInput.value = _activeVendorName;
+                    } else {
+                        nameWrap.style.display = 'none';
+                    }
+                }
+                allVendors.forEach(function(v) {
+                    const lit = _vendorHasBlocks(v);
+                    const active = (v === _activeVendorName);
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = v;
+                    btn.dataset.vendorName = v;
+                    const borderColor = active ? '#7ec8e3' : (lit ? '#ffffff' : '#555555');
+                    btn.style.cssText = 'padding:6px 14px; border-radius:33px; font-size:13px; font-weight:bold; border:1.5px solid ' + borderColor + '; background:' + (lit ? '#3d3d3d' : '#1e1e1e') + '; color:' + (lit ? '#ffffff' : '#888888') + '; cursor:pointer; transition:all 0.15s;';
+                    btn.addEventListener('click', function() {
+                        _activeVendorName = v;
+                        _renderVendorCardEdit();
+                    });
+                    container.appendChild(btn);
+                });
+                if (!_activeVendorName) {
+                    document.getElementById('vendorCardViewArea').style.display = 'none';
+                    document.getElementById('vendorCardEditArea').style.display = 'none';
+                    document.getElementById('vendorProgressDetailWrap').style.display = 'none';
+                }
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.textContent = '＋';
+                addBtn.style.cssText = 'padding:6px 14px; border-radius:33px; font-size:13px; font-weight:600; cursor:pointer; border:1.5px dashed #666666; background:#1e1e1e; color:#888888;';
+                addBtn.addEventListener('click', function() {
+                    const name = prompt('請輸入廠商名稱：');
+                    if (!name || !name.trim()) return;
+                    const trimmed = name.trim();
+                    if ((db.vendors || []).includes(trimmed)) return alert('廠商「' + trimmed + '」已存在。');
+                    if (!db.vendors) db.vendors = [];
+                    db.vendors.push(trimmed);
+                    saveToLocalStorage();
+                    _activeVendorName = trimmed;
+                    _renderVendorCardEdit();
+                });
+                container.appendChild(addBtn);
+                return;
+            }
+
+            // 檢視模式：只顯示已勾選的廠商作為切換膠囊
+            const nameWrapView = document.getElementById('vendorNameWrap');
+            if (nameWrapView) nameWrapView.style.display = 'none';
             if (selected.length === 0) {
                 container.innerHTML = '<span style="font-size:13px; color:#888888;">—</span>';
                 document.getElementById('vendorCardViewArea').style.display = 'none';
@@ -2481,7 +2650,6 @@
             if (!_activeVendorName || !selected.includes(_activeVendorName)) {
                 _activeVendorName = selected[0];
             }
-            container.innerHTML = '';
             selected.forEach(function(v) {
                 const active = (v === _activeVendorName);
                 const btn = document.createElement('button');
@@ -2490,9 +2658,7 @@
                 btn.style.cssText = 'padding:6px 14px; border-radius:33px; font-size:13px; font-weight:bold; border:1px solid ' + (active ? '#ffffff' : '#555555') + '; background:' + (active ? '#3d3d3d' : '#1e1e1e') + '; color:#ffffff; cursor:pointer; transition:all 0.15s;';
                 btn.addEventListener('click', function() {
                     _activeVendorName = v;
-                    const currentlyEditing = document.getElementById('mainInfoEditArea').style.display !== 'none';
-                    if (currentlyEditing) { _renderVendorCardEdit(); }
-                    else { _renderVendorCardView(); }
+                    _renderVendorCardView();
                 });
                 container.appendChild(btn);
             });
@@ -2623,15 +2789,139 @@
         }
 
 
-        // 格式化樓層顯示文字：地下X樓～地上Y樓　屋突Z樓
+        // 格式化樓層顯示文字：地上X層 地下Y層 屋突Z樓
         function _fmtFloorsText(info) {
             const b = (info.floorBelow || '').toString().trim();
             const a = (info.floorAbove || '').toString().trim();
             const r = (info.floorRoof || '').toString().trim();
             if (!b && !a && !r) return '—';
-            let txt = '地下' + (b || '0') + '樓～地上' + (a || '0') + '樓';
+            let txt = '地上' + (a || '0') + '層　地下' + (b || '0') + '層';
             if (r) txt += '　屋突' + r + '樓';
             return txt;
+        }
+
+        // ================= 樓層選擇彈窗（共用） =================
+        // 取得案場樓層清單（順序：B1F...B{below}F、1F...{above}F、R1F...R{roof}F）
+        function _getSiteFloorListOrdered(siteId) {
+            const info = (db.siteInfo && db.siteInfo[siteId]) || {};
+            const below = parseInt(info.floorBelow, 10) || 0;
+            const above = parseInt(info.floorAbove, 10) || 0;
+            const roof  = parseInt(info.floorRoof, 10)  || 0;
+            const list = [];
+            for (let i = 1; i <= below; i++) list.push('B' + i + 'F');
+            for (let i = 1; i <= above; i++) list.push(i + 'F');
+            for (let i = 1; i <= roof; i++) list.push('R' + i + 'F');
+            return list;
+        }
+
+        function _floorSectionType(f) {
+            if (/^B\d+F$/.test(f)) return 'B';
+            if (/^R\d+F$/.test(f)) return 'R';
+            return 'A';
+        }
+
+        // 將已選樓層集合格式化為文字：連續樓層合併為「X-Y」，不連續以「、」分隔
+        function _formatFloorRanges(selected, floors) {
+            const groups = [];
+            let current = [];
+            let currentType = null;
+            floors.forEach(function(f) {
+                if (selected.has(f)) {
+                    const t = _floorSectionType(f);
+                    if (current.length && t !== currentType) { groups.push(current); current = []; }
+                    current.push(f);
+                    currentType = t;
+                } else if (current.length) {
+                    groups.push(current); current = []; currentType = null;
+                }
+            });
+            if (current.length) groups.push(current);
+            return groups.map(function(g) { return g.length >= 2 ? (g[0] + '-' + g[g.length - 1]) : g[0]; }).join('、');
+        }
+
+        // 解析已有的樓層文字（支援「X-Y」範圍與「、」分隔）為樓層集合
+        function _parseFloorString(str, floors) {
+            const set = new Set();
+            (str || '').split(/[、,]/).map(function(s) { return s.trim(); }).filter(Boolean).forEach(function(part) {
+                if (part.indexOf('-') !== -1) {
+                    const segs = part.split('-').map(function(s) { return s.trim(); });
+                    const ia = floors.indexOf(segs[0]);
+                    const ib = floors.indexOf(segs[1]);
+                    if (ia !== -1 && ib !== -1) {
+                        const lo = Math.min(ia, ib), hi = Math.max(ia, ib);
+                        for (let i = lo; i <= hi; i++) set.add(floors[i]);
+                        return;
+                    }
+                }
+                set.add(part);
+            });
+            return set;
+        }
+
+        let _floorPickerTarget = null;
+        let _floorPickerSiteId = null;
+        let _floorPickerSelected = new Set();
+
+        function _openFloorPicker(targetEl, siteId) {
+            if (!targetEl) return;
+            const floors = _getSiteFloorListOrdered(siteId);
+            if (floors.length === 0) {
+                alert('此案場尚未設定樓層資料，請先到「案場資訊」頁設定地上／地下／屋突層數。');
+                return;
+            }
+            _floorPickerTarget = targetEl;
+            _floorPickerSiteId = siteId;
+            _floorPickerSelected = _parseFloorString(targetEl.value || '', floors);
+            _renderFloorPickerPills(floors);
+            document.getElementById('floorPickerModal').style.display = 'flex';
+        }
+
+        function _renderFloorPickerPills(floors) {
+            const box = document.getElementById('floorPickerPills');
+            if (!box) return;
+            box.innerHTML = '';
+            floors.forEach(function(f) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = f;
+                const on = _floorPickerSelected.has(f);
+                btn.style.cssText = 'padding:6px 14px; border-radius:33px; font-size:13px; font-weight:bold; border:1.5px solid ' + (on ? '#ffffff' : '#555555') + '; background:' + (on ? '#3d3d3d' : '#1e1e1e') + '; color:#ffffff; cursor:pointer; transition:all 0.15s;';
+                btn.addEventListener('click', function() {
+                    if (_floorPickerSelected.has(f)) _floorPickerSelected.delete(f);
+                    else _floorPickerSelected.add(f);
+                    const on2 = _floorPickerSelected.has(f);
+                    btn.style.border = '1.5px solid ' + (on2 ? '#ffffff' : '#555555');
+                    btn.style.background = on2 ? '#3d3d3d' : '#1e1e1e';
+                });
+                box.appendChild(btn);
+            });
+        }
+
+        function _closeFloorPicker() {
+            document.getElementById('floorPickerModal').style.display = 'none';
+            _floorPickerTarget = null;
+            _floorPickerSiteId = null;
+            _floorPickerSelected = new Set();
+        }
+
+        function _confirmFloorPicker() {
+            if (!_floorPickerTarget) return _closeFloorPicker();
+            const floors = _getSiteFloorListOrdered(_floorPickerSiteId);
+            const text = _formatFloorRanges(_floorPickerSelected, floors);
+            const target = _floorPickerTarget;
+            if (target.tagName === 'SELECT') {
+                let opt = Array.prototype.find.call(target.options, function(o) { return o.value === text; });
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = text;
+                    opt.textContent = text || '（無樓層）';
+                    target.appendChild(opt);
+                }
+            }
+            target.value = text;
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+            _closeFloorPicker();
         }
 
         function _renderMainInfoView() {
@@ -2643,6 +2933,8 @@
                 nameInput.value = siteObj ? siteObj.name : '';
                 nameInput.disabled = true;
             }
+            const nameWrap = document.getElementById('siteInfoNameWrap');
+            if (nameWrap) nameWrap.style.display = 'none';
             document.getElementById('siteInfoViewFloors').innerText = _fmtFloorsText(info);
             document.getElementById('siteInfoViewAddress').innerText = info.caseAddress || '—';
             document.getElementById('siteInfoViewTotal').innerText = info.contractTotal ? _fmtAmount(info.contractTotal) : '—';
@@ -2686,6 +2978,8 @@
                 nameInput.value = siteObj ? siteObj.name : '';
                 nameInput.disabled = false;
             }
+            const nameWrap = document.getElementById('siteInfoNameWrap');
+            if (nameWrap) nameWrap.style.display = 'flex';
             document.getElementById('inputSiteInfoFloorBelow').value = info.floorBelow || '';
             document.getElementById('inputSiteInfoFloorAbove').value = info.floorAbove || '';
             document.getElementById('inputSiteInfoFloorRoof').value  = info.floorRoof  || '';
@@ -2698,7 +2992,8 @@
             _updateEditTotalDisplay();
             _renderAllProgressBlocks();
             enterVendorCardEdit();
-            _renderVendorEditPills();
+            _enableSiteInfoPillsSort();
+            _enableVendorPillsSort();
             setTimeout(() => { _siteInfoModalSnapshot = _snapshotSiteInfoModal(); }, 30);
         }
 
@@ -2717,6 +3012,10 @@
                 nameInput.value = siteObj ? siteObj.name : '';
                 nameInput.disabled = true;
             }
+            const nameWrap = document.getElementById('siteInfoNameWrap');
+            if (nameWrap) nameWrap.style.display = 'none';
+            _disableSiteInfoPillsSort();
+            _disableVendorPillsSort();
             document.getElementById('mainInfoViewArea').style.display  = 'flex';
             document.getElementById('mainInfoEditArea').style.display  = 'none';
             document.getElementById('btnMainInfoEdit').style.display   = '';
@@ -2768,6 +3067,10 @@
             document.getElementById('btnMainInfoEdit').style.display  = '';
             document.getElementById('btnMainInfoSave').style.display  = 'none';
             if (nameInput) nameInput.disabled = true;
+            const nameWrap = document.getElementById('siteInfoNameWrap');
+            if (nameWrap) nameWrap.style.display = 'none';
+            _disableSiteInfoPillsSort();
+            _disableVendorPillsSort();
             _siteInfoEditBackup = null;
             _renderMainInfoView();
             _renderAllProgressBlocks();
@@ -3502,7 +3805,7 @@
         }
 
         function _isModalOpen() {
-            return ['addLogModal','editLogModal','editOrderModal','confirmAddModal','addItemNameModal','addBlockModal','wpAddModal','wpProgressEditModal','calcModal'].some(
+            return ['addLogModal','editLogModal','editOrderModal','confirmAddModal','addItemNameModal','addBlockModal','wpAddModal','wpProgressEditModal','calcModal','floorPickerModal'].some(
                 id => { const el = document.getElementById(id); return el && el.style.display === 'flex'; }
             );
         }
