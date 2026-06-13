@@ -118,7 +118,7 @@
         .calendar-day:active .day-num { background-color: #2a2a2a; }
         .calendar-day.empty { background-color: transparent; border: none; cursor: default; }
         .calendar-day.today .day-num { background-color: #ffffff; color: #000000; font-weight: 700; }
-        .cal-day-pill { position: absolute; top: 0; left: 0; width: 26px; height: 26px; box-sizing: border-box; border: 1px solid #999999; border-radius: 50%; pointer-events: none; opacity: 0; z-index: 0; transition: transform 0.25s ease, opacity 0.2s ease; will-change: transform; }
+        .cal-day-pill { position: absolute; top: 0; left: 0; width: 26px; height: 26px; box-sizing: border-box; border: 1px solid #999999; border-radius: 50%; pointer-events: none; opacity: 0; z-index: 0; transition: opacity 0.2s ease; will-change: opacity; }
         .day-num { font-size: 13px; font-weight: 500; color: #cccccc; width: 26px; height: 26px; min-width: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
         .day-dots { display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 2px; position: absolute; top: calc(50% + 15px); left: 50%; transform: translateX(-50%); }
         .dot-log-group { display: flex; flex-direction: column; gap: 2px; align-items: center; }
@@ -158,10 +158,6 @@
         <div id="headerProgressEditBtns" style="display: none; gap: 4px; flex-shrink: 0;">
             <button id="btnProgressModalEdit" onclick="_enterProgressModalEdit()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
             <button id="btnProgressModalSave" onclick="_saveProgressModal()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
-        </div>
-        <div id="headerManageBtns" style="display: none; gap: 4px; flex-shrink: 0;">
-            <button id="btnManageEdit" onclick="enterManageEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
-            <button id="btnManageSave" onclick="exitManageEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
         </div>
         <div id="headerCatBtns" style="display: none; gap: 6px; align-items: center; flex-shrink: 0;">
             <div id="catEditBtnGroup" style="display:flex; gap:6px; align-items:center;">
@@ -272,7 +268,7 @@
             <div id="siteInfoSiteSelect" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
         </div>
         <!-- 可滾動：其餘內容 -->
-        <div id="siteInfoScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:16px; display:flex; flex-direction:column; gap:0;">
+        <div id="siteInfoScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:90px; display:flex; flex-direction:column; gap:0;">
 
                 <div id="siteInfoDetailWrap" style="display:none; margin-bottom:0;">
                     <div style="background-color:#1e1e1e; border:1px solid #444444; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;">
@@ -432,11 +428,7 @@
                 <div style="display:flex; gap:8px;">
                     <div style="flex:1; min-width:0;">
                         <label style="font-size:12px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">樓層／區域</label>
-                        <div style="display:flex; gap:4px;">
-                            <input id="wpAddFloor" type="text" name="wpAddFloor" list="wpFloorDatalist" placeholder="例：1F、2F..." oninput="_wpAddJustSaved=false;" style="flex:1; min-width:0; border:1px solid #555; border-radius:8px; padding:8px 12px; font-size:14px; background:#111; color:#fff; box-sizing:border-box; -webkit-user-select:text; user-select:text;">
-                            <button type="button" onclick="_openFloorPicker(document.getElementById('wpAddFloor'), _wpAddSiteId)" style="flex-shrink:0; width:36px; border:1px solid #555; border-radius:8px; background:#1e1e1e; color:#ffffff; font-size:15px;">🏢</button>
-                        </div>
-                        <datalist id="wpFloorDatalist"></datalist>
+                        <input id="wpAddFloor" type="text" name="wpAddFloor" readonly onclick="_openFloorPicker(this, _wpAddSiteId)" placeholder="點擊選擇樓層" oninput="_wpAddJustSaved=false;" style="width:100%; border:1px solid #555; border-radius:8px; padding:8px 12px; font-size:14px; background:#111; color:#fff; box-sizing:border-box; cursor:pointer; -webkit-user-select:text; user-select:text;">
                     </div>
                     <div style="flex:1; min-width:0;">
                         <label style="font-size:12px; font-weight:bold; color:#dddddd; display:block; margin-bottom:4px;">施工廠商</label>
@@ -453,7 +445,11 @@
         <div style="background:#1e1e1e; border:1px solid #444; border-radius:14px; padding:16px; width:calc(100% - 64px); max-width:340px; display:flex; flex-direction:column; gap:12px;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <span style="font-size:14px; font-weight:bold; color:#ffffff;">選擇樓層</span>
-                <button type="button" onclick="_closeFloorPicker()" style="background:#333333; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">關閉</button>
+                <div style="display:flex; gap:6px;">
+                    <button type="button" onclick="_clearFloorPicker()" style="background:#333333; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px; border:1px solid #555555;">清空</button>
+                    <button type="button" onclick="_selectAllFloorPicker()" style="background:#333333; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px; border:1px solid #555555;">全選</button>
+                    <button type="button" onclick="_closeFloorPicker()" style="background:#333333; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">關閉</button>
+                </div>
             </div>
             <div id="floorPickerPills" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
             <button type="button" onclick="_confirmFloorPicker()" style="background:#000000; color:#ffffff; font-size:13px; font-weight:bold; height:36px; border-radius:8px; border:none;">確定</button>
@@ -638,10 +634,7 @@
         </section>
 
         <section id="pageManage" class="page" style="overflow-y: auto;">
-            <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0;">
-                <button onclick="_openCalcModal()" class="btn-slate" style="width:100%; padding:12px; font-size:14px; font-weight:bold; border-radius:8px; border:1px solid #555555;">🧮 計價計算機</button>
-            </div>
-            <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0;">
+            <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0; margin-bottom: 40px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:4px;">
                     <h3 style="font-size:14px; margin:0; color:#ffffff;">系統</h3>
                     <span id="importedFileName" style="display:none; font-size:12px; color:#aaaaaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60%;"></span>
@@ -658,27 +651,16 @@
                 <div style="border-top:1px solid #444444; padding-top:10px; margin-top:4px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                         <span style="font-size:13px; font-weight:bold; color:#aaaaaa;">Apps Script 連動網址</span>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button id="btnManageEdit" onclick="enterManageEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">編輯</button>
+                            <button id="btnManageSave" onclick="exitManageEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:24px; line-height:24px;">儲存</button>
+                        </div>
                     </div>
                     <textarea id="inputScriptUrl" oninput="saveScriptUrl();" placeholder="請貼上 https://script.google.com/... 網址" disabled style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background-color:#2a2a2a; resize:none; line-height:1.6; word-break:break-all; overflow-wrap:anywhere; white-space:nowrap; -webkit-user-select:none; user-select:none; color:#aaaaaa; overflow:hidden; height:36px; box-sizing:border-box;"></textarea>
                 </div>
-            </div>
-            <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0;">
-                <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px solid #444444; padding-top:10px; margin-bottom:8px;">
-                    <h3 style="font-size: 14px; margin: 0; color: #ffffff;">案場維護</h3>
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <button id="btnSiteInfoAdd" onclick="confirmAddSiteInfo()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增案場</button>
-                    </div>
+                <div style="border-top:1px solid #444444; padding-top:10px; margin-top:4px;">
+                    <button onclick="_openCalcModal()" class="btn-slate" style="width:100%; padding:12px; font-size:14px; font-weight:bold; border-radius:8px; border:1px solid #555555;">計價計算機</button>
                 </div>
-                <div id="siteInfoList" style="display: flex; flex-direction: column; gap: 4px;"></div>
-            </div>
-            <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0; margin-bottom: 40px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px solid #444444; padding-top:10px; margin-bottom:8px;">
-                    <h3 style="font-size: 14px; margin: 0; color: #ffffff;">廠商維護</h3>
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <button id="btnVendorAdd" onclick="addVendor()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增廠商</button>
-                    </div>
-                </div>
-                <div id="vendorList" style="display: flex; flex-direction: column; gap: 4px;"></div>
             </div>
         </section>
 
@@ -698,8 +680,9 @@
     <div class="bottom-btn-group" id="homeMainBtns" style="display:none; z-index:210;">
         <div class="bottom-btn-group-inner">
                 <div class="home-seg-pill" id="homeSegPill"></div>
-                <span class="home-seg" onclick="_switchHomeModal('log')">記錄</span>
+                <span class="home-seg" onclick="_switchHomeModal('home')">首頁</span>
                 <span class="home-seg" onclick="_switchHomeModal('site')">案場</span>
+                <span class="home-seg" onclick="_switchHomeModal('log')">+</span>
                 <span class="home-seg" onclick="_switchHomeModal('progress')">進度</span>
                 <span class="home-seg" onclick="_switchHomeModal('material')">材料</span>
         </div>
@@ -732,6 +715,11 @@
             if (target === 'log' && logOpen) { closeAddLogModal(); return; }
             if (target === 'progress' && progressOpen) { closeWorkProgressModal(); return; }
             if (logOpen && target !== 'log') closeAddLogModal();
+            if (target === 'home') {
+                navigateTo('sites');
+                _setActiveHomeSeg(0);
+                return;
+            }
             if (target === 'material') {
                 if (logOpen) closeAddLogModal();
                 navigateTo('categories');
@@ -2437,54 +2425,13 @@
             _manageEditMode = true;
             document.getElementById('btnManageEdit').style.display = 'none';
             document.getElementById('btnManageSave').style.display = '';
-            document.getElementById('btnSiteInfoAdd').style.display = '';
-            document.getElementById('btnVendorAdd').style.display = '';
-            renderSiteInfoList();
-            renderVendorList();
             enterScriptUrlEdit();
-
-            const siList = document.getElementById('siteInfoList');
-            if (_siteInfoSortable) { _siteInfoSortable.destroy(); _siteInfoSortable = null; }
-            _siteInfoSortable = new Sortable(siList, {
-                animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost', threshold: 5,
-                onEnd: function() {
-                    const sorted = [];
-                    siList.querySelectorAll('.manage-item').forEach(el => {
-                        const s = db.sites.find(s => s.id === el.getAttribute('data-id'));
-                        if (s) sorted.push(s);
-                    });
-                    db.sites = sorted;
-                    saveToLocalStorage();
-                }
-            });
-
-            const vList = document.getElementById('vendorList');
-            if (_vendorSortable) { _vendorSortable.destroy(); _vendorSortable = null; }
-            _vendorSortable = new Sortable(vList, {
-                animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost', threshold: 5,
-                onEnd: function() {
-                    const sorted = [];
-                    vList.querySelectorAll('.manage-item').forEach(function(el) {
-                        const idx = parseInt(el.getAttribute('data-idx'));
-                        if (!isNaN(idx) && db.vendors[idx] !== undefined) sorted.push(db.vendors[idx]);
-                    });
-                    db.vendors = sorted;
-                    saveToLocalStorage();
-                    renderVendorList(true);
-                }
-            });
         }
 
         function exitManageEditMode() {
             _manageEditMode = false;
             document.getElementById('btnManageEdit').style.display = '';
             document.getElementById('btnManageSave').style.display = 'none';
-            document.getElementById('btnSiteInfoAdd').style.display = 'none';
-            document.getElementById('btnVendorAdd').style.display = 'none';
-            if (_siteInfoSortable) { _siteInfoSortable.destroy(); _siteInfoSortable = null; }
-            if (_vendorSortable) { _vendorSortable.destroy(); _vendorSortable = null; }
-            renderSiteInfoList();
-            renderVendorList();
             exitScriptUrlEdit();
             showToast('儲存成功');
         }
@@ -2839,10 +2786,15 @@
             return groups.map(function(g) { return g.length >= 2 ? (g[0] + '-' + g[g.length - 1]) : g[0]; }).join('、');
         }
 
-        // 解析已有的樓層文字（支援「X-Y」範圍與「、」分隔）為樓層集合
+        // 解析已有的樓層文字（支援「X-Y」範圍、「、」分隔、「全棟」）為樓層集合
         function _parseFloorString(str, floors) {
             const set = new Set();
-            (str || '').split(/[、,]/).map(function(s) { return s.trim(); }).filter(Boolean).forEach(function(part) {
+            const trimmed = (str || '').trim();
+            if (trimmed === '全棟') {
+                floors.forEach(function(f) { set.add(f); });
+                return set;
+            }
+            trimmed.split(/[、,]/).map(function(s) { return s.trim(); }).filter(Boolean).forEach(function(part) {
                 if (part.indexOf('-') !== -1) {
                     const segs = part.split('-').map(function(s) { return s.trim(); });
                     const ia = floors.indexOf(segs[0]);
@@ -2871,7 +2823,8 @@
             }
             _floorPickerTarget = targetEl;
             _floorPickerSiteId = siteId;
-            _floorPickerSelected = _parseFloorString(targetEl.value || '', floors);
+            const val = (targetEl.value || '').trim();
+            _floorPickerSelected = val ? _parseFloorString(val, floors) : new Set(floors);
             _renderFloorPickerPills(floors);
             document.getElementById('floorPickerModal').style.display = 'flex';
         }
@@ -2897,6 +2850,17 @@
             });
         }
 
+        function _clearFloorPicker() {
+            _floorPickerSelected = new Set();
+            _renderFloorPickerPills(_getSiteFloorListOrdered(_floorPickerSiteId));
+        }
+
+        function _selectAllFloorPicker() {
+            const floors = _getSiteFloorListOrdered(_floorPickerSiteId);
+            _floorPickerSelected = new Set(floors);
+            _renderFloorPickerPills(floors);
+        }
+
         function _closeFloorPicker() {
             document.getElementById('floorPickerModal').style.display = 'none';
             _floorPickerTarget = null;
@@ -2907,7 +2871,8 @@
         function _confirmFloorPicker() {
             if (!_floorPickerTarget) return _closeFloorPicker();
             const floors = _getSiteFloorListOrdered(_floorPickerSiteId);
-            const text = _formatFloorRanges(_floorPickerSelected, floors);
+            const allSelected = floors.length > 0 && floors.every(function(f) { return _floorPickerSelected.has(f); });
+            const text = allSelected ? '全棟' : _formatFloorRanges(_floorPickerSelected, floors);
             const target = _floorPickerTarget;
             if (target.tagName === 'SELECT') {
                 let opt = Array.prototype.find.call(target.options, function(o) { return o.value === text; });
@@ -3629,7 +3594,6 @@
             document.getElementById('headerSiteInfoBtns').style.display = (page === 'siteinfo') ? 'flex' : 'none';
             document.getElementById('headerWpBtns').style.display = (page === 'workprogress') ? 'flex' : 'none';
             document.getElementById('headerProgressEditBtns').style.display = (page === 'progressedit') ? 'flex' : 'none';
-            document.getElementById('headerManageBtns').style.display = (page === 'manage') ? 'flex' : 'none';
 
             if (page === 'sites') {
                 _setHeaderBack(null);
@@ -3652,6 +3616,7 @@
                 document.getElementById('appTitle').innerText = '';
                 document.getElementById('inputOrderDate').value = getTargetDateStr();
                 document.getElementById('globalSearchBar').value = '';
+                _setActiveHomeSeg(4);
                 currentState.siteId = null;
                 currentState.siteName = '';
                 _catPageMode = 'categories';
@@ -3702,12 +3667,6 @@
                     const fnEl = document.getElementById('importedFileName');
                     if (_impFn && fnEl) { fnEl.textContent = '✓ ' + _impFn; fnEl.style.display = 'inline'; }
                 } catch(e) {}
-                document.getElementById('btnSiteInfoAdd').style.display = 'none';
-                if (_siteInfoSortable) { _siteInfoSortable.destroy(); _siteInfoSortable = null; }
-                renderSiteInfoList(false);
-                document.getElementById('btnVendorAdd').style.display = 'none';
-                if (_vendorSortable) { _vendorSortable.destroy(); _vendorSortable = null; }
-                renderVendorList(false);
                 document.getElementById('pageManage').scrollTop = 0;
             } else if (page === 'lawref') {
                 _setHeaderBack(function() { navigateTo('sites'); });
@@ -3726,7 +3685,7 @@
                 _setHeaderBack(closeWorkProgressModal);
                 document.getElementById('pageWorkProgress').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
-                _setActiveHomeSeg(2);
+                _setActiveHomeSeg(3);
             } else if (page === 'progressedit') {
                 _setHeaderBack(_tryCloseProgressModal);
                 document.getElementById('pageProgressEdit').classList.add('active');
@@ -3792,8 +3751,6 @@
             }, true);
             // 同步設定頁案場列表
             _manageEditMode = false;
-            document.getElementById('btnSiteInfoAdd').style.display = 'none';
-            if (_siteInfoSortable) { _siteInfoSortable.destroy(); _siteInfoSortable = null; }
             if (initialSiteId) {
                 selectSiteInfoSite(initialSiteId);
             }
@@ -4672,7 +4629,7 @@
         }
 
         function openInlineEditPunch(dateStr) {
-            _setActiveHomeSeg(0);
+            _setActiveHomeSeg(2);
             _editCtx = { type: 'punch', dateStr };
             document.getElementById('addLogModalTitle').textContent = '編輯出勤';
             document.getElementById('addLogTypeToggleRow').style.display = 'none';
@@ -4685,7 +4642,7 @@
 
         // ================= 工程記錄 新增彈窗 =================
         function openAddLogModal() {
-            _setActiveHomeSeg(0);
+            _setActiveHomeSeg(2);
             _editCtx = null;
             document.getElementById('addLogModalTitle').textContent = '新增';
             document.getElementById('addLogTypeToggleRow').style.display = 'flex';
