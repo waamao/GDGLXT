@@ -5499,9 +5499,9 @@
                 });
             });
 
-            // 外層貼合容器（左右延伸至螢幕邊緣，仿計價進度表樣式）
+            // 外層容器（與記錄卡一致：左右邊界沿用 main 的 16px 內距，無外框）
             const listCard = document.createElement('div');
-            listCard.style.cssText = 'background:#111111; border:none; border-radius:0; overflow:hidden; display:flex; flex-direction:column; margin:0 -16px;';
+            listCard.style.cssText = 'background:#111111; border:none; border-radius:0; overflow:hidden; display:flex; flex-direction:column;';
 
             // 維護各工項群組的收起狀態 & 100% 樓層的暫時展開狀態（跨 render 保留）
             if (!window._wpTaskCollapsed) window._wpTaskCollapsed = {};
@@ -5521,7 +5521,7 @@
 
                 // ── 工項 header ──
                 const header = document.createElement('div');
-                let hCss = 'padding:6px 30px 6px; display:flex; align-items:center; gap:6px; background:' + groupBg + '; cursor:pointer;';
+                let hCss = 'padding:6px 0px 6px; display:flex; align-items:center; gap:6px; background:' + groupBg + '; cursor:pointer;';
                 if (domRowCount > 0) hCss += ' border-top:1px solid #444;';
                 header.style.cssText = hCss;
 
@@ -5586,7 +5586,7 @@
                     var totalPeople = calcTotalPeople(item.task, item.floor);
 
                     var card = document.createElement('div');
-                    var cardCss = 'padding:11px 30px; display:flex; flex-direction:column; gap:8px; background:' + groupBg + ';';
+                    var cardCss = 'padding:11px 0px; display:flex; flex-direction:column; gap:8px; background:' + groupBg + ';';
                     if (isDone) cardCss += ' opacity:0.55;';
                     card.style.cssText = cardCss;
 
@@ -5659,7 +5659,7 @@
                 // ── 100% 樓層：收起進度條，只顯示樓層標籤（點標籤可暫時展開調整） ──
                 if (doneEntries.length > 0) {
                     var chipsRow = document.createElement('div');
-                    var chipsCss = 'padding:9px 30px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:' + groupBg + ';';
+                    var chipsCss = 'padding:9px 0px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:' + groupBg + ';';
                     chipsRow.style.cssText = chipsCss;
 
                     doneEntries.forEach(function(entry) {
