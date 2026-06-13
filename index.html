@@ -31,7 +31,7 @@
         .page.page-swipe-exit { transition: transform 0.28s cubic-bezier(.25,.46,.45,.94), opacity 0.28s ease; }
         @keyframes pageSwipeEnter { from { transform: translateX(28px); opacity: 0.4; } to { transform: translateX(0); opacity: 1; } }
         .page.page-swipe-enter { animation: pageSwipeEnter 0.28s cubic-bezier(.25,.46,.45,.94); }
-        #pageProgressEdit { height: calc(100% - 68px); margin-top: -20px; }
+        #pageProgressEdit { height: calc(100% - 56px); margin-top: -20px; }
         #pageSiteInfo { height: calc(100% - 58px); }
         .page.active { display: flex; }
         
@@ -53,16 +53,7 @@
         .qty-input { width: 96px !important; text-align: center; font-weight: 600; background-color: #2a2a2a !important; color: #ffffff; }
         .cart-qty-input { width: 96px !important; text-align: center; font-weight: bold; background-color: #2a2a2a !important; color: #ffffff; }
         
-        .scroll-box { max-height: 220px; overflow-y: auto; background-color: #2a2a2a; padding: 8px; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; }
-        .manage-item { background-color: #1e1e1e; padding: 8px; border-radius: 6px; border: 1px solid #444444; display: flex; justify-content: space-between; align-items: center; font-size: 13px; gap: 4px; user-select: none; color: #ffffff; }
-        .drag-handle { cursor: move; padding-right: 4px; }
         .sortable-ghost { opacity: 0.4; background-color: #2a2a2a !important; border: 1px dashed #555555 !important; }
-        
-        .manage-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .manage-btns { display: flex; gap: 4px; flex-shrink: 0; }
-        .manage-btns button { padding: 0 12px; font-size: 12px; font-weight: bold; border-radius: 6px; height: 24px; line-height: 24px; }
-        .manage-btns .btn-rename { background-color: #111111; color: #ffffff; }
-        .manage-btns .btn-del { background-color: #D9006C; color: #ffffff; }
         
         .bottom-btn-group { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 448px; display: flex; flex-direction: column; z-index: 100; background-color: #111111; border-top: 1px solid #333333; padding-bottom: 36px; transition: opacity 0.2s ease; }
         .bottom-btn-group::after { content: ''; position: absolute; left: 0; right: 0; bottom: -100px; height: 100px; background-color: #111111; }
@@ -258,7 +249,7 @@
                     <h3 style="font-size: 14px; color: #dddddd; margin: 0;">已選材料明細：</h3>
                     <button onclick="clearOnlyOrder()" style="background-color:#D9006C; color:white; border-radius:8px; padding:6px 18px; font-size:12px; font-weight:bold; flex-shrink:0;">清除訂單</button>
                 </div>
-                <div id="listCartItems" class="scroll-list-body" style="max-height: calc(10 * (44px + 8px) + 20px + 30px); overflow-y: auto;"></div>
+                <div id="listCartItems" class="scroll-list-body" style="max-height: calc(10 * (44px + 8px) + 20px + 72px); overflow-y: auto;"></div>
             </div>
         </section>
 
@@ -594,11 +585,11 @@
 
         <!-- 計價進度 頁面 -->
         <section id="pageProgressEdit" class="page">
-            <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0; gap:8px; padding-bottom:0;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0; gap:8px; padding-bottom:0; margin-top:33px; margin-bottom:-30px;">
                 <span id="progressModalTitleView" style="flex:1; font-size:15px; font-weight:bold; color:#ffffff; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
             </div>
             <!-- 計價表總價 + 列入總計價進度（固定不捲動） -->
-            <div id="progressModalMetaRow" style="padding:8px 0; border-bottom:1px solid #444444; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; align-items:end; flex-shrink:0;">
+            <div id="progressModalMetaRow" style="padding:8px 0; border-bottom:1px solid #444444; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; align-items:end; flex-shrink:0; margin-top:30px; margin-bottom:-30px;">
                 <div style="display:flex; flex-direction:column; gap:2px;">
                     <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">類型</label>
                     <span id="progressModalBlockTypeView" style="font-size:13px; font-weight:600; color:#ffffff;">—</span>
@@ -620,7 +611,7 @@
                 </div>
                 <span></span>
             </div>
-            <div id="progressModalScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:16px; display:flex; flex-direction:column; gap:0;">
+            <div id="progressModalScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:16px; margin-top:30px; display:flex; flex-direction:column; gap:0;">
                 <div id="progressModalItems" style="display:flex; flex-direction:column; gap:6px; padding:8px 0;"></div>
                 <div style="padding:8px 0 6px; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; border-top:1px solid #444444; flex-shrink:0;">
                     <span style="font-size:13px; font-weight:bold; color:#ef4444;">合計</span>
@@ -2080,83 +2071,11 @@
             siteSel.innerHTML = opts;
         }
 
-        function renderSiteInfoList(sortMode) {
-            if (sortMode === undefined) sortMode = _manageEditMode;
-            const box = document.getElementById('siteInfoList');
-            box.innerHTML = '';
-            if (db.sites.length === 0) {
-                box.innerHTML = '<p style="color:#888888; font-size:13px; text-align:center; padding:8px 0;">尚無案場，請按新增。</p>';
-                return;
-            }
-            db.sites.forEach(site => {
-                const div = document.createElement('div');
-                div.className = 'manage-item';
-                div.setAttribute('data-id', site.id);
-                let inner = '';
-                if (sortMode) {
-                    inner += '<span class="drag-handle" style="flex-shrink:0; color:#888888; font-size:16px; padding:4px 8px 4px 0; cursor:move;">☰</span>';
-                }
-                inner += `<span class="manage-text" style="flex:1; min-width:0;">${site.name}</span>`;
-                if (_manageEditMode) {
-                    inner += `
-                        <div class="manage-btns">
-                            <button class="btn-rename" onclick="renameSiteFromManage('${site.id}')">更名</button>
-                            <button class="btn-del" onclick="deleteSiteFromManage('${site.id}')">刪除</button>
-                        </div>
-                    `;
-                }
-                div.innerHTML = inner;
-                if (!_manageEditMode) {
-                    div.style.cursor = 'pointer';
-                    div.addEventListener('click', function() { openSiteInfoModal(site.id); });
-                }
-                box.appendChild(div);
-            });
-        }
+        // 設定頁「案場維護」「廠商維護」清單已移除（改於案場資訊頁編輯），保留空函式避免呼叫處出錯
+        function renderSiteInfoList() {}
 
         // ================= 廠商維護 =================
-        let _vendorSortable = null;
-
-        function renderVendorList(sortMode) {
-            if (sortMode === undefined) sortMode = _manageEditMode;
-            const box = document.getElementById('vendorList');
-            if (!box) return;
-            box.innerHTML = '';
-            if (!db.vendors || db.vendors.length === 0) {
-                box.innerHTML = '<p style="color:#888888; font-size:13px; text-align:center; padding:8px 0;">尚無廠商，請按新增。</p>';
-                return;
-            }
-            db.vendors.forEach(function(vendor, i) {
-                const div = document.createElement('div');
-                div.className = 'manage-item';
-                div.setAttribute('data-idx', i);
-                let inner = '';
-                if (sortMode) {
-                    inner += '<span class="drag-handle" style="flex-shrink:0; color:#888888; font-size:16px; padding:4px 8px 4px 0; cursor:move;">☰</span>';
-                }
-                inner += '<span class="manage-text">' + vendor + '</span>';
-                if (_manageEditMode) {
-                    inner +=
-                        '<div class="manage-btns">' +
-                            '<button class="btn-rename" onclick="renameVendor(' + i + ')">更名</button>' +
-                            '<button class="btn-del" onclick="deleteVendor(' + i + ')">刪除</button>' +
-                        '</div>';
-                }
-                div.innerHTML = inner;
-                box.appendChild(div);
-            });
-        }
-
-        function addVendor() {
-            const name = prompt('請輸入廠商名稱：');
-            if (!name || !name.trim()) return;
-            const trimmed = name.trim();
-            if ((db.vendors || []).includes(trimmed)) return alert('廠商「' + trimmed + '」已存在。');
-            if (!db.vendors) db.vendors = [];
-            db.vendors.push(trimmed);
-            saveToLocalStorage();
-            renderVendorList();
-        }
+        function renderVendorList() {}
 
         // 套用廠商改名（不含 prompt/重複檢查），同步 workProgress、siteInfo 各欄位
         function _applyVendorRename(old, trimmed) {
@@ -2419,18 +2338,13 @@
             }
         }
 
-        let _manageEditMode = false;
-        let _siteInfoSortable = null;
-
         function enterManageEditMode() {
-            _manageEditMode = true;
             document.getElementById('btnManageEdit').style.display = 'none';
             document.getElementById('btnManageSave').style.display = '';
             enterScriptUrlEdit();
         }
 
         function exitManageEditMode() {
-            _manageEditMode = false;
             document.getElementById('btnManageEdit').style.display = '';
             document.getElementById('btnManageSave').style.display = 'none';
             exitScriptUrlEdit();
@@ -3519,26 +3433,6 @@
             setTimeout(() => document.getElementById('addBlockName').focus(), 50);
         }
 
-        function confirmAddSiteInfo() {
-            const name = prompt('請輸入案場名稱：');
-            if (!name || !name.trim()) return;
-            const trimmed = name.trim();
-            if (db.sites.some(s => s.name === trimmed)) return alert(`案場「${trimmed}」已存在，請使用不同名稱。`);
-            const newSite = { id: Date.now().toString(), name: trimmed };
-            db.sites.push(newSite);
-            saveToLocalStorage();
-            renderSiteInfoList();
-            // 同步刷新彈窗下拉選單
-            const sel = document.getElementById('siteInfoSiteSelect');
-            if (sel) {
-                const opt = document.createElement('option');
-                opt.value = newSite.id; opt.textContent = newSite.name;
-                sel.appendChild(opt);
-                sel.value = newSite.id;
-            }
-            selectSiteInfoSite(newSite.id);
-        }
-
         // ================= 頁面切換 =================
         let _currentBackHandler = null;
         function _setHeaderBack(handler) {
@@ -3649,7 +3543,6 @@
                 _setHeaderBack(function() { navigateTo('sites'); });
                 document.getElementById('pageManage').classList.add('active');
                 document.getElementById('appTitle').innerText = '';
-                _manageEditMode = false;
                 document.getElementById('btnManageEdit').style.display = '';
                 document.getElementById('btnManageSave').style.display = 'none';
                 const _ta = document.getElementById('inputScriptUrl');
@@ -3750,8 +3643,6 @@
             _renderSitePills('siteInfoSiteSelect', initialSiteId, function(siteId) {
                 selectSiteInfoSite(siteId);
             }, true);
-            // 同步設定頁案場列表
-            _manageEditMode = false;
             if (initialSiteId) {
                 selectSiteInfoSite(initialSiteId);
             }
@@ -6253,11 +6144,6 @@
                 const tasks = [...new Set((db.workProgress[sid] || []).map(i => i.task || '').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
                 taskDl.innerHTML = tasks.map(t => `<option value="${t.replace(/"/g,'&quot;')}">`).join('');
             }
-            const floorDl = document.getElementById('wpFloorDatalist');
-            if (floorDl) {
-                const floors = [...new Set((db.workProgress[sid] || []).map(i => i.floor || '').filter(Boolean))].sort(_naturalSort);
-                floorDl.innerHTML = floors.map(f => `<option value="${f.replace(/"/g,'&quot;')}">`).join('');
-            }
             document.getElementById('wpAddModal').style.display = 'flex';
             _positionWpAddModal();
             setTimeout(() => document.getElementById('wpAddTask').focus(), 80);
@@ -6279,12 +6165,6 @@
             if (taskDl) {
                 const tasks = [...new Set((db.workProgress[sid] || []).map(i => i.task || '').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
                 taskDl.innerHTML = tasks.map(t => `<option value="${t.replace(/"/g,'&quot;')}">`).join('');
-            }
-            // 填入樓層 datalist
-            const floorDl = document.getElementById('wpFloorDatalist');
-            if (floorDl) {
-                const floors = [...new Set((db.workProgress[sid] || []).map(i => i.floor || '').filter(Boolean))].sort(_naturalSort);
-                floorDl.innerHTML = floors.map(f => `<option value="${f.replace(/"/g,'&quot;')}">`).join('');
             }
             document.getElementById('wpAddModal').style.display = 'flex';
             _positionWpAddModal();
@@ -6330,11 +6210,6 @@
             if (taskDl) {
                 const tasks = [...new Set((db.workProgress[_wpAddSiteId] || []).map(i => i.task || '').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
                 taskDl.innerHTML = tasks.map(t => `<option value="${t.replace(/"/g,'&quot;')}">`).join('');
-            }
-            const floorDl = document.getElementById('wpFloorDatalist');
-            if (floorDl) {
-                const floors = [...new Set((db.workProgress[_wpAddSiteId] || []).map(i => i.floor || '').filter(Boolean))].sort(_naturalSort);
-                floorDl.innerHTML = floors.map(f => `<option value="${f.replace(/"/g,'&quot;')}">`).join('');
             }
             setTimeout(() => document.getElementById('wpAddTask').focus(), 80);
             // 若工程記錄彈窗開著，刷新各 row 的工項下拉
