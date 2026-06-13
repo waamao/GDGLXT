@@ -141,7 +141,6 @@
     <header style="position:relative;">
         <div id="headerLeftZone" style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;">
             <button id="headerBackBtn" class="hidden" style="background-color:transparent; color:#ffffff; border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0;">＜</button>
-            <button id="headerHomeBtn" class="hidden btn-slate" onclick="navigateTo('sites')" style="background-color:#000000;">首頁</button>
         </div>
         <h1 id="appTitle" class="header-title"></h1>
         <div id="headerRightBtns" style="display: flex; gap: 4px; flex-shrink: 0;">
@@ -169,6 +168,12 @@
                 <button id="btnItemEdit" onclick="enterItemEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
                 <button id="btnItemSave" onclick="exitItemEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
             </div>
+        </div>
+        <div id="headerCartBtn" style="display: none; flex-shrink: 0;">
+            <button onclick="navigateTo('cart')" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">查看訂單 (<span id="cartCountHeader">0</span>)</button>
+        </div>
+        <div id="headerCartSubmitBtn" style="display: none; flex-shrink: 0;">
+            <button id="btnSubmitCartHeader" onclick="uploadCartToGoogleSheetOnly()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存並上傳 ☁️</button>
         </div>
     </header>
 
@@ -234,7 +239,7 @@
             </div>
         </section>
 
-        <section id="pageCart" class="page">
+        <section id="pageCart" class="page" style="padding-bottom: 88px; overflow-y: auto;">
             <div style="padding: 10px 4px; flex-shrink: 0; background-color: #111111;">
                 <div style="display:flex; flex-direction:column; gap:4px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -474,33 +479,33 @@
 
         <!-- 計價進度 頁面 -->
         <section id="pageProgressEdit" class="page">
-            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #444444; flex-shrink:0; gap:8px; padding-bottom:0;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0; gap:8px; padding-bottom:0;">
                 <span id="progressModalTitleView" style="flex:1; font-size:15px; font-weight:bold; color:#ffffff; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
             </div>
-            <div id="progressModalScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:16px; margin-top:-5px; display:flex; flex-direction:column; gap:0;">
-                <!-- 計價表總價 + 列入總計價進度 -->
-                <div id="progressModalMetaRow" style="padding:8px 0; border-bottom:1px solid #444444; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; align-items:end; flex-shrink:0;">
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">類型</label>
-                        <span id="progressModalBlockTypeView" style="font-size:13px; font-weight:600; color:#ffffff;">—</span>
-                        <select id="progressModalBlockTypeSelect" style="display:none; font-size:13px; padding:6px 4px; border:1px solid #555555; border-radius:8px; background:#1e1e1e; height:36px;">
-                            <option value="">無</option>
-                            <option value="本工程">本工程</option>
-                            <option value="追加工程">追加工程</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em; text-align:right;">計價表總價</label>
-                        <span id="progressModalBlockTotalView" style="font-size:13px; font-weight:600; color:#ffffff; text-align:right; font-variant-numeric:tabular-nums;">—</span>
-                        <input id="progressModalBlockTotalInput" type="text" inputmode="numeric" placeholder="輸入此計價表總價..." oninput="this.value=this.value.replace(/[^0-9]/g,'');_recalcModalSummary()" style="display:none; font-size:13px; padding:6px 10px; border:1px solid #555555; border-radius:8px; background:#1e1e1e; -webkit-user-select:text; user-select:text; width:100%; text-align:right; box-sizing:border-box;">
-                    </div>
-                    <div style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-left:2em;">
-                        <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em; white-space:nowrap;">列入總價</label>
-                        <span id="progressModalIncludeView" style="font-size:13px; color:#ffffff;">—</span>
-                        <input id="progressModalIncludeInput" type="checkbox" style="display:none; width:20px; height:20px; accent-color:#333; cursor:pointer;">
-                    </div>
-                    <span></span>
+            <!-- 計價表總價 + 列入總計價進度（固定不捲動） -->
+            <div id="progressModalMetaRow" style="padding:8px 0; border-bottom:1px solid #444444; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; align-items:end; flex-shrink:0;">
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">類型</label>
+                    <span id="progressModalBlockTypeView" style="font-size:13px; font-weight:600; color:#ffffff;">—</span>
+                    <select id="progressModalBlockTypeSelect" style="display:none; font-size:13px; padding:6px 4px; border:1px solid #555555; border-radius:8px; background:#1e1e1e; height:36px;">
+                        <option value="">無</option>
+                        <option value="本工程">本工程</option>
+                        <option value="追加工程">追加工程</option>
+                    </select>
                 </div>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em; text-align:right;">計價表總價</label>
+                    <span id="progressModalBlockTotalView" style="font-size:13px; font-weight:600; color:#ffffff; text-align:right; font-variant-numeric:tabular-nums;">—</span>
+                    <input id="progressModalBlockTotalInput" type="text" inputmode="numeric" placeholder="輸入此計價表總價..." oninput="this.value=this.value.replace(/[^0-9]/g,'');_recalcModalSummary()" style="display:none; font-size:13px; padding:6px 10px; border:1px solid #555555; border-radius:8px; background:#1e1e1e; -webkit-user-select:text; user-select:text; width:100%; text-align:right; box-sizing:border-box;">
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:2px; margin-left:2em;">
+                    <label style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em; white-space:nowrap;">列入總價</label>
+                    <span id="progressModalIncludeView" style="font-size:13px; color:#ffffff;">—</span>
+                    <input id="progressModalIncludeInput" type="checkbox" style="display:none; width:20px; height:20px; accent-color:#333; cursor:pointer;">
+                </div>
+                <span></span>
+            </div>
+            <div id="progressModalScrollArea" style="flex:1; min-height:0; overflow-y:auto; padding-bottom:16px; display:flex; flex-direction:column; gap:0;">
                 <div id="progressModalItems" style="display:flex; flex-direction:column; gap:6px; padding:8px 0;"></div>
                 <div style="padding:8px 0 6px; display:grid; grid-template-columns:1fr 1fr 56px 28px; gap:6px; border-top:1px solid #444444; flex-shrink:0;">
                     <span style="font-size:13px; font-weight:bold; color:#ef4444;">合計</span>
@@ -589,8 +594,27 @@
     <script>
         function _switchHomeModal(target) {
             const siteOpen = currentState.page === 'siteinfo';
+            const progressEditOpen = currentState.page === 'progressedit';
             const logOpen = document.getElementById('addLogModal').style.display === 'flex';
             const progressOpen = currentState.page === 'workprogress';
+
+            // 從案場資訊切走：檢查未儲存
+            if (siteOpen && target !== 'site') {
+                const _isEditing = document.getElementById('mainInfoEditArea').style.display !== 'none' || document.getElementById('vendorCardEditArea').style.display !== 'none';
+                if (_isEditing && _siteInfoModalSnapshot !== null && _snapshotSiteInfoModal() !== _siteInfoModalSnapshot) {
+                    if (!confirm('未儲存，是否離開編輯？')) return;
+                }
+                if (_isEditing) _cancelMainInfoEdit();
+            }
+
+            // 從計價表明細切走：檢查未儲存
+            if (progressEditOpen && target !== 'site') {
+                if (_progressModalIsEditing && _progressModalSnapshot !== null && _snapshotProgressModal() !== _progressModalSnapshot) {
+                    if (!confirm('未儲存，是否離開編輯？')) return;
+                }
+                if (_progressModalIsEditing) _exitProgressModalEdit();
+            }
+
             if (target === 'site' && siteOpen) { _backFromSiteInfo(); return; }
             if (target === 'log' && logOpen) { closeAddLogModal(); return; }
             if (target === 'progress' && progressOpen) { closeWorkProgressModal(); return; }
@@ -902,6 +926,8 @@
             const count = Object.keys(cart).length;
             const bottomEl = document.getElementById('cartCountBottom');
             if (bottomEl) bottomEl.innerText = count;
+            const headerEl = document.getElementById('cartCountHeader');
+            if (headerEl) headerEl.innerText = count;
         }
 
         function clearOnlyOrder() {
@@ -3018,12 +3044,16 @@
             // 控制底部按鈕群
             const _isOrderPage = (page === 'categories' || page === 'items');
             const _isCartPage = (page === 'cart');
-            document.getElementById('homeMainBtns').style.display = (!_isOrderPage && !_isCartPage && page !== 'manage') ? '' : 'none';
-            document.getElementById('orderCartBtns').style.display = _isOrderPage ? '' : 'none';
-            document.getElementById('cartSubmitBtns').style.display = _isCartPage ? '' : 'none';
-            document.getElementById('headerHomeBtn').classList.toggle('hidden', !(_isOrderPage || _isCartPage));
+            document.getElementById('homeMainBtns').style.display = (page !== 'manage') ? '' : 'none';
+            document.getElementById('orderCartBtns').style.display = 'none';
+            const _cartSubmitEl = document.getElementById('cartSubmitBtns');
+            _cartSubmitEl.style.display = 'none';
+            _cartSubmitEl.style.bottom = '0';
+            document.getElementById('headerCartBtn').style.display = _isOrderPage ? 'flex' : 'none';
+            document.getElementById('headerCartSubmitBtn').style.display = _isCartPage ? 'flex' : 'none';
             document.getElementById('headerRightBtns').style.display = (page === 'sites') ? '' : 'none';
             document.getElementById('headerCatBtns').style.display = _isOrderPage ? 'flex' : 'none';
+            document.getElementById('headerCartBtn').style.display = _isOrderPage ? 'flex' : 'none';
             document.getElementById('headerSiteInfoBtns').style.display = (page === 'siteinfo') ? 'flex' : 'none';
             document.getElementById('headerWpBtns').style.display = (page === 'workprogress') ? 'flex' : 'none';
             document.getElementById('headerProgressEditBtns').style.display = (page === 'progressedit') ? 'flex' : 'none';
