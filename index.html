@@ -159,7 +159,6 @@
         </div>
         <div id="headerCatBtns" style="display: none; gap: 6px; align-items: center; flex-shrink: 0;">
             <div id="catEditBtnGroup" style="display:flex; gap:6px; align-items:center;">
-                <button id="btnCatAddInline" onclick="addCategoryInline()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增分類</button>
                 <button id="btnCatEdit" onclick="enterCatEditMode()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">編輯</button>
                 <button id="btnCatSave" onclick="exitCatEditMode()" style="display:none; background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">儲存</button>
             </div>
@@ -219,6 +218,7 @@
             <div class="list-container" style="flex: 1; min-height: 0;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin:4px; flex-shrink:0;">
                     <h3 id="categoryListHeader" style="font-size: 14px; color: #dddddd; margin: 0;">選擇材料分類：</h3>
+                    <button id="btnCatAddInline" onclick="addCategoryInline()" style="display:none; background:#000000; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:24px; line-height:24px;">新增分類</button>
                 </div>
                 <div id="listCategories" class="scroll-list-body" style="padding-bottom: 8px; max-height: calc(9 * (44px + 8px) - 8px + 25px + 3px + 13px); overflow-y: auto;"></div>
             </div>
@@ -426,9 +426,9 @@
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <span style="font-size:14px; font-weight:bold; color:#ffffff;">選擇樓層</span>
                 <div style="display:flex; gap:6px;">
-                    <button type="button" onclick="_clearFloorPicker()" style="background:#333333; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px; border:1px solid #555555;">清空</button>
-                    <button type="button" onclick="_selectAllFloorPicker()" style="background:#333333; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px; border:1px solid #555555;">全選</button>
-                    <button type="button" onclick="_closeFloorPicker()" style="background:#333333; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">關閉</button>
+                    <button type="button" onclick="_clearFloorPicker()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">清空</button>
+                    <button type="button" onclick="_selectAllFloorPicker()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">全選</button>
+                    <button type="button" onclick="_closeFloorPicker()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">關閉</button>
                 </div>
             </div>
             <div id="floorPickerPills" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
@@ -439,10 +439,13 @@
     <!-- 進度調整彈窗 -->
     <div id="wpProgressEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center;" onclick="if(event.target===this)closeWpProgressEdit()">
         <div style="background:#1e1e1e; border:1px solid #444; border-radius:14px; padding:16px; width:calc(100% - 64px); max-width:340px; display:flex; flex-direction:column; gap:12px;">
-            <!-- 標題列：工項 + 刪除 -->
+            <!-- 標題列：工項 + 新增記錄 + 刪除 -->
             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
                 <span id="wpEditTitle" style="font-size:15px; font-weight:700; color:#ffffff; flex:1; min-width:0; white-space:normal; word-break:break-all;"></span>
-                <button id="wpProgressDeleteBtn" onclick="_wpDeleteEditingItem()" style="background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; flex-shrink:0; height:28px;">刪除</button>
+                <div style="display:flex; gap:6px; flex-shrink:0;">
+                    <button id="wpProgressDeleteBtn" onclick="_wpDeleteEditingItem()" style="background:#D9006C; color:white; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">刪除</button>
+                    <button id="wpEditAddLogBtn" onclick="_wpEditOpenAddLog()" style="background:#000000; color:#ffffff; font-size:12px; font-weight:bold; padding:0 12px; border-radius:8px; height:28px;">新增記錄</button>
+                </div>
             </div>
             <!-- 日期 廠商 人數 -->
             <span id="wpEditPeople" style="display:none; font-size:12px; color:#888888; white-space:normal; word-break:break-all; line-height:1.6;"></span>
@@ -607,16 +610,27 @@
             <div class="card" style="background-color: transparent; border: none; box-shadow: none; padding: 0; margin-bottom: 40px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:4px;">
                     <h3 style="font-size:14px; margin:0; color:#ffffff;">系統</h3>
-                    <span id="importedFileName" style="display:none; font-size:12px; color:#aaaaaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60%;"></span>
+
                 </div>
-                <button onclick="document.getElementById('importFile').click()" class="btn-amber" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #555555;">📥 匯入系統備份檔(JSON)</button>
-                <button onclick="exportJSON()" class="btn-slate" style="width: 100%; padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #555555;">📤 匯出系統備份</button>
+                <!-- 匯入＋匯出水平排列 -->
+                <div style="display:flex; gap:8px; align-items:flex-start;">
+                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                        <button onclick="document.getElementById('importFile').click()" class="btn-amber" style="width:100%; padding:10px; font-size:13px; border-radius:8px; border:1px solid #555555;">📥 匯入備份</button>
+                        <span id="importedFileName" style="font-size:11px; color:#aaaaaa; text-align:center; min-height:14px; display:block; word-break:break-all;"></span>
+                    </div>
+                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                        <button onclick="exportJSON()" class="btn-slate" style="width:100%; padding:10px; font-size:13px; border-radius:8px; border:1px solid #555555;">📤 匯出備份</button>
+                        <div id="lastExportTimeDisplay" style="display:none; font-size:11px; color:#64748b; text-align:center;">上次：<span id="lastExportTimeText"></span></div>
+                    </div>
+                </div>
                 <div id="backupWarningBanner" style="display:none; background:#fff7ed; border:1px solid #fb923c; border-radius:8px; padding:8px 12px; font-size:12px; color:#9a3412; font-weight:600;">⚠️ <span id="backupWarningText"></span></div>
-                <div id="lastExportTimeDisplay" style="display:none; font-size:12px; color:#64748b; text-align:right; margin-top:-4px;">上次備份：<span id="lastExportTimeText"></span></div>
-                <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-                    <select id="inputExportSite" style="flex:1; border: 1px solid #555555; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: #1e1e1e; height:40px; box-sizing:border-box;"></select>
-                    <select id="inputExportOrderMonth" style="flex:1; border: 1px solid #555555; border-radius: 8px; padding: 8px 12px; font-size: 14px; background-color: #1e1e1e; height:40px; box-sizing:border-box;"></select>
-                    <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding: 0 14px; font-size: 13px; border-radius: 8px; border: 1px solid #555555; height:40px; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 匯出Excel</button>
+                <div style="display:flex; gap:8px; align-items:center; margin-top:4px;">
+                    <select id="inputExportSite" style="flex:1; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background-color:#1e1e1e; height:40px; box-sizing:border-box;"></select>
+                    <select id="inputExportOrderMonth" style="flex:1; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background-color:#1e1e1e; height:40px; box-sizing:border-box;"></select>
+                    <button onclick="exportOrderExcel()" class="btn-slate" style="flex-shrink:0; padding:0 14px; font-size:13px; border-radius:8px; border:1px solid #555555; height:40px; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 匯出Excel</button>
+                </div>
+                <div style="border-top:1px solid #444444; padding-top:10px; margin-top:4px;">
+                    <button onclick="_openCalcModal()" class="btn-slate" style="width:100%; padding:12px; font-size:14px; font-weight:bold; border-radius:8px; border:1px solid #555555;">計價計算機</button>
                 </div>
                 <div style="border-top:1px solid #444444; padding-top:10px; margin-top:4px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
@@ -627,9 +641,6 @@
                         </div>
                     </div>
                     <textarea id="inputScriptUrl" oninput="saveScriptUrl();" placeholder="請貼上 https://script.google.com/... 網址" disabled style="width:100%; border:1px solid #555555; border-radius:8px; padding:8px 12px; font-size:14px; background-color:#2a2a2a; resize:none; line-height:1.6; word-break:break-all; overflow-wrap:anywhere; white-space:nowrap; -webkit-user-select:none; user-select:none; color:#aaaaaa; overflow:hidden; height:36px; box-sizing:border-box;"></textarea>
-                </div>
-                <div style="border-top:1px solid #444444; padding-top:10px; margin-top:4px;">
-                    <button onclick="_openCalcModal()" class="btn-slate" style="width:100%; padding:12px; font-size:14px; font-weight:bold; border-radius:8px; border:1px solid #555555;">計價計算機</button>
                 </div>
             </div>
         </section>
@@ -4561,7 +4572,7 @@
         }
 
         // ================= 工程記錄 新增彈窗 =================
-        function openAddLogModal() {
+        function openAddLogModal(defaultSiteId) {
             _setActiveHomeSeg(2);
             _editCtx = null;
             document.getElementById('addLogModalTitle').textContent = '新增';
@@ -4569,7 +4580,7 @@
             const dateStr = selectedHomeDateStr || getTargetDateStr();
             document.getElementById('addLogDate').value = dateStr;
             _setLogEntryType('add', 'record');
-            _renderSitePills('addLogSiteSelect', '', function(siteId) {
+            _renderSitePills('addLogSiteSelect', defaultSiteId || '', function(siteId) {
                 const container = document.getElementById('addLogItemsContainer');
                 container.innerHTML = '';
                 addNewLogItemRow('', '', '', '', '', true);
@@ -6006,9 +6017,32 @@
             const mode = (window._wpViewMode === 'floor') ? 'task' : 'floor';
             window._wpViewMode = mode;
             window._wpDoneGroupExpanded = {}; // 切換模式時重置炸開狀態
+            // 切換時自動收合 100% 的群組
+            _autoCollapseWpDoneGroups();
             _saveWpCollapseState();
             _syncWpViewModeBtns();
             renderWorkProgressList();
+        }
+
+        function _autoCollapseWpDoneGroups() {
+            const siteId = _wpCurrentSiteId;
+            if (!siteId) return;
+            const viewMode = window._wpViewMode || 'task';
+            const items = db.workProgress[siteId] || [];
+            // 依目前 viewMode 分組，找出全部 100% 的群組自動收合
+            const groups = {};
+            items.forEach(function(item, idx) {
+                const key = viewMode === 'floor' ? (item.floor || '') : (item.task || '');
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(item);
+            });
+            Object.keys(groups).forEach(function(key) {
+                const collapseKey = siteId + '|' + viewMode + '|' + key;
+                const allDone = groups[key].every(function(item) { return (item.progress || 0) >= 100; });
+                if (allDone) {
+                    window._wpTaskCollapsed[collapseKey] = true;
+                }
+            });
         }
 
         function _syncWpViewModeBtns() {
@@ -6218,10 +6252,16 @@
 
                 // 進度條（點擊收合已炸開的 done 膠囊，或展開/收合整個群組）
                 const hTrack = document.createElement('div');
-                hTrack.style.cssText = 'position:relative; width:100%; height:15px; background:#2a2a2a; border-radius:8px; overflow:hidden; cursor:pointer;';
+                hTrack.style.cssText = 'position:relative; width:100%; height:12px; background:#2a2a2a; border-radius:6px; overflow:hidden; cursor:pointer;';
                 const hFill = document.createElement('div');
-                hFill.style.cssText = 'height:100%; width:' + taskAvgPct + '%; background:' + (taskAvgPct === 100 ? '#D9006C' : '#7ec8e3') + '; border-radius:8px; transition:width 0.15s; pointer-events:none;';
+                hFill.style.cssText = 'height:100%; width:' + taskAvgPct + '%; background:' + (taskAvgPct === 100 ? '#D9006C' : '#7ec8e3') + '; border-radius:6px; transition:width 0.15s; pointer-events:none;';
                 hTrack.appendChild(hFill);
+                // 10% 刻度線
+                for (var t = 1; t < 10; t++) {
+                    var tick = document.createElement('div');
+                    tick.style.cssText = 'position:absolute; top:0; bottom:0; left:' + (t * 10) + '%; width:1px; background:rgba(0,0,0,0.2); pointer-events:none;';
+                    hTrack.appendChild(tick);
+                }
                 header.appendChild(hTrack);
 
                 (function(key) {
@@ -6287,12 +6327,7 @@
                 // per-group 炸開狀態（在 render 之間持久存 window）
                 if (!window._wpDoneGroupExpanded) window._wpDoneGroupExpanded = {};
                 var doneExpandKey = siteId + '|' + viewMode + '|' + taskKey;
-                // 若群組全部 100%，自動收合（進度條也收起）
-                var allDone = group.items.every(function(e) { return (e.item.progress || 0) >= 100; });
-                if (allDone) {
-                    window._wpDoneGroupExpanded[doneExpandKey] = false;
-                    window._wpTaskCollapsed[collapseKey] = true;
-                }
+
 
                 // 所有 entry 統一處理（保持原始排序，done/undone 不分流）
                 group.items.forEach(function(entry) {
@@ -6602,6 +6637,51 @@
             // 只填廠商，樓層讓使用者自己選
             const vendorSel = targetRow.querySelector('.log-vendor-input');
             if (vendorSel && vendor) vendorSel.value = vendor;
+        }
+
+        function _wpEditOpenAddLog() {
+            if (!_wpEditingId) return;
+            const { siteId, idx } = _wpEditingId;
+            const item = (db.workProgress[siteId] || [])[idx];
+            if (!item) return;
+            closeWpProgressEdit();
+            // 開啟新增工程記錄視窗，並預選案場
+            openAddLogModal(siteId);
+            // 等 modal 建立完成後填入資料
+            setTimeout(function() {
+                const container = document.getElementById('addLogItemsContainer');
+                if (!container) return;
+                const row = container.querySelector('.log-entry-item');
+                if (!row) return;
+                // 填入工項
+                const taskSel = row.querySelector('.log-task-input');
+                if (taskSel) {
+                    taskSel.value = item.task || '';
+                    _onLogTaskChange(taskSel);
+                }
+                setTimeout(function() {
+                    // 填入廠商
+                    const vendorSel = row.querySelector('.log-vendor-input');
+                    if (vendorSel && item.vendor) {
+                        let opt = Array.from(vendorSel.options).find(o => o.value === item.vendor);
+                        if (!opt) {
+                            opt = document.createElement('option');
+                            opt.value = item.vendor;
+                            opt.textContent = item.vendor;
+                            vendorSel.appendChild(opt);
+                        }
+                        vendorSel.value = item.vendor;
+                    }
+                    // 填入樓層
+                    const floor = item.floor || '';
+                    if (floor) {
+                        const floors = _expandFloorSummary(floor);
+                        row._fpSiteId = siteId;
+                        row._fpTask = item.task || '';
+                        _initFloorTrigger(row, siteId, item.task || '', floors);
+                    }
+                }, 50);
+            }, 80);
         }
 
         function openWpProgressEdit(siteId, idx) {
