@@ -17,7 +17,7 @@
         body { display: flex; flex-direction: column; }
         main.max-w-md { max-width: 448px; width: 100%; margin: 0 auto; flex: 1; min-height: 0; padding: 8px 16px 16px; position: relative; display: flex; flex-direction: column; }
         
-        header { background-color: #111111; color: #ffffff; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 50; border-bottom: 1px solid #333333; flex-shrink: 0; min-height: 48px; }
+        header { background-color: #111111; color: #ffffff; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 50; flex-shrink: 0; min-height: 48px; }
         .header-title { font-size: 16px; font-weight: bold; margin: 0 8px; text-align: center; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: center; }
         
         button { border: none; cursor: pointer; border-radius: 8px; font-weight: bold; padding: 8px 12px; font-size: 12px; transition: background-color 0.2s; display: inline-flex; align-items: center; justify-content: center; }
@@ -2562,14 +2562,7 @@
             _renderVendorSwitchPills(true);
             if (!_activeVendorName) return;
             _updateVendorTotalDisplay();
-            // 更新編輯模式的總計價比例
-            const _vPctEl = document.getElementById('editVendorTotalPct');
-            if (_vPctEl) {
-                const _vBlocks = _getVendorBlocks();
-                const _vCt = _computeVendorContractTotal();
-                const _vAmt = _vBlocks.reduce(function(s, blk) { return s + (blk.items||[]).reduce(function(ss,r){ return ss+(Number(r.amount)||0); }, 0); }, 0);
-                _vPctEl.innerText = _vCt > 0 ? (_vAmt/_vCt*100).toFixed(1)+'%' : '—';
-            }
+
             document.getElementById('vendorCardViewArea').style.display = 'none';
             document.getElementById('vendorCardEditArea').style.display = 'flex';
             _renderVendorProgressBlocksFor(true);
@@ -2881,8 +2874,7 @@
             const pctStr = ct > 0 ? (totalAmt / ct * 100).toFixed(1) + '%' : '—';
             const el = document.getElementById('siteInfoViewTotalPct');
             if (el) el.innerText = pctStr;
-            const el2 = document.getElementById('editSiteInfoTotalPct');
-            if (el2) el2.innerText = pctStr;
+
         }
 
         let _siteInfoEditBackup = null;
@@ -6031,7 +6023,7 @@
             const items = db.workProgress[siteId] || [];
             // 依目前 viewMode 分組，找出全部 100% 的群組自動收合
             const groups = {};
-            items.forEach(function(item, idx) {
+            items.forEach(function(item) {
                 const key = viewMode === 'floor' ? (item.floor || '') : (item.task || '');
                 if (!groups[key]) groups[key] = [];
                 groups[key].push(item);
@@ -6140,11 +6132,6 @@
             const _pm = _wpBuildPeopleMap(siteId);
             function calcTotalPeople(task, floor) {
                 return _pm.map[(task || '') + '|' + (floor || '')] || 0;
-            }
-            function _fmtMD(dateStr) {
-                if (!dateStr) return '';
-                const [, mm, dd] = dateStr.split('-');
-                return parseInt(mm, 10) + '/' + parseInt(dd, 10);
             }
 
             // 總進度（百分比＋進度條），下方以廠商出工人數取代原「總進度」文字
