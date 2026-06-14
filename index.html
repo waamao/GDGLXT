@@ -279,11 +279,15 @@
                             <div id="siteInfoViewNotesWrap" style="display:none;">
                                 <div id="siteInfoViewNotes" style="font-size:14px; color:#ffffff; line-height:1.6; white-space:pre-wrap;"></div>
                             </div>
-                            <div id="siteInfoViewTotalWrap" style="display:grid; grid-template-columns:52px 1fr max-content 52px; align-items:center; gap:8px; width:100%;">
-                                <span style="font-size:11px; font-weight:bold; color:#888888; white-space:nowrap; letter-spacing:0.04em;">承攬總價（含稅）</span>
-                                <span></span>
-                                <span id="siteInfoViewTotal" style="font-size:14px; font-weight:600; color:#ffffff; white-space:nowrap; text-align:right;">—</span>
-                                <span id="siteInfoViewTotalPct" style="font-size:14px; font-weight:700; color:#ffffff; white-space:nowrap; text-align:right;">—</span>
+                            <div id="siteInfoViewTotalWrap" style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; width:100%;">
+                                <div>
+                                    <div style="font-size:11px; font-weight:bold; color:#888888; margin-bottom:2px; letter-spacing:0.04em;">承攬總價（含稅）</div>
+                                    <div id="siteInfoViewTotal" style="font-size:14px; font-weight:600; color:#ffffff;">—</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:11px; font-weight:bold; color:#888888; margin-bottom:2px; letter-spacing:0.04em;">總計價進度</div>
+                                    <div id="siteInfoViewTotalPct" style="font-size:14px; font-weight:700; color:#ffffff;">—</div>
+                                </div>
                             </div>
                         </div>
                         <div id="mainInfoEditArea" style="display:none; flex-direction:column; gap:10px;">
@@ -337,15 +341,11 @@
                         <div id="vendorCardViewPills" style="display:flex; flex-wrap:wrap; gap:6px; min-height:22px;"></div>
                         <!-- 單一廠商 view 模式 -->
                         <div id="vendorCardViewArea" style="display:none; flex-direction:column; gap:8px;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:6px;">
-                                <div>
-                                    <div style="font-size:11px; font-weight:bold; color:#888888; margin-bottom:2px; letter-spacing:0.04em;">承攬總價（含稅）</div>
-                                    <div id="vendorCardViewTotal" style="font-size:14px; font-weight:600; color:#ffffff;">—</div>
-                                </div>
-                                <div style="text-align:right;">
-                                    <div style="font-size:11px; font-weight:bold; color:#888888; margin-bottom:2px; letter-spacing:0.04em;">總計價比例</div>
-                                    <div id="vendorCardViewTotalPct" style="font-size:14px; font-weight:700; color:#ffffff;">—</div>
-                                </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px 16px; padding-top:6px; width:100%;">
+                                <div style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">承攬總價（含稅）</div>
+                                <div style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em; text-align:right;">總計價比例</div>
+                                <div id="vendorCardViewTotal" style="font-size:14px; font-weight:600; color:#ffffff;">—</div>
+                                <div id="vendorCardViewTotalPct" style="font-size:14px; font-weight:700; color:#ffffff; text-align:right;">—</div>
                             </div>
                         </div>
                         <!-- 單一廠商 edit 模式 -->
@@ -936,16 +936,16 @@
                 if (raw) {
                     const parsed = JSON.parse(raw);
                     window._wpTaskCollapsed = parsed.task || {};
-                    window._wpFloorCollapsed = parsed.floor || {};
+
                     window._wpViewMode = parsed.viewMode === 'floor' ? 'floor' : 'task';
                 } else {
                     window._wpTaskCollapsed = {};
-                    window._wpFloorCollapsed = {};
+
                     window._wpViewMode = 'task';
                 }
             } catch (e) {
                 window._wpTaskCollapsed = {};
-                window._wpFloorCollapsed = {};
+
                 window._wpViewMode = 'task';
             }
         }
@@ -954,7 +954,7 @@
             try {
                 localStorage.setItem('_wpCollapseState', JSON.stringify({
                     task: window._wpTaskCollapsed || {},
-                    floor: window._wpFloorCollapsed || {},
+
                     viewMode: window._wpViewMode || 'task'
                 }));
             } catch (e) {}
@@ -2100,32 +2100,7 @@
             if (_activeVendorName === old) _activeVendorName = trimmed;
         }
 
-        function renameVendor(idx) {
-            const old = (db.vendors || [])[idx];
-            if (old === undefined) return;
-            const newName = prompt('請輸入廠商新名稱：', old);
-            if (!newName || !newName.trim()) return;
-            const trimmed = newName.trim();
-            if (trimmed === old) return;
-            if ((db.vendors || []).some(function(v, i) { return i !== idx && v === trimmed; })) return alert('廠商「' + trimmed + '」已存在。');
-            _applyVendorRename(old, trimmed);
-            db.vendors[idx] = trimmed;
-            saveToLocalStorage();
-            renderVendorList();
-            // 若案場資訊頁開著，刷新廠商卡
-            if (currentState.page === 'siteinfo') {
-                _renderVendorCard();
-            }
-        }
 
-        function deleteVendor(idx) {
-            const name = (db.vendors || [])[idx];
-            if (name === undefined) return;
-            if (!confirm('確定要刪除廠商「' + name + '」嗎？')) return;
-            db.vendors.splice(idx, 1);
-            saveToLocalStorage();
-            renderVendorList();
-        }
 
         // 套用案場改名（不含 prompt/重複檢查），同步 currentState 與工程記錄文字
         function _applySiteRename(siteId, trimmed) {
@@ -2249,22 +2224,6 @@
             _renderVendorCardEdit();
         }
 
-        function renameSiteFromManage(siteId) {
-            const site = db.sites.find(s => s.id === siteId);
-            if (!site) return;
-            const newName = prompt('請輸入案場新名稱：', site.name);
-            if (!newName || !newName.trim()) return;
-            const trimmed = newName.trim();
-            if (db.sites.some(s => s.id !== siteId && s.name === trimmed)) return alert(`案場「${trimmed}」已存在，請使用不同名稱。`);
-            _applySiteRename(siteId, trimmed);
-            saveToLocalStorage();
-            renderSiteInfoList();
-            const pillBox = document.getElementById('siteInfoSiteSelect');
-            if (pillBox) {
-                const curSel = pillBox.dataset.siteId || '';
-                _renderSitePills('siteInfoSiteSelect', curSel, function(id) { selectSiteInfoSite(id); }, true);
-            }
-        }
 
         function deleteSiteFromManage(siteId) {
             const site = db.sites.find(s => s.id === siteId);
@@ -2548,12 +2507,19 @@
             _renderVendorSwitchPills(true);
             if (!_activeVendorName) return;
             _updateVendorTotalDisplay();
+            // 更新編輯模式的總計價比例
+            const _vPctEl = document.getElementById('editVendorTotalPct');
+            if (_vPctEl) {
+                const _vBlocks = _getVendorBlocks();
+                const _vCt = _computeVendorContractTotal();
+                const _vAmt = _vBlocks.reduce(function(s, blk) { return s + (blk.items||[]).reduce(function(ss,r){ return ss+(Number(r.amount)||0); }, 0); }, 0);
+                _vPctEl.innerText = _vCt > 0 ? (_vAmt/_vCt*100).toFixed(1)+'%' : '—';
+            }
             document.getElementById('vendorCardViewArea').style.display = 'none';
             document.getElementById('vendorCardEditArea').style.display = 'flex';
             _renderVendorProgressBlocksFor(true);
-            const blocks = _getVendorBlocks();
             const wrap = document.getElementById('vendorProgressDetailWrap');
-            if (wrap) wrap.style.display = blocks.length > 0 ? 'flex' : 'none';
+            if (wrap) wrap.style.display = 'flex'; // 編輯時永遠顯示（含新增按鈕）
         }
 
         function _renderVendorCard() { _renderVendorCardView(); }
@@ -2675,11 +2641,6 @@
             return list;
         }
 
-        function _floorSectionType(f) {
-            if (/^B\d+F$/.test(f)) return 'B';
-            if (/^R\d+F$/.test(f)) return 'R';
-            return 'A';
-        }
 
         // 將已選樓層集合格式化為文字：連續樓層合併為「X-Y」，不連續以「、」分隔
 
@@ -2838,7 +2799,7 @@
 
             document.getElementById('siteInfoViewTotal').innerText = info.contractTotal ? _fmtAmount(info.contractTotal) : '—';
             const totalWrap = document.getElementById('siteInfoViewTotalWrap');
-            if (totalWrap) totalWrap.style.display = info.contractTotal ? '' : 'none';
+            if (totalWrap) totalWrap.style.display = info.contractTotal ? 'flex' : 'none';
 
             const notesWrap = document.getElementById('siteInfoViewNotesWrap');
             const notesEl = document.getElementById('siteInfoViewNotes');
@@ -2862,9 +2823,11 @@
                 if (blk.includeInTotal === false) return sum;
                 return sum + (blk.items || []).reduce((s, r) => s + (Number(r.amount)||0), 0);
             }, 0);
+            const pctStr = ct > 0 ? (totalAmt / ct * 100).toFixed(1) + '%' : '—';
             const el = document.getElementById('siteInfoViewTotalPct');
-            if (!el) return;
-            el.innerText = ct > 0 ? (totalAmt / ct * 100).toFixed(1) + '%' : '—';
+            if (el) el.innerText = pctStr;
+            const el2 = document.getElementById('editSiteInfoTotalPct');
+            if (el2) el2.innerText = pctStr;
         }
 
         let _siteInfoEditBackup = null;
@@ -6087,17 +6050,6 @@
                 if (!dateStr) return '';
                 const [, mm, dd] = dateStr.split('-');
                 return parseInt(mm, 10) + '/' + parseInt(dd, 10);
-            }
-            function getDateLabel(task, floor, pct) {
-                const key = (task || '') + '|' + (floor || '');
-                const sd = _pm.startDateMap[key];
-                if (!sd) return '';
-                if (pct >= 100) {
-                    const ed = _pm.endDateMap[key];
-                    const edStr = (ed && ed !== sd) ? '-' + _fmtMD(ed) : '';
-                    return '（' + _fmtMD(sd) + edStr + '）';
-                }
-                return '（' + _fmtMD(sd) + '）';
             }
 
             // 總進度（百分比＋進度條），下方以廠商出工人數取代原「總進度」文字
