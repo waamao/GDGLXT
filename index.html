@@ -4767,11 +4767,11 @@
                         _lastChip = chip;
                         _isSwiping = false;
                         _applyChip(chip, _slideOn);
-                    }, { passive: true });
+                        e.preventDefault(); // 防止觸發 click
+                    }, { passive: false });
 
-                    // click fallback（桌機或 touchstart 沒抓到時）
+                    // 桌機 click（touchstart 已 preventDefault，手機不會走這裡）
                     chip.addEventListener('click', function() {
-                        if (_isSwiping) return; // 滑動結束後不重複觸發
                         var nowOn = chip.dataset.on !== '1';
                         _applyChip(chip, nowOn);
                         _floorPickerSyncToRow();
@@ -4796,7 +4796,7 @@
                     if (_slideOn !== null) _floorPickerSyncToRow();
                     _slideOn = null;
                     _lastChip = null;
-                    setTimeout(function() { _isSwiping = false; }, 50);
+                    _isSwiping = false;
                 });
 
                 chipsEl.addEventListener('touchcancel', function() {
