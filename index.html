@@ -4656,8 +4656,16 @@
         }
 
         // 取得某工項在 workProgress 中所有樓層（自然排序）
+        // 取得某工項在 workProgress 中所有廠商
+        function _getWpVendorsForTask(siteId, task) {
+            const items = (db.workProgress[siteId] || []).filter(i => (i.task || '') === (task || '') && (i.vendor || '').trim());
+            const seen = new Set(), vendors = [];
+            items.forEach(i => { const v = (i.vendor || '').trim(); if (v && !seen.has(v)) { seen.add(v); vendors.push(v); } });
+            return vendors;
+        }
+
         function _getWpFloorsForTask(siteId, task) {
-            const items = (db.workProgress[siteId] || []).filter(i => (i.vendor || '').trim() && (i.task || '') === (task || ''));
+            const items = (db.workProgress[siteId] || []).filter(i => (i.task || '') === (task || ''));
             const seen = new Set(), floors = [];
             items.forEach(i => { const f = i.floor || ''; if (!seen.has(f)) { seen.add(f); floors.push(f); } });
             floors.sort(_naturalSort);
@@ -4924,6 +4932,15 @@
                 row._fpSiteId = siteId;
                 row._fpTask = task;
                 _initFloorTrigger(row, siteId, task, []);
+                // 廠商選項過濾：只顯示該工項有的廠商
+                const vendorSel = row.querySelector('.log-vendor-input');
+                if (vendorSel) {
+                    const taskVendors = _getWpVendorsForTask(siteId, task);
+                    const allVendors = taskVendors.length > 0 ? taskVendors : _siteVendorsInProgress(siteId);
+                    vendorSel.innerHTML = allVendors.map(function(v) {
+                        return '<option value="' + v.replace(/"/g,'&quot;') + '">' + v + '</option>';
+                    }).join('');
+                }
             }
             _updateRowProgressLabel(row, siteId);
         }
