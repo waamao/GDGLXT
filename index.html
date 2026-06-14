@@ -44,7 +44,7 @@
         .list-container { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
         .scroll-list-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
         
-        .list-item { background-color: #1e1e1e; border: 1px solid #444444; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02); gap: 8px; min-height: 44px; color: #ffffff; }
+        .list-item { background-color: #111111; border: 1px solid #444444; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02); gap: 8px; min-height: 44px; color: #ffffff; }
         .list-item.selected { background-color: #3d3d3d !important; border-color: #aaaaaa !important; }
         .list-item.selected span { color: #ffffff !important; }
 
@@ -264,17 +264,17 @@
                             </div>
                         </div>
                         <div id="mainInfoViewArea" style="display:flex; flex-direction:column; gap:8px;">
-                            <div id="siteInfoViewFloorsWrap">
-                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:2px;">
-                                    <div style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">樓層</div>
-                                </div>
-                                <div id="siteInfoViewFloors" style="font-size:14px; color:#ffffff; line-height:1.5;">—</div>
-                            </div>
                             <div id="siteInfoViewAddressWrap">
                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:2px;">
                                     <div style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">地址</div>
                                 </div>
                                 <div id="siteInfoViewAddress" style="font-size:14px; color:#ffffff; line-height:1.5;">—</div>
+                            </div>
+                            <div id="siteInfoViewFloorsWrap">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:2px;">
+                                    <div style="font-size:11px; font-weight:bold; color:#888888; letter-spacing:0.04em;">樓層</div>
+                                </div>
+                                <div id="siteInfoViewFloors" style="font-size:14px; color:#ffffff; line-height:1.5;">—</div>
                             </div>
                             <div id="siteInfoViewNotesWrap" style="display:none;">
                                 <div id="siteInfoViewNotes" style="font-size:14px; color:#ffffff; line-height:1.6; white-space:pre-wrap;"></div>
@@ -361,7 +361,7 @@
                             </div>
                         </div>
                         <!-- 計價進度表 -->
-                        <div id="vendorProgressDetailWrap" style="display:none; flex-direction:column; gap:0; border-top:1px solid #444444; margin:12px 0 0; padding:0 0 2px;">
+                        <div id="vendorProgressDetailWrap" style="display:none; flex-direction:column; gap:0; border-top:1px solid #444444; margin:8px 0 0; padding:0 0 2px;">
                             <div id="vendorProgressBlocksContainer" style="display:flex; flex-direction:column; gap:0;"></div>
                         </div>
                     </div>
@@ -2198,7 +2198,12 @@
                 animation: 150,
                 filter: 'button:not([data-site-id])',
                 preventOnFilter: false,
+                touchStartThreshold: 8,
+                forceFallback: true,
+                fallbackTolerance: 5,
+                onStart: function() { document.body.style.overflow = 'hidden'; },
                 onEnd: function() {
+                    document.body.style.overflow = '';
                     const sorted = [];
                     box.querySelectorAll('button[data-site-id]').forEach(function(el) {
                         const s = db.sites.find(function(s) { return s.id === el.dataset.siteId; });
@@ -2226,7 +2231,12 @@
                 animation: 150,
                 filter: 'button:not([data-vendor-name])',
                 preventOnFilter: false,
+                touchStartThreshold: 8,
+                forceFallback: true,
+                fallbackTolerance: 5,
+                onStart: function() { document.body.style.overflow = 'hidden'; },
                 onEnd: function() {
+                    document.body.style.overflow = '';
                     const sorted = [];
                     box.querySelectorAll('button[data-vendor-name]').forEach(function(el) {
                         const name = el.dataset.vendorName;
