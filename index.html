@@ -1308,7 +1308,51 @@
             }
 
             const fileName = `GCGL_${fileTs}.json`;
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            // 匯出前清理
+            const dbClean = JSON.parse(JSON.stringify(db));
+            // 1. 清理空白工項（無廠商、無樓層、進度 0%）
+            if (dbClean.workProgress) {
+                Object.keys(dbClean.workProgress).forEach(function(sid) {
+                    dbClean.workProgress[sid] = (dbClean.workProgress[sid] || []).filter(function(item) {
+                        const hasVendor = (item.vendor || '').trim();
+                        const hasFloor = (item.floor || '').trim();
+                        const hasProgress = (item.progress || 0) > 0;
+                        return hasVendor || hasFloor || hasProgress;
+                    });
+                });
+            }
+            // 2. 清理孤立案場資料（siteId 不在 sites 清單裡的）
+            const validSiteIds = new Set((dbClean.sites || []).map(function(s) { return s.id; }));
+            ['workProgress', 'siteInfo', 'punches', 'vendors'].forEach(function(key) {
+                if (dbClean[key] && typeof dbClean[key] === 'object' && !Array.isArray(dbClean[key])) {
+                    Object.keys(dbClean[key]).forEach(function(sid) {
+                        if (!validSiteIds.has(sid)) delete dbClean[key][sid];
+                    });
+                }
+            });
+            // 3. 清理 constructionItems：只保留實際出現在 workProgress 或 dailyRecords 的工項名稱
+            if (Array.isArray(dbClean.constructionItems)) {
+                const activeTasks = new Set();
+                Object.values(dbClean.workProgress || {}).forEach(function(items) {
+                    items.forEach(function(item) { if (item.task) activeTasks.add(item.task.trim()); });
+                });
+                Object.values(dbClean.dailyRecords || {}).forEach(function(siteLogs) {
+                    Object.values(siteLogs || {}).forEach(function(logs) {
+                        (Array.isArray(logs) ? logs : [logs]).forEach(function(log) {
+                            const text = (log && log.text) || '';
+                            const matches = text.match(/^● (.+)$/gm) || [];
+                            matches.forEach(function(m) {
+                                const t = m.replace(/^● /, '').trim();
+                                if (t) activeTasks.add(t);
+                            });
+                        });
+                    });
+                });
+                dbClean.constructionItems = dbClean.constructionItems.filter(function(t) {
+                    return activeTasks.has(t);
+                });
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dbClean, null, 2));
             const a = document.createElement('a');
             a.setAttribute("href", dataStr);
             a.setAttribute("download", fileName);
